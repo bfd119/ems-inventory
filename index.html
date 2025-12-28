@@ -940,20 +940,11 @@
 
     <section id="settings" class="screen">
         <header class="dashboard-header">
-            <button class="back-btn" id="back-from-settings">←</button>
-            <h2 class="department-name">カテゴリ・用品設定</h2>
+            <button class="back-btn" id="back-to-home-from-settings">←</button>
+            <h2 class="department-name">設定</h2>
             <div class="header-spacer"></div>
         </header>
-        <div class="settings-section">
-            <div class="settings-section-title"><span>カテゴリ</span><button class="add-btn" id="add-category-btn">+
-                    追加</button></div>
-            <div class="settings-list" id="categories-list"></div>
-        </div>
-        <div class="settings-section">
-            <div class="settings-section-title"><span>用品</span><button class="add-btn" id="add-item-btn">+ 追加</button>
-            </div>
-            <div class="settings-list" id="items-settings-list"></div>
-        </div>
+        <div id="settings-container"></div>
     </section>
 
     <div class="modal" id="items-modal">
@@ -1059,7 +1050,7 @@
             'edit_note': '#795548', 'content_cut': '#607D8B'
         };
         let DEPARTMENTS = [], CATEGORIES = [], ITEMS = [];
-        const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, editingCategoryId: null, editingItemId: null };
+        const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, editingCategoryId: null, editingItemId: null, settingsCatId: null };
         const $ = id => document.getElementById(id);
         const el = {};
 
@@ -1095,10 +1086,10 @@
             el.logList = $('log-list');
             el.summaryList = $('summary-list');
             el.budgetTable = $('budget-table');
+            el.budgetTable = $('budget-table');
             el.budgetYear = $('budget-year');
             el.budgetMonth = $('budget-month');
-            el.catsList = $('categories-list');
-            el.itemsSettingsList = $('items-settings-list');
+            el.settingsContainer = $('settings-container');
             el.newCategoryIconGrid = $('new-category-icon-grid');
             el.newCategoryIconInput = $('new-category-icon');
             el.addCategoryModalTitle = $('add-category-modal-title');
@@ -1114,26 +1105,10 @@
             $('close-items-modal').onclick = () => closeModal('items');
             $('close-transaction-modal').onclick = () => closeModal('transaction');
             // カテゴリ追加モーダル
-            $('add-category-btn').onclick = () => {
-                state.editingCategoryId = null;
-                el.addCategoryModalTitle.textContent = 'カテゴリ追加';
-                $('new-category-name').value = '';
-                $('new-category-icon').value = ICONS[0];
-                renderIconGrid();
-                openModal('addCategory');
-            };
+            $('add-category-btn-hidden') && ($('add-category-btn-hidden').onclick = openAddCategoryModal); // 動的生成のためここでのバインドは不要だが関数として定義
             $('close-add-category-modal').onclick = () => closeModal('addCategory');
             $('save-new-category').onclick = saveNewCategory;
-            $('add-item-btn').onclick = () => {
-                if (CATEGORIES.length === 0) { alert('先にカテゴリを作成してください'); return; }
-                state.editingItemId = null;
-                el.addItemModalTitle.textContent = '用品追加';
-                populateCatSelect();
-                $('new-item-name').value = '';
-                $('new-item-unit').value = '個';
-                $('new-item-has-expiry').checked = false;
-                openModal('addItem');
-            };
+
             $('close-add-item-modal').onclick = () => closeModal('addItem');
             document.querySelectorAll('.modal-overlay').forEach(o => o.onclick = () => Object.keys(el.modals).forEach(k => closeModal(k)));
             $('btn-type-in').onclick = () => setTxType('IN');
@@ -1342,10 +1317,79 @@
         function switchTab(id) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + id)); }
 
         function renderSettings() {
-            el.catsList.innerHTML = CATEGORIES.map(c => `<div class="settings-item" onclick="editCategory(${c.id})"><span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name}</span><button class="delete-btn" data-id="${c.id}" onclick="event.stopPropagation()">×</button></div>`).join('') || '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
-            el.itemsSettingsList.innerHTML = ITEMS.map(i => { const c = CATEGORIES.find(x => x.id === i.categoryId); return `<div class="settings-item" onclick="editItem(${i.id})"><span class="settings-item-name">${i.name} <small style="color:var(--color-text-muted)">(${c?.name || '?'})</small></span><button class="delete-btn" data-id="${i.id}" onclick="event.stopPropagation()">×</button></div>`; }).join('') || '<p style="color:var(--color-text-muted)">用品がありません</p>';
-            el.catsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); deleteCategory(+b.dataset.id); });
-            el.itemsSettingsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); deleteItemSetting(+b.dataset.id); });
+            if (state.settingsCatId) {
+                renderSettingsItems(state.settingsCatId);
+            } else {
+                renderSettingsCategories();
+            }
+        }
+
+        function renderSettingsCategories() {
+            let h = '<div class="settings-section"><h3 class="section-title">カテゴリ一覧 <button class="btn-sm" onclick="openAddCategoryModal()">＋追加</button></h3><div class="settings-list">';
+            if (CATEGORIES.length === 0) h += '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
+            else {
+                h += CATEGORIES.map(c => `
+                    <div class="settings-item" onclick="state.settingsCatId=${c.id};renderSettings()">
+                        <span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name}</span>
+                        <div class="settings-actions">
+                            <button class="icon-btn" onclick="event.stopPropagation();editCategory(${c.id})"><span class="material-symbols-outlined">edit</span></button>
+                            <button class="delete-btn" onclick="event.stopPropagation();deleteCategory(${c.id})">×</button>
+                        </div>
+                    </div>`).join('');
+            }
+            h += '</div></div>';
+            el.settingsContainer.innerHTML = h;
+        }
+
+        function renderSettingsItems(catId) {
+            const cat = CATEGORIES.find(c => c.id === catId);
+            if (!cat) { state.settingsCatId = null; renderSettings(); return; }
+            const items = ITEMS.filter(i => i.categoryId === catId);
+            let h = `<div class="settings-section">
+                <div style="display:flex;align-items:center;margin-bottom:1rem;">
+                    <button class="back-btn" onclick="state.settingsCatId=null;renderSettings()" style="margin-right:1rem;font-size:1.2rem;">←</button>
+                    <h3 class="section-title" style="margin:0"><span class="material-symbols-outlined" style="color:${ICON_COLORS[cat.icon] || ''};vertical-align:bottom;">${cat.icon}</span> ${cat.name}</h3>
+                </div>
+                <div style="margin-bottom:1rem;text-align:right;"><button class="btn-sm" onclick="openAddItemModal(${catId})">＋このカテゴリに用品追加</button></div>
+                <div class="settings-list">`;
+
+            if (items.length === 0) h += '<p style="color:var(--color-text-muted)">用品がありません</p>';
+            else {
+                h += items.map(i => `
+                    <div class="settings-item" onclick="editItem(${i.id})">
+                        <span class="settings-item-name">${i.name}</span>
+                        <div class="settings-actions">
+                             <button class="delete-btn" onclick="event.stopPropagation();deleteItemSetting(${i.id})">×</button>
+                        </div>
+                    </div>`).join('');
+            }
+            h += '</div></div>';
+            el.settingsContainer.innerHTML = h;
+        }
+
+        function openAddCategoryModal() {
+            state.editingCategoryId = null;
+            el.addCategoryModalTitle.textContent = 'カテゴリ追加';
+            $('new-category-name').value = '';
+            $('new-category-icon').value = ICONS[0];
+            renderIconGrid();
+            openModal('addCategory');
+        }
+
+        function openAddItemModal(catId) {
+            state.editingItemId = null;
+            el.addItemModalTitle.textContent = '用品追加';
+            populateCatSelect();
+            if (catId) {
+                $('new-item-category').value = catId;
+                $('new-item-category').disabled = true;
+            } else {
+                $('new-item-category').disabled = false;
+            }
+            $('new-item-name').value = '';
+            $('new-item-unit').value = '個';
+            $('new-item-has-expiry').checked = false;
+            openModal('addItem');
         }
 
         function editItem(id) {
@@ -1355,6 +1399,7 @@
             el.addItemModalTitle.textContent = '用品編集';
             populateCatSelect();
             $('new-item-category').value = i.categoryId;
+            $('new-item-category').disabled = false; // 編集時はカテゴリ移動可能にする
             $('new-item-name').value = i.name;
             $('new-item-unit').value = i.unit;
             $('new-item-has-expiry').checked = i.hasExpiry;
