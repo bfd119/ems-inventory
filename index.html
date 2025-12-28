@@ -1,50 +1,878 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EMS在庫管理システム</title>
-    <meta name="description" content="消防救急資器材の在庫管理システム - 11部署の在庫を一元管理">
-    <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="消防救急資器材の在庫管理システム">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg-primary: #faf9f7;
+            --color-bg-secondary: #f5f4f0;
+            --color-bg-tertiary: #e8e6e1;
+            --color-bg-card: #ffffff;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #5c5c5c;
+            --color-text-muted: #8c8c8c;
+            --color-accent-primary: #d97706;
+            --color-accent-secondary: #ea580c;
+            --color-accent-gradient: linear-gradient(135deg, #d97706, #ea580c);
+            --color-success: #16a34a;
+            --color-danger: #dc2626;
+            --color-in: #16a34a;
+            --color-out: #dc2626;
+            --color-border: rgba(0, 0, 0, 0.08);
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-xl: 24px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition-fast: 150ms ease;
+            --font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            min-height: 100dvh;
+            line-height: 1.5;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+        }
+
+        input,
+        select {
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            min-height: 100dvh;
+            padding: var(--spacing-md);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(250, 249, 247, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--color-bg-tertiary);
+            border-top-color: var(--color-accent-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #department-select {
+            justify-content: center;
+            align-items: center;
+            gap: var(--spacing-xl);
+        }
+
+        .screen-header {
+            text-align: center;
+        }
+
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            color: var(--color-accent-primary);
+        }
+
+        .app-subtitle {
+            margin-top: var(--spacing-sm);
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .department-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            width: 100%;
+            max-width: 340px;
+        }
+
+        .department-btn {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .department-btn:hover {
+            border-color: var(--color-accent-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .settings-link {
+            margin-top: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .settings-link:hover {
+            color: var(--color-accent-primary);
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) 0;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .back-btn,
+        .stats-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .back-btn:hover,
+        .stats-btn:hover {
+            border-color: var(--color-accent-primary);
+        }
+
+        .header-spacer {
+            width: 40px;
+        }
+
+        .department-name {
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            flex: 1;
+            align-content: start;
+        }
+
+        .category-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            min-height: 90px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .category-tile:hover {
+            border-color: var(--color-accent-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .category-icon {
+            font-size: 1.75rem;
+        }
+
+        .category-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-align: center;
+            color: var(--color-text-secondary);
+        }
+
+        .analytics-tabs {
+            display: flex;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: var(--spacing-sm);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        .tab-btn.active {
+            background: var(--color-accent-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .analytics-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .log-list,
+        .summary-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .log-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .log-type {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .log-type.in {
+            background: rgba(22, 163, 74, 0.1);
+            color: var(--color-in);
+        }
+
+        .log-type.out {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--color-out);
+        }
+
+        .log-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .log-item-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .log-meta {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        .log-quantity {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .summary-item {
+            padding: var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .summary-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .summary-item-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .summary-item-total {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-accent-primary);
+        }
+
+        .summary-departments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .summary-dept {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            background: var(--color-bg-tertiary);
+            border-radius: 4px;
+            color: var(--color-text-secondary);
+        }
+
+        .budget-controls {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .budget-select {
+            flex: 1;
+            padding: var(--spacing-sm);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            color: var(--color-text-primary);
+        }
+
+        .budget-table-wrapper {
+            flex: 1;
+            overflow: auto;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .budget-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .budget-table th,
+        .budget-table td {
+            padding: var(--spacing-sm);
+            text-align: center;
+            border: 1px solid var(--color-border);
+            white-space: nowrap;
+        }
+
+        .budget-table th {
+            background: var(--color-bg-tertiary);
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+
+        .budget-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: var(--color-bg-card);
+            font-weight: 500;
+            text-align: left;
+        }
+
+        .export-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            width: 100%;
+            padding: var(--spacing-md);
+            background: var(--color-accent-gradient);
+            color: white;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .settings-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .settings-section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .add-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--color-accent-primary);
+            color: white;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .settings-item-name {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .delete-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-danger);
+            font-size: 1rem;
+            border-radius: 50%;
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            max-height: 85vh;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.25s ease;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg-tertiary);
+            border-radius: 50%;
+            font-size: 1rem;
+            color: var(--color-text-secondary);
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-md);
+        }
+
+        .items-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+        }
+
+        .item-row:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .item-expiry-info {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        .item-expiry-info.has-expired {
+            color: var(--color-danger);
+        }
+
+        .item-stock {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-left: var(--spacing-md);
+            color: var(--color-accent-primary);
+        }
+
+        .current-stock {
+            text-align: center;
+            padding: var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stock-label {
+            color: var(--color-text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .stock-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 var(--spacing-sm);
+            color: var(--color-accent-primary);
+        }
+
+        .transaction-type-toggle {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .type-btn[data-type="IN"].active {
+            background: rgba(22, 163, 74, 0.1);
+            border-color: var(--color-in);
+            color: var(--color-in);
+        }
+
+        .type-btn[data-type="OUT"].active {
+            background: rgba(220, 38, 38, 0.1);
+            border-color: var(--color-out);
+            color: var(--color-out);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            color: var(--color-text-primary);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-accent-primary);
+        }
+
+        .quantity-input {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .quantity-input input {
+            flex: 1;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .qty-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg-tertiary);
+            border-radius: var(--border-radius-sm);
+            font-size: 1.25rem;
+        }
+
+        .lot-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .lot-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+        }
+
+        .lot-item.selected {
+            border-color: var(--color-accent-primary);
+            background: rgba(217, 119, 6, 0.1);
+        }
+
+        .lot-item.expired {
+            color: var(--color-danger);
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: var(--color-accent-gradient);
+            color: white;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: var(--spacing-md);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xl);
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+            opacity: 0.5;
+        }
+
+        .api-config {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .api-config label {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+        }
+
+        .api-config input {
+            width: 100%;
+            margin-top: var(--spacing-xs);
+            font-size: 0.8rem;
+        }
+
+        @media (min-width: 768px) {
+            .screen {
+                max-width: 420px;
+                margin: 0 auto;
+            }
+
+            .modal-content {
+                border-radius: var(--border-radius-xl);
+                margin-bottom: var(--spacing-xl);
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <!-- 部署選択画面 -->
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+    </div>
+
     <section id="department-select" class="screen active">
         <div class="screen-header">
-            <h1 class="app-title">
-                <span class="title-icon">🚒</span>
-                EMS在庫管理
-            </h1>
+            <h1 class="app-title"><span>🚒</span>EMS在庫管理</h1>
             <p class="app-subtitle">部署を選択してください</p>
         </div>
-        <div class="department-grid" id="department-grid">
-            <!-- JavaScript で生成 -->
+        <div class="department-grid" id="department-grid"></div>
+        <button class="settings-link" id="open-settings">⚙️ カテゴリ・用品設定</button>
+        <div class="api-config">
+            <label>API URL（GASデプロイURL）</label>
+            <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/.../exec">
         </div>
     </section>
 
-    <!-- 部署ダッシュボード画面 -->
     <section id="dashboard" class="screen">
         <header class="dashboard-header">
-            <button class="back-btn" id="back-to-home" aria-label="戻る">
-                <span class="back-icon">←</span>
-            </button>
+            <button class="back-btn" id="back-to-home">←</button>
             <h2 class="department-name" id="current-department-name">部署名</h2>
-            <button class="stats-btn" id="open-stats" aria-label="統計">
-                <span class="stats-icon">📊</span>
-            </button>
+            <button class="stats-btn" id="open-stats">📊</button>
         </header>
-        <div class="category-grid" id="category-grid">
-            <!-- JavaScript で生成 -->
-        </div>
+        <div class="category-grid" id="category-grid"></div>
     </section>
 
-    <!-- 統計・分析画面 -->
     <section id="analytics" class="screen">
         <header class="dashboard-header">
-            <button class="back-btn" id="back-to-dashboard" aria-label="戻る">
-                <span class="back-icon">←</span>
-            </button>
+            <button class="back-btn" id="back-to-dashboard">←</button>
             <h2 class="department-name">全体統計・分析</h2>
             <div class="header-spacer"></div>
         </header>
@@ -55,14 +883,10 @@
         </div>
         <div class="analytics-content">
             <div id="tab-log" class="tab-content active">
-                <div class="log-list" id="log-list">
-                    <!-- JavaScript で生成 -->
-                </div>
+                <div class="log-list" id="log-list"></div>
             </div>
             <div id="tab-summary" class="tab-content">
-                <div class="summary-list" id="summary-list">
-                    <!-- JavaScript で生成 -->
-                </div>
+                <div class="summary-list" id="summary-list"></div>
             </div>
             <div id="tab-budget" class="tab-content">
                 <div class="budget-controls">
@@ -72,82 +896,419 @@
                     </select>
                 </div>
                 <div class="budget-table-wrapper">
-                    <table class="budget-table" id="budget-table">
-                        <!-- JavaScript で生成 -->
-                    </table>
+                    <table class="budget-table" id="budget-table"></table>
                 </div>
-                <button class="export-btn" id="export-csv">
-                    <span>📥</span> CSVエクスポート
-                </button>
+                <button class="export-btn" id="export-csv">📥 CSVエクスポート</button>
             </div>
         </div>
     </section>
 
-    <!-- 用品一覧モーダル -->
+    <section id="settings" class="screen">
+        <header class="dashboard-header">
+            <button class="back-btn" id="back-from-settings">←</button>
+            <h2 class="department-name">カテゴリ・用品設定</h2>
+            <div class="header-spacer"></div>
+        </header>
+        <div class="settings-section">
+            <div class="settings-section-title"><span>カテゴリ</span><button class="add-btn" id="add-category-btn">+
+                    追加</button></div>
+            <div class="settings-list" id="categories-list"></div>
+        </div>
+        <div class="settings-section">
+            <div class="settings-section-title"><span>用品</span><button class="add-btn" id="add-item-btn">+ 追加</button>
+            </div>
+            <div class="settings-list" id="items-settings-list"></div>
+        </div>
+    </section>
+
     <div class="modal" id="items-modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="items-modal-title">カテゴリ名</h3>
-                <button class="modal-close" id="close-items-modal">×</button>
+                <h3 id="items-modal-title">カテゴリ名</h3><button class="modal-close" id="close-items-modal">×</button>
             </div>
             <div class="modal-body">
-                <ul class="items-list" id="items-list">
-                    <!-- JavaScript で生成 -->
-                </ul>
+                <ul class="items-list" id="items-list"></ul>
             </div>
         </div>
     </div>
 
-    <!-- 入出庫モーダル -->
     <div class="modal" id="transaction-modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="transaction-modal-title">用品名</h3>
-                <button class="modal-close" id="close-transaction-modal">×</button>
+                <h3 id="transaction-modal-title">用品名</h3><button class="modal-close"
+                    id="close-transaction-modal">×</button>
             </div>
             <div class="modal-body">
-                <div class="current-stock">
-                    <span class="stock-label">現在庫:</span>
-                    <span class="stock-value" id="current-stock-value">0</span>
-                    <span class="stock-unit" id="current-stock-unit">個</span>
-                </div>
+                <div class="current-stock"><span class="stock-label">現在庫:</span><span class="stock-value"
+                        id="current-stock-value">0</span><span id="current-stock-unit">個</span></div>
                 <div class="transaction-type-toggle">
                     <button class="type-btn active" data-type="IN" id="btn-type-in">入庫</button>
                     <button class="type-btn" data-type="OUT" id="btn-type-out">出庫</button>
                 </div>
-                <div class="form-group">
-                    <label for="transaction-quantity">数量</label>
-                    <div class="quantity-input">
-                        <button class="qty-btn" id="qty-minus">−</button>
-                        <input type="number" id="transaction-quantity" value="1" min="1">
-                        <button class="qty-btn" id="qty-plus">+</button>
+                <div class="form-group" id="lot-select-group" style="display:none;"><label>出庫ロット選択:</label>
+                    <div class="lot-list" id="lot-list"></div>
+                </div>
+                <div class="form-group" id="expiry-input-group" style="display:none;"><label
+                        for="transaction-expiry">使用期限</label><input type="date" id="transaction-expiry"></div>
+                <div class="form-group"><label>数量</label>
+                    <div class="quantity-input"><button class="qty-btn" id="qty-minus">−</button><input type="number"
+                            id="transaction-quantity" value="1" min="1"><button class="qty-btn" id="qty-plus">+</button>
                     </div>
                 </div>
-                <div class="form-group expiry-group" id="expiry-group">
-                    <label for="transaction-expiry">使用期限（入庫時のみ）</label>
-                    <input type="date" id="transaction-expiry">
-                </div>
-                <div class="form-group">
-                    <label for="transaction-remarks">備考</label>
-                    <input type="text" id="transaction-remarks" list="remarks-suggestions" placeholder="備考を入力...">
-                    <datalist id="remarks-suggestions">
+                <div class="form-group"><label>備考</label><input type="text" id="transaction-remarks"
+                        list="remarks-suggestions" placeholder="備考..."><datalist id="remarks-suggestions">
                         <option value="使用期限切れ">
                         <option value="定期補充">
                         <option value="救急活動で使用">
                         <option value="訓練で使用">
-                        <option value="破損・汚損">
-                        <option value="他部署へ移動">
-                        <option value="他部署から受入">
-                    </datalist>
-                </div>
+                    </datalist></div>
                 <button class="save-btn" id="save-transaction">保存</button>
             </div>
         </div>
     </div>
 
-    <script src="data.js"></script>
-    <script src="app.js"></script>
+    <div class="modal" id="add-category-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>カテゴリ追加</h3><button class="modal-close" id="close-add-category-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>カテゴリ名</label><input type="text" id="new-category-name"
+                        placeholder="例: 輸液"></div>
+                <div class="form-group"><label>アイコン</label><input type="text" id="new-category-icon" placeholder="例: 💉"
+                        maxlength="4"></div>
+                <button class="save-btn" id="save-new-category">追加</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="add-item-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>用品追加</h3><button class="modal-close" id="close-add-item-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>カテゴリ</label><select id="new-item-category"></select></div>
+                <div class="form-group"><label>用品名</label><input type="text" id="new-item-name"
+                        placeholder="例: 生理食塩水 500ml"></div>
+                <div class="form-group"><label>単位</label><input type="text" id="new-item-unit" placeholder="例: 本"
+                        value="個"></div>
+                <div class="form-group"><label><input type="checkbox" id="new-item-has-expiry" checked> 使用期限あり</label>
+                </div>
+                <button class="save-btn" id="save-new-item">追加</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let API_URL = localStorage.getItem('ems_api_url') || '';
+        let DEPARTMENTS = [], CATEGORIES = [], ITEMS = [];
+        const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null };
+        const $ = id => document.getElementById(id);
+        const el = {};
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            cacheElements();
+            bindEvents();
+            $('api-url').value = API_URL;
+            if (API_URL) loadData();
+            else showLoading(false);
+        }
+
+        function cacheElements() {
+            el.loading = $('loading');
+            el.screens = { departmentSelect: $('department-select'), dashboard: $('dashboard'), analytics: $('analytics'), settings: $('settings') };
+            el.deptGrid = $('department-grid');
+            el.catGrid = $('category-grid');
+            el.deptName = $('current-department-name');
+            el.modals = { items: $('items-modal'), transaction: $('transaction-modal'), addCategory: $('add-category-modal'), addItem: $('add-item-modal') };
+            el.itemsList = $('items-list');
+            el.itemsModalTitle = $('items-modal-title');
+            el.txModalTitle = $('transaction-modal-title');
+            el.stockValue = $('current-stock-value');
+            el.stockUnit = $('current-stock-unit');
+            el.txQty = $('transaction-quantity');
+            el.txExpiry = $('transaction-expiry');
+            el.txRemarks = $('transaction-remarks');
+            el.expiryInputGroup = $('expiry-input-group');
+            el.lotSelectGroup = $('lot-select-group');
+            el.lotList = $('lot-list');
+            el.saveBtn = $('save-transaction');
+            el.logList = $('log-list');
+            el.summaryList = $('summary-list');
+            el.budgetTable = $('budget-table');
+            el.budgetYear = $('budget-year');
+            el.budgetMonth = $('budget-month');
+            el.catsList = $('categories-list');
+            el.itemsSettingsList = $('items-settings-list');
+        }
+
+        function bindEvents() {
+            $('api-url').onchange = e => { API_URL = e.target.value.trim(); localStorage.setItem('ems_api_url', API_URL); if (API_URL) loadData(); };
+            $('back-to-home').onclick = () => showScreen('departmentSelect');
+            $('open-stats').onclick = () => { showScreen('analytics'); renderAnalytics(); };
+            $('back-to-dashboard').onclick = () => showScreen('dashboard');
+            $('open-settings').onclick = () => { showScreen('settings'); renderSettings(); };
+            $('back-from-settings').onclick = () => showScreen('departmentSelect');
+            $('close-items-modal').onclick = () => closeModal('items');
+            $('close-transaction-modal').onclick = () => closeModal('transaction');
+            $('close-add-category-modal').onclick = () => closeModal('addCategory');
+            $('close-add-item-modal').onclick = () => closeModal('addItem');
+            document.querySelectorAll('.modal-overlay').forEach(o => o.onclick = () => Object.keys(el.modals).forEach(k => closeModal(k)));
+            $('btn-type-in').onclick = () => setTxType('IN');
+            $('btn-type-out').onclick = () => setTxType('OUT');
+            $('qty-minus').onclick = () => { const v = +el.txQty.value - 1; if (v >= 1) el.txQty.value = v; };
+            $('qty-plus').onclick = () => { el.txQty.value = +el.txQty.value + 1; };
+            $('save-transaction').onclick = saveTx;
+            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+            el.budgetYear.onchange = renderBudget;
+            el.budgetMonth.onchange = renderBudget;
+            $('export-csv').onclick = exportCSV;
+            $('add-category-btn').onclick = () => openModal('addCategory');
+            $('add-item-btn').onclick = () => { populateCatSelect(); openModal('addItem'); };
+            $('save-new-category').onclick = saveNewCategory;
+            $('save-new-item').onclick = saveNewItem;
+        }
+
+        async function apiGet(action, params = {}) {
+            const url = new URL(API_URL);
+            url.searchParams.set('action', action);
+            Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+            const res = await fetch(url);
+            return res.json();
+        }
+
+        async function apiPost(data) {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(data) });
+            return res.json();
+        }
+
+        async function loadData() {
+            showLoading(true);
+            try {
+                const master = await apiGet('getMasterData');
+                if (master.error) throw new Error(master.error);
+                DEPARTMENTS = master.departments;
+                CATEGORIES = master.categories;
+                ITEMS = master.items;
+                renderDeptGrid();
+                state.stocks = await apiGet('getStocks');
+                showLoading(false);
+            } catch (e) { handleError(e); }
+        }
+
+        function showScreen(n) { Object.values(el.screens).forEach(s => s.classList.remove('active')); el.screens[n].classList.add('active'); }
+        function openModal(n) { el.modals[n].classList.add('active'); }
+        function closeModal(n) { el.modals[n].classList.remove('active'); }
+        function showLoading(s) { el.loading.classList.toggle('hidden', !s); }
+
+        function renderDeptGrid() {
+            el.deptGrid.innerHTML = DEPARTMENTS.map(d => `<button class="department-btn" data-id="${d.id}">${d.name}</button>`).join('');
+            el.deptGrid.querySelectorAll('.department-btn').forEach(b => b.onclick = () => { state.deptId = +b.dataset.id; showDashboard(); });
+        }
+
+        function showDashboard() {
+            const d = DEPARTMENTS.find(x => x.id === state.deptId);
+            el.deptName.textContent = d.name + ' 在庫管理';
+            renderCatGrid();
+            showScreen('dashboard');
+        }
+
+        function renderCatGrid() {
+            if (CATEGORIES.length === 0) { el.catGrid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>カテゴリがありません</p></div>'; return; }
+            el.catGrid.innerHTML = CATEGORIES.map(c => `<button class="category-tile" data-id="${c.id}"><span class="category-icon">${c.icon}</span><span class="category-name">${c.name}</span></button>`).join('');
+            el.catGrid.querySelectorAll('.category-tile').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
+        }
+
+        function showItemsModal() {
+            const c = CATEGORIES.find(x => x.id === state.catId);
+            el.itemsModalTitle.textContent = c.name;
+            const items = ITEMS.filter(i => i.categoryId === state.catId);
+            if (items.length === 0) { el.itemsList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>用品がありません</p></div>'; }
+            else {
+                el.itemsList.innerHTML = items.map(item => {
+                    const lots = getLots(state.deptId, item.id);
+                    const total = lots.reduce((a, l) => a + l.quantity, 0);
+                    const hasExpired = lots.some(l => getExpStatus(l.expiryDate) === 'expired');
+                    return `<li class="item-row" data-id="${item.id}"><div class="item-info"><div class="item-name">${item.name}</div><div class="item-expiry-info ${hasExpired ? 'has-expired' : ''}">${item.hasExpiry ? lots.length + 'ロット' : ''}${hasExpired ? ' (期限切れあり)' : ''}</div></div><div class="item-stock">${total}${item.unit}</div></li>`;
+                }).join('');
+                el.itemsList.querySelectorAll('.item-row').forEach(r => r.onclick = () => { state.itemId = +r.dataset.id; showTxModal(); });
+            }
+            openModal('items');
+        }
+
+        function showTxModal() {
+            const item = ITEMS.find(i => i.id === state.itemId);
+            const lots = getLots(state.deptId, state.itemId);
+            const total = lots.reduce((a, l) => a + l.quantity, 0);
+            el.txModalTitle.textContent = item.name;
+            el.stockValue.textContent = total;
+            el.stockUnit.textContent = item.unit;
+            el.txQty.value = 1;
+            el.txRemarks.value = '';
+            state.selectedLot = null;
+            setTxType('IN');
+            closeModal('items');
+            openModal('transaction');
+        }
+
+        function setTxType(t) {
+            state.txType = t;
+            $('btn-type-in').classList.toggle('active', t === 'IN');
+            $('btn-type-out').classList.toggle('active', t === 'OUT');
+            const item = ITEMS.find(i => i.id === state.itemId);
+            const lots = getLots(state.deptId, state.itemId);
+            if (t === 'IN' && item.hasExpiry) {
+                el.expiryInputGroup.style.display = 'block';
+                el.lotSelectGroup.style.display = 'none';
+                const def = new Date(); def.setFullYear(def.getFullYear() + 1);
+                el.txExpiry.value = def.toISOString().split('T')[0];
+            } else if (t === 'OUT' && item.hasExpiry && lots.length > 0) {
+                el.expiryInputGroup.style.display = 'none';
+                el.lotSelectGroup.style.display = 'block';
+                renderLotList(lots);
+            } else {
+                el.expiryInputGroup.style.display = 'none';
+                el.lotSelectGroup.style.display = 'none';
+            }
+        }
+
+        function renderLotList(lots) {
+            lots.sort((a, b) => new Date(a.expiryDate || '9999') - new Date(b.expiryDate || '9999'));
+            el.lotList.innerHTML = lots.map((l, i) => `<div class="lot-item ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}" data-idx="${i}"><span>${l.expiryDate || '期限なし'}</span><span>${l.quantity}個</span></div>`).join('');
+            state.selectedLot = null;
+            el.lotList.querySelectorAll('.lot-item').forEach(li => li.onclick = () => { el.lotList.querySelectorAll('.lot-item').forEach(x => x.classList.remove('selected')); li.classList.add('selected'); state.selectedLot = lots[+li.dataset.idx]; });
+        }
+
+        async function saveTx() {
+            const qty = +el.txQty.value;
+            const remarks = el.txRemarks.value.trim();
+            const item = ITEMS.find(i => i.id === state.itemId);
+            if (isNaN(qty) || qty < 1) { alert('数量を入力してください'); return; }
+            let expiry = null;
+            if (state.txType === 'IN' && item.hasExpiry) expiry = el.txExpiry.value || null;
+            else if (state.txType === 'OUT' && item.hasExpiry) {
+                if (!state.selectedLot) { alert('ロットを選択してください'); return; }
+                if (state.selectedLot.quantity < qty) { alert('在庫不足'); return; }
+                expiry = state.selectedLot.expiryDate;
+            }
+            el.saveBtn.disabled = true;
+            showLoading(true);
+            try {
+                const action = state.txType === 'IN' ? 'stockIn' : 'stockOut';
+                const res = await apiPost({ action, deptId: state.deptId, itemId: state.itemId, expiryDate: expiry, quantity: qty, remarks });
+                if (res.error) throw new Error(res.error);
+                state.stocks = await apiGet('getStocks');
+                closeModal('transaction');
+                showItemsModal();
+            } catch (e) { handleError(e); }
+            el.saveBtn.disabled = false;
+            showLoading(false);
+        }
+
+        async function renderAnalytics() {
+            showLoading(true);
+            try { state.transactions = await apiGet('getTransactions', { limit: 100 }); renderLog(); renderSummary(); initBudget(); renderBudget(); } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        function renderLog() {
+            if (state.transactions.length === 0) { el.logList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>履歴がありません</p></div>'; return; }
+            el.logList.innerHTML = state.transactions.slice(0, 50).map(tx => {
+                const d = DEPARTMENTS.find(x => x.id === tx.departmentId);
+                const i = ITEMS.find(x => x.id === tx.itemId);
+                return `<div class="log-item"><div class="log-type ${tx.type === 'IN' ? 'in' : 'out'}">${tx.type === 'IN' ? '入庫' : '出庫'}</div><div class="log-details"><div class="log-item-name">${i?.name || '?'}</div><div class="log-meta">${d?.name || '?'} / ${fmtDT(tx.timestamp)}${tx.expiryDate ? ' / 期限:' + tx.expiryDate : ''}</div></div><div class="log-quantity">${tx.type === 'IN' ? '+' : '-'}${tx.quantity}</div></div>`;
+            }).join('');
+        }
+
+        function renderSummary() {
+            const sum = {};
+            ITEMS.forEach(i => { sum[i.id] = { item: i, total: 0, depts: [] }; });
+            state.stocks.forEach(s => { if (s.quantity > 0 && sum[s.itemId]) { const d = DEPARTMENTS.find(x => x.id === s.departmentId); sum[s.itemId].total += s.quantity; const ex = sum[s.itemId].depts.find(x => x.name === d?.name); if (ex) ex.qty += s.quantity; else sum[s.itemId].depts.push({ name: d?.name || '?', qty: s.quantity }); } });
+            const active = Object.values(sum).filter(s => s.total > 0);
+            if (active.length === 0) { el.summaryList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>在庫がありません</p></div>'; return; }
+            el.summaryList.innerHTML = active.map(s => `<div class="summary-item"><div class="summary-item-header"><span class="summary-item-name">${s.item.name}</span><span class="summary-item-total">${s.total}${s.item.unit}</span></div><div class="summary-departments">${s.depts.map(d => `<span class="summary-dept">${d.name}: ${d.qty}</span>`).join('')}</div></div>`).join('');
+        }
+
+        function initBudget() {
+            const yrs = new Set(); state.transactions.forEach(t => yrs.add(new Date(t.timestamp).getFullYear())); yrs.add(new Date().getFullYear());
+            el.budgetYear.innerHTML = [...yrs].sort((a, b) => b - a).map(y => `<option value="${y}">${y}年</option>`).join('');
+            el.budgetMonth.innerHTML = '<option value="all">全期間</option>' + [...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1}月</option>`).join('');
+        }
+
+        function renderBudget() {
+            const yr = +el.budgetYear.value, mo = el.budgetMonth.value;
+            const flt = state.transactions.filter(t => t.type === 'OUT' && new Date(t.timestamp).getFullYear() === yr && (mo === 'all' || new Date(t.timestamp).getMonth() + 1 === +mo));
+            const mx = {}; DEPARTMENTS.forEach(d => { mx[d.id] = {}; ITEMS.forEach(i => { mx[d.id][i.id] = 0; }); });
+            flt.forEach(t => { if (mx[t.departmentId]) mx[t.departmentId][t.itemId] = (mx[t.departmentId][t.itemId] || 0) + t.quantity; });
+            const used = ITEMS.filter(i => flt.some(t => t.itemId === i.id));
+            if (used.length === 0) { el.budgetTable.innerHTML = '<tr><td colspan="12" style="padding:2rem;text-align:center">データなし</td></tr>'; return; }
+            let h = '<thead><tr><th>用品</th>' + DEPARTMENTS.map(d => `<th>${d.name}</th>`).join('') + '<th>計</th></tr></thead><tbody>';
+            used.forEach(i => { h += `<tr><td>${i.name}</td>`; let rt = 0; DEPARTMENTS.forEach(d => { const q = mx[d.id][i.id] || 0; rt += q; h += `<td>${q || '-'}</td>`; }); h += `<td><b>${rt}</b></td></tr>`; });
+            h += '</tbody>'; el.budgetTable.innerHTML = h;
+        }
+
+        function exportCSV() {
+            const yr = el.budgetYear.value, mo = el.budgetMonth.value;
+            const flt = state.transactions.filter(t => t.type === 'OUT' && new Date(t.timestamp).getFullYear() === +yr && (mo === 'all' || new Date(t.timestamp).getMonth() + 1 === +mo));
+            const mx = {}; ITEMS.forEach(i => { mx[i.id] = {}; DEPARTMENTS.forEach(d => { mx[i.id][d.id] = 0; }); }); flt.forEach(t => { mx[t.itemId][t.departmentId] += t.quantity; });
+            let csv = '\ufeff用品名,' + DEPARTMENTS.map(d => d.name).join(',') + ',合計\n';
+            ITEMS.forEach(i => { const vs = DEPARTMENTS.map(d => mx[i.id][d.id]); const t = vs.reduce((a, b) => a + b, 0); if (t > 0) csv += `"${i.name}",${vs.join(',')},${t}\n`; });
+            const b = new Blob([csv], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = `EMS使用量_${yr}年${mo === 'all' ? '' : mo + '月'}.csv`; a.click(); URL.revokeObjectURL(u);
+        }
+
+        function switchTab(id) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + id)); }
+
+        function renderSettings() {
+            el.catsList.innerHTML = CATEGORIES.map(c => `<div class="settings-item"><span class="settings-item-name">${c.icon} ${c.name}</span><button class="delete-btn" data-id="${c.id}">×</button></div>`).join('') || '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
+            el.itemsSettingsList.innerHTML = ITEMS.map(i => { const c = CATEGORIES.find(x => x.id === i.categoryId); return `<div class="settings-item"><span class="settings-item-name">${i.name} <small style="color:var(--color-text-muted)">(${c?.name || '?'})</small></span><button class="delete-btn" data-id="${i.id}">×</button></div>`; }).join('') || '<p style="color:var(--color-text-muted)">用品がありません</p>';
+            el.catsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = () => deleteCategory(+b.dataset.id));
+            el.itemsSettingsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = () => deleteItemSetting(+b.dataset.id));
+        }
+
+        function populateCatSelect() { $('new-item-category').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
+
+        async function saveNewCategory() {
+            const n = $('new-category-name').value.trim(), ic = $('new-category-icon').value.trim() || '📦';
+            if (!n) { alert('カテゴリ名を入力'); return; }
+            showLoading(true);
+            try { const c = await apiPost({ action: 'addCategory', name: n, icon: ic }); if (c.error) throw new Error(c.error); CATEGORIES.push(c); closeModal('addCategory'); renderSettings(); renderCatGrid(); $('new-category-name').value = ''; } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        async function saveNewItem() {
+            const cid = +$('new-item-category').value, n = $('new-item-name').value.trim(), u = $('new-item-unit').value.trim() || '個', he = $('new-item-has-expiry').checked;
+            if (!n) { alert('用品名を入力'); return; }
+            showLoading(true);
+            try { const i = await apiPost({ action: 'addItem', categoryId: cid, name: n, unit: u, hasExpiry: he }); if (i.error) throw new Error(i.error); ITEMS.push(i); closeModal('addItem'); renderSettings(); $('new-item-name').value = ''; } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('カテゴリと用品を削除しますか？')) return;
+            showLoading(true);
+            try { await apiPost({ action: 'deleteCategory', id }); CATEGORIES = CATEGORIES.filter(c => c.id !== id); ITEMS = ITEMS.filter(i => i.categoryId !== id); renderSettings(); renderCatGrid(); } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        async function deleteItemSetting(id) {
+            if (!confirm('用品を削除しますか？')) return;
+            showLoading(true);
+            try { await apiPost({ action: 'deleteItem', id }); ITEMS = ITEMS.filter(i => i.id !== id); renderSettings(); } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        function getLots(deptId, itemId) { return state.stocks.filter(s => s.departmentId === deptId && s.itemId === itemId && s.quantity > 0); }
+        function getExpStatus(d) { if (!d) return 'none'; const t = new Date(); t.setHours(0, 0, 0, 0); return Math.ceil((new Date(d) - t) / 864e5) < 0 ? 'expired' : 'ok'; }
+        function fmtDT(s) { const d = new Date(s); return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; }
+        function handleError(e) { showLoading(false); console.error(e); alert('エラー: ' + (e.message || e)); }
+    </script>
 </body>
+
 </html>
