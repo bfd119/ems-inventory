@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使い方ガイド - 救急用品在庫管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #4a6bff;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .step {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .step h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #1a1a2e;
+        }
+
+        .step p {
+            color: #666;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        .step img {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 12px;
+            margin: 16px auto;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tip {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 16px;
+        }
+
+        .tip-title {
+            font-weight: 600;
+            color: #f57c00;
+            margin-bottom: 8px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← アプリに戻る</a>
+
+        <header>
+            <h1>🚑 救急用品在庫管理 使い方ガイド</h1>
+            <p style="color: #666;">かんたん3ステップで在庫管理</p>
+        </header>
+
+        <div class="step">
+            <span class="step-number">1</span>
+            <h2>部署を選択する</h2>
+            <p>まず、あなたの担当部署をタップして選択してください。</p>
+            <img src="images/step1.png" alt="部署選択画面" onerror="this.style.display='none'">
+            <div class="tip">
+                <div class="tip-title">💡 ヒント</div>
+                <p>部署ごとに在庫が分かれています。担当の部署を選んでください。</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <h2>カテゴリを選択する</h2>
+            <p>用品のカテゴリ（医薬品、気道管理、感染防止など）をタップして選択します。</p>
+            <img src="images/step2.png" alt="カテゴリ選択画面" onerror="this.style.display='none'">
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span>
+            <h2>用品を選んで入出庫を記録</h2>
+            <p>用品リストから記録したい用品をタップ。「入庫」または「出庫」を選んで数量を入力し、保存ボタンを押してください。</p>
+            <img src="images/step3.png" alt="入出庫記録画面" onerror="this.style.display='none'">
+            <div class="tip">
+                <div class="tip-title">📅 使用期限について</div>
+                <p>使用期限がある用品は、入庫時に期限を設定できます。出庫時は期限の近いものから自動で選択されます。期限切れが近い用品は赤く表示されます。</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <span class="step-number">⚙️</span>
+            <h2>その他の機能</h2>
+            <ul style="color: #666; line-height: 2; padding-left: 20px;">
+                <li><strong>📊 使用実績</strong> - 履歴の確認、月別・年別の集計、CSVエクスポート</li>
+                <li><strong>⚙️ 設定</strong> - カテゴリ・用品の追加・編集・削除</li>
+                <li><strong>📅 期限編集</strong> - 出庫画面で使用期限を後から変更可能</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>© 救急用品在庫管理システム</p>
+        </footer>
+    </div>
+</body>
+
+</html>
