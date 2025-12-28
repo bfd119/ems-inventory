@@ -948,6 +948,8 @@
                 </div>
                 <div class="form-group" id="expiry-input-group" style="display:none;"><label
                         for="transaction-expiry">使用期限</label><input type="date" id="transaction-expiry"></div>
+                <div class="form-group"><label id="transaction-date-label">入庫日</label><input type="date"
+                        id="transaction-date"></div>
                 <div class="form-group"><label>数量</label>
                     <div class="quantity-input"><button class="qty-btn" id="qty-minus">−</button><input type="number"
                             id="transaction-quantity" value="1" min="1"><button class="qty-btn" id="qty-plus">+</button>
@@ -1029,6 +1031,8 @@
             el.stockUnit = $('current-stock-unit');
             el.txQty = $('transaction-quantity');
             el.txExpiry = $('transaction-expiry');
+            el.txDate = $('transaction-date');
+            el.txDateLabel = $('transaction-date-label');
             el.txRemarks = $('transaction-remarks');
             el.expiryInputGroup = $('expiry-input-group');
             el.lotSelectGroup = $('lot-select-group');
@@ -1145,6 +1149,7 @@
             el.stockUnit.textContent = item.unit;
             el.txQty.value = 1;
             el.txRemarks.value = '';
+            el.txDate.value = new Date().toISOString().split('T')[0];
             state.selectedLot = null;
             setTxType('IN');
             closeModal('items');
@@ -1155,6 +1160,7 @@
             state.txType = t;
             $('btn-type-in').classList.toggle('active', t === 'IN');
             $('btn-type-out').classList.toggle('active', t === 'OUT');
+            el.txDateLabel.textContent = t === 'IN' ? '入庫日' : '出庫日';
             const item = ITEMS.find(i => i.id === state.itemId);
             const lots = getLots(state.deptId, state.itemId);
             if (t === 'IN' && item.hasExpiry) {
@@ -1195,7 +1201,8 @@
             showLoading(true);
             try {
                 const action = state.txType === 'IN' ? 'stockIn' : 'stockOut';
-                const res = await apiPost({ action, deptId: state.deptId, itemId: state.itemId, expiryDate: expiry, quantity: qty, remarks });
+                const txDate = el.txDate.value || new Date().toISOString().split('T')[0];
+                const res = await apiPost({ action, deptId: state.deptId, itemId: state.itemId, expiryDate: expiry, quantity: qty, remarks, transactionDate: txDate });
                 if (res.error) throw new Error(res.error);
                 state.stocks = await apiGet('getStocks');
                 closeModal('transaction');
