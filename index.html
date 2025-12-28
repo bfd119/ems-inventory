@@ -914,7 +914,7 @@
         <div class="analytics-tabs">
             <button class="tab-btn active" data-tab="log">履歴</button>
             <button class="tab-btn" data-tab="summary">在庫</button>
-            <button class="tab-btn" data-tab="budget">予算</button>
+            <button class="tab-btn" data-tab="budget">使用実績</button>
         </div>
         <div class="analytics-content">
             <div id="tab-log" class="tab-content active">
@@ -1010,7 +1010,8 @@
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>カテゴリ追加</h3><button class="modal-close" id="close-add-category-modal">×</button>
+                <h3 id="add-category-modal-title">カテゴリ追加</h3><button class="modal-close"
+                    id="close-add-category-modal">×</button>
             </div>
             <div class="modal-body">
                 <div class="form-group"><label>カテゴリ名</label><input type="text" id="new-category-name"
@@ -1051,7 +1052,7 @@
             'ambulance', 'edit_note', 'battery_full', 'content_cut'
         ];
         let DEPARTMENTS = [], CATEGORIES = [], ITEMS = [];
-        const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null };
+        const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, editingCategoryId: null };
         const $ = id => document.getElementById(id);
         const el = {};
 
@@ -1095,6 +1096,7 @@
             el.itemsSettingsList = $('items-settings-list');
             el.newCategoryIconGrid = $('new-category-icon-grid');
             el.newCategoryIconInput = $('new-category-icon');
+            el.addCategoryModalTitle = $('add-category-modal-title');
         }
 
         function bindEvents() {
@@ -1107,6 +1109,8 @@
             $('close-transaction-modal').onclick = () => closeModal('transaction');
             // カテゴリ追加モーダル
             $('add-category-btn').onclick = () => {
+                state.editingCategoryId = null;
+                el.addCategoryModalTitle.textContent = 'カテゴリ追加';
                 $('new-category-name').value = '';
                 $('new-category-icon').value = ICONS[0];
                 renderIconGrid();
@@ -1322,10 +1326,21 @@
         function switchTab(id) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + id)); }
 
         function renderSettings() {
-            el.catsList.innerHTML = CATEGORIES.map(c => `<div class="settings-item"><span class="settings-item-name">${c.icon} ${c.name}</span><button class="delete-btn" data-id="${c.id}">×</button></div>`).join('') || '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
+            el.catsList.innerHTML = CATEGORIES.map(c => `<div class="settings-item" onclick="editCategory(${c.id})"><span class="settings-item-name"><span class="material-symbols-outlined">${c.icon}</span> ${c.name}</span><button class="delete-btn" data-id="${c.id}" onclick="event.stopPropagation()">×</button></div>`).join('') || '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
             el.itemsSettingsList.innerHTML = ITEMS.map(i => { const c = CATEGORIES.find(x => x.id === i.categoryId); return `<div class="settings-item"><span class="settings-item-name">${i.name} <small style="color:var(--color-text-muted)">(${c?.name || '?'})</small></span><button class="delete-btn" data-id="${i.id}">×</button></div>`; }).join('') || '<p style="color:var(--color-text-muted)">用品がありません</p>';
-            el.catsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = () => deleteCategory(+b.dataset.id));
+            el.catsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); deleteCategory(+b.dataset.id); });
             el.itemsSettingsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = () => deleteItemSetting(+b.dataset.id));
+        }
+
+        function editCategory(id) {
+            const c = CATEGORIES.find(x => x.id === id);
+            if (!c) return;
+            state.editingCategoryId = id;
+            el.addCategoryModalTitle.textContent = 'カテゴリ編集';
+            $('new-category-name').value = c.name;
+            $('new-category-icon').value = c.icon;
+            renderIconGrid();
+            openModal('addCategory');
         }
 
         function renderIconGrid() {
@@ -1345,9 +1360,16 @@
             if (!n) { alert('カテゴリ名を入力'); return; }
             showLoading(true);
             try {
-                const c = await apiPost({ action: 'addCategory', name: n, icon: ic });
+                const action = state.editingCategoryId ? 'updateCategory' : 'addCategory';
+                const body = { action, name: n, icon: ic, id: state.editingCategoryId };
+                const c = await apiPost(body);
                 if (c.error) throw new Error(c.error);
-                CATEGORIES.push(c);
+                if (state.editingCategoryId) {
+                    const idx = CATEGORIES.findIndex(x => x.id === state.editingCategoryId);
+                    if (idx >= 0) CATEGORIES[idx] = c;
+                } else {
+                    CATEGORIES.push(c);
+                }
                 closeModal('addCategory');
                 renderSettings();
                 renderCatGrid();
@@ -1355,6 +1377,8 @@
             } catch (e) { handleError(e); }
             showLoading(false);
         }
+
+
 
         async function saveNewItem() {
             const cid = +$('new-item-category').value, n = $('new-item-name').value.trim(), u = $('new-item-unit').value.trim() || '個', he = $('new-item-has-expiry').checked;
