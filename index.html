@@ -188,6 +188,17 @@
             color: var(--color-accent-primary);
         }
 
+        .top-links {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-lg);
+        }
+
+        .top-links .settings-link {
+            margin-top: 0;
+        }
+
         .dashboard-header {
             display: flex;
             align-items: center;
@@ -893,7 +904,10 @@
             <p class="app-subtitle">部署を選択してください</p>
         </div>
         <div class="department-grid" id="department-grid"></div>
-        <button class="settings-link" id="open-settings">⚙️ カテゴリ・用品設定</button>
+        <div class="top-links">
+            <button class="settings-link" id="open-analytics-top">📊 使用実績</button>
+            <button class="settings-link" id="open-settings">⚙️ カテゴリ・用品設定</button>
+        </div>
     </section>
 
     <section id="dashboard" class="screen">
@@ -1099,6 +1113,7 @@
         function bindEvents() {
             $('back-to-home').onclick = () => showScreen('departmentSelect');
             $('open-stats').onclick = () => { showScreen('analytics'); renderAnalytics(); };
+            $('open-analytics-top').onclick = () => { showScreen('analytics'); renderAnalytics(); };
             $('back-to-dashboard').onclick = () => showScreen('dashboard');
             $('open-settings').onclick = () => { showScreen('settings'); renderSettings(); };
             $('back-to-home-from-settings').onclick = () => showScreen('departmentSelect');
