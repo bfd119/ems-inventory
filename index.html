@@ -804,6 +804,15 @@
             text-align: center;
         }
 
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .category-icon .material-symbols-outlined {
+            font-size: 2.5rem;
+        }
+
         .empty-state-icon {
             font-size: 2.5rem;
             margin-bottom: var(--spacing-md);
@@ -868,6 +877,8 @@
             }
         }
     </style>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 
 <body>
@@ -877,7 +888,8 @@
 
     <section id="department-select" class="screen active">
         <div class="screen-header">
-            <h1 class="app-title"><span>🚒</span>EMS在庫管理</h1>
+            <h1 class="app-title"><span><span class="material-symbols-outlined"
+                        style="font-size: 2rem;">local_fire_department</span></span>EMS在庫管理</h1>
             <p class="app-subtitle">部署を選択してください</p>
         </div>
         <div class="department-grid" id="department-grid"></div>
@@ -1033,7 +1045,11 @@
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwhz59G1q7ns1_FzHmdd-NQhqFzs3ADBDtGloYxPh6qMh6I5XJy60t037NJi-4Fo7K_/exec';
-        const ICONS = ['📦', '💉', '💊', '😷', '🩺', '🩹', '🧤', '🧴', '🚑', '📝', '🔋', '✂️'];
+        const ICONS = [
+            'inventory_2', 'vaccines', 'medication', 'medical_services',
+            'stethoscope', 'healing', 'clean_hands', 'sanitizer',
+            'ambulance', 'edit_note', 'battery_full', 'content_cut'
+        ];
         let DEPARTMENTS = [], CATEGORIES = [], ITEMS = [];
         const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null };
         const $ = id => document.getElementById(id);
@@ -1158,8 +1174,8 @@
         }
 
         function renderCatGrid() {
-            if (CATEGORIES.length === 0) { el.catGrid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>カテゴリがありません</p></div>'; return; }
-            el.catGrid.innerHTML = CATEGORIES.map(c => `<button class="category-tile" data-id="${c.id}"><span class="category-icon">${c.icon}</span><span class="category-name">${c.name}</span></button>`).join('');
+            if (CATEGORIES.length === 0) { el.catGrid.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><span class="material-symbols-outlined" style="font-size: 3rem;">inventory_2</span></div><p>カテゴリがありません</p></div>'; return; }
+            el.catGrid.innerHTML = CATEGORIES.map(c => `<button class="category-tile" data-id="${c.id}"><span class="category-icon"><span class="material-symbols-outlined">${c.icon}</span></span><span class="category-name">${c.name}</span></button>`).join('');
             el.catGrid.querySelectorAll('.category-tile').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
         }
 
@@ -1313,11 +1329,11 @@
         }
 
         function renderIconGrid() {
-            el.newCategoryIconGrid.innerHTML = ICONS.map(icon => `<div class="icon-option ${icon === el.newCategoryIconInput.value ? 'selected' : ''}">${icon}</div>`).join('');
+            el.newCategoryIconGrid.innerHTML = ICONS.map(icon => `<div class="icon-option ${icon === el.newCategoryIconInput.value ? 'selected' : ''}"><span class="material-symbols-outlined">${icon}</span></div>`).join('');
             el.newCategoryIconGrid.querySelectorAll('.icon-option').forEach(opt => opt.onclick = () => {
                 el.newCategoryIconGrid.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
                 opt.classList.add('selected');
-                el.newCategoryIconInput.value = opt.textContent;
+                el.newCategoryIconInput.value = opt.querySelector('span').textContent;
             });
         }
 
