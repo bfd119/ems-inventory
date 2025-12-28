@@ -1109,9 +1109,7 @@
             el.budgetYear.onchange = renderBudget;
             el.budgetMonth.onchange = renderBudget;
             $('export-csv').onclick = exportCSV;
-            $('add-category-btn').onclick = () => openModal('addCategory');
             $('add-item-btn').onclick = () => { populateCatSelect(); openModal('addItem'); };
-            $('save-new-category').onclick = saveNewCategory;
             $('save-new-item').onclick = saveNewItem;
         }
 
