@@ -829,6 +829,33 @@
             font-size: 0.8rem;
         }
 
+        .icon-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-xs);
+        }
+
+        .icon-option {
+            font-size: 1.5rem;
+            text-align: center;
+            padding: var(--spacing-xs);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            background: var(--color-bg-secondary);
+            transition: all 0.2s;
+        }
+
+        .icon-option:hover {
+            background: var(--color-bg-card);
+        }
+
+        .icon-option.selected {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+
         @media (min-width: 768px) {
             .screen {
                 max-width: 420px;
@@ -976,8 +1003,10 @@
             <div class="modal-body">
                 <div class="form-group"><label>カテゴリ名</label><input type="text" id="new-category-name"
                         placeholder="例: 輸液"></div>
-                <div class="form-group"><label>アイコン</label><input type="text" id="new-category-icon" placeholder="例: 💉"
-                        maxlength="4"></div>
+                <div class="form-group"><label>アイコン選択</label>
+                    <div class="icon-selection-grid" id="new-category-icon-grid"></div>
+                    <input type="hidden" id="new-category-icon">
+                </div>
                 <button class="save-btn" id="save-new-category">追加</button>
             </div>
         </div>
@@ -1004,6 +1033,7 @@
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwhz59G1q7ns1_FzHmdd-NQhqFzs3ADBDtGloYxPh6qMh6I5XJy60t037NJi-4Fo7K_/exec';
+        const ICONS = ['📦', '💉', '💊', '🫁', '🩺', '🩹', '🧤', '🧴', '🚑', '📝', '🔋', '✂️'];
         let DEPARTMENTS = [], CATEGORIES = [], ITEMS = [];
         const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null };
         const $ = id => document.getElementById(id);
@@ -1045,6 +1075,10 @@
             el.budgetMonth = $('budget-month');
             el.catsList = $('categories-list');
             el.itemsSettingsList = $('items-settings-list');
+            el.catsList = $('categories-list');
+            el.itemsSettingsList = $('items-settings-list');
+            el.newCategoryIconGrid = $('new-category-icon-grid');
+            el.newCategoryIconInput = $('new-category-icon');
         }
 
         function bindEvents() {
@@ -1055,7 +1089,15 @@
             $('back-from-settings').onclick = () => showScreen('departmentSelect');
             $('close-items-modal').onclick = () => closeModal('items');
             $('close-transaction-modal').onclick = () => closeModal('transaction');
+            // カテゴリ追加モーダル
+            $('add-category-btn').onclick = () => {
+                $('new-category-name').value = '';
+                $('new-category-icon').value = ICONS[0];
+                renderIconGrid();
+                openModal('addCategory');
+            };
             $('close-add-category-modal').onclick = () => closeModal('addCategory');
+            $('save-new-category').onclick = saveNewCategory;
             $('close-add-item-modal').onclick = () => closeModal('addItem');
             document.querySelectorAll('.modal-overlay').forEach(o => o.onclick = () => Object.keys(el.modals).forEach(k => closeModal(k)));
             $('btn-type-in').onclick = () => setTxType('IN');
@@ -1272,13 +1314,31 @@
             el.itemsSettingsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = () => deleteItemSetting(+b.dataset.id));
         }
 
+        function renderIconGrid() {
+            el.newCategoryIconGrid.innerHTML = ICONS.map(icon => `<div class="icon-option ${icon === el.newCategoryIconInput.value ? 'selected' : ''}">${icon}</div>`).join('');
+            el.newCategoryIconGrid.querySelectorAll('.icon-option').forEach(opt => opt.onclick = () => {
+                el.newCategoryIconGrid.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                el.newCategoryIconInput.value = opt.textContent;
+            });
+        }
+
         function populateCatSelect() { $('new-item-category').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
 
         async function saveNewCategory() {
-            const n = $('new-category-name').value.trim(), ic = $('new-category-icon').value.trim() || '📦';
+            const n = $('new-category-name').value.trim();
+            const ic = $('new-category-icon').value || ICONS[0];
             if (!n) { alert('カテゴリ名を入力'); return; }
             showLoading(true);
-            try { const c = await apiPost({ action: 'addCategory', name: n, icon: ic }); if (c.error) throw new Error(c.error); CATEGORIES.push(c); closeModal('addCategory'); renderSettings(); renderCatGrid(); $('new-category-name').value = ''; } catch (e) { handleError(e); }
+            try {
+                const c = await apiPost({ action: 'addCategory', name: n, icon: ic });
+                if (c.error) throw new Error(c.error);
+                CATEGORIES.push(c);
+                closeModal('addCategory');
+                renderSettings();
+                renderCatGrid();
+                $('new-category-name').value = '';
+            } catch (e) { handleError(e); }
             showLoading(false);
         }
 
