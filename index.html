@@ -1047,10 +1047,17 @@
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwhz59G1q7ns1_FzHmdd-NQhqFzs3ADBDtGloYxPh6qMh6I5XJy60t037NJi-4Fo7K_/exec';
         const ICONS = [
-            'inventory_2', 'vaccines', 'medication', 'medical_services',
-            'stethoscope', 'healing', 'clean_hands', 'sanitizer',
-            'ambulance', 'edit_note', 'battery_full', 'content_cut'
+            'medication', 'vaccines', 'medical_services', 'bloodtype',
+            'sick', 'checkroom', 'clean_hands', 'healing',
+            'sanitizer', 'inventory_2', 'monitor_heart', 'ambulance', 'edit_note', 'content_cut'
         ];
+        const ICON_COLORS = {
+            'medication': '#E91E63', 'vaccines': '#03A9F4', 'medical_services': '#3F51B5',
+            'bloodtype': '#F44336', 'sick': '#4CAF50', 'checkroom': '#FF9800',
+            'clean_hands': '#009688', 'healing': '#FFC107', 'sanitizer': '#00BCD4',
+            'inventory_2': '#607D8B', 'monitor_heart': '#9C27B0', 'ambulance': '#FBC02D',
+            'edit_note': '#795548', 'content_cut': '#607D8B'
+        };
         let DEPARTMENTS = [], CATEGORIES = [], ITEMS = [];
         const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, editingCategoryId: null };
         const $ = id => document.getElementById(id);
@@ -1179,7 +1186,7 @@
 
         function renderCatGrid() {
             if (CATEGORIES.length === 0) { el.catGrid.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><span class="material-symbols-outlined" style="font-size: 3rem;">inventory_2</span></div><p>カテゴリがありません</p></div>'; return; }
-            el.catGrid.innerHTML = CATEGORIES.map(c => `<button class="category-tile" data-id="${c.id}"><span class="category-icon"><span class="material-symbols-outlined">${c.icon}</span></span><span class="category-name">${c.name}</span></button>`).join('');
+            el.catGrid.innerHTML = CATEGORIES.map(c => `<button class="category-tile" data-id="${c.id}"><span class="category-icon"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span></span><span class="category-name">${c.name}</span></button>`).join('');
             el.catGrid.querySelectorAll('.category-tile').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
         }
 
@@ -1326,7 +1333,7 @@
         function switchTab(id) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + id)); }
 
         function renderSettings() {
-            el.catsList.innerHTML = CATEGORIES.map(c => `<div class="settings-item" onclick="editCategory(${c.id})"><span class="settings-item-name"><span class="material-symbols-outlined">${c.icon}</span> ${c.name}</span><button class="delete-btn" data-id="${c.id}" onclick="event.stopPropagation()">×</button></div>`).join('') || '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
+            el.catsList.innerHTML = CATEGORIES.map(c => `<div class="settings-item" onclick="editCategory(${c.id})"><span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name}</span><button class="delete-btn" data-id="${c.id}" onclick="event.stopPropagation()">×</button></div>`).join('') || '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
             el.itemsSettingsList.innerHTML = ITEMS.map(i => { const c = CATEGORIES.find(x => x.id === i.categoryId); return `<div class="settings-item"><span class="settings-item-name">${i.name} <small style="color:var(--color-text-muted)">(${c?.name || '?'})</small></span><button class="delete-btn" data-id="${i.id}">×</button></div>`; }).join('') || '<p style="color:var(--color-text-muted)">用品がありません</p>';
             el.catsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); deleteCategory(+b.dataset.id); });
             el.itemsSettingsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = () => deleteItemSetting(+b.dataset.id));
@@ -1344,7 +1351,7 @@
         }
 
         function renderIconGrid() {
-            el.newCategoryIconGrid.innerHTML = ICONS.map(icon => `<div class="icon-option ${icon === el.newCategoryIconInput.value ? 'selected' : ''}"><span class="material-symbols-outlined">${icon}</span></div>`).join('');
+            el.newCategoryIconGrid.innerHTML = ICONS.map(icon => `<div class="icon-option ${icon === el.newCategoryIconInput.value ? 'selected' : ''}" style="color: ${ICON_COLORS[icon] || ''}"><span class="material-symbols-outlined">${icon}</span></div>`).join('');
             el.newCategoryIconGrid.querySelectorAll('.icon-option').forEach(opt => opt.onclick = () => {
                 el.newCategoryIconGrid.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
                 opt.classList.add('selected');
