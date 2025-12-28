@@ -1029,7 +1029,7 @@
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>用品追加</h3><button class="modal-close" id="close-add-item-modal">×</button>
+                <h3 id="add-item-modal-title">用品追加</h3><button class="modal-close" id="close-add-item-modal">×</button>
             </div>
             <div class="modal-body">
                 <div class="form-group"><label>カテゴリ</label><select id="new-item-category"></select></div>
@@ -1059,7 +1059,7 @@
             'edit_note': '#795548', 'content_cut': '#607D8B'
         };
         let DEPARTMENTS = [], CATEGORIES = [], ITEMS = [];
-        const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, editingCategoryId: null };
+        const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, editingCategoryId: null, editingItemId: null };
         const $ = id => document.getElementById(id);
         const el = {};
 
@@ -1099,11 +1099,10 @@
             el.budgetMonth = $('budget-month');
             el.catsList = $('categories-list');
             el.itemsSettingsList = $('items-settings-list');
-            el.catsList = $('categories-list');
-            el.itemsSettingsList = $('items-settings-list');
             el.newCategoryIconGrid = $('new-category-icon-grid');
             el.newCategoryIconInput = $('new-category-icon');
             el.addCategoryModalTitle = $('add-category-modal-title');
+            el.addItemModalTitle = $('add-item-modal-title');
         }
 
         function bindEvents() {
@@ -1125,6 +1124,16 @@
             };
             $('close-add-category-modal').onclick = () => closeModal('addCategory');
             $('save-new-category').onclick = saveNewCategory;
+            $('add-item-btn').onclick = () => {
+                if (CATEGORIES.length === 0) { alert('先にカテゴリを作成してください'); return; }
+                state.editingItemId = null;
+                el.addItemModalTitle.textContent = '用品追加';
+                populateCatSelect();
+                $('new-item-name').value = '';
+                $('new-item-unit').value = '個';
+                $('new-item-has-expiry').checked = false;
+                openModal('addItem');
+            };
             $('close-add-item-modal').onclick = () => closeModal('addItem');
             document.querySelectorAll('.modal-overlay').forEach(o => o.onclick = () => Object.keys(el.modals).forEach(k => closeModal(k)));
             $('btn-type-in').onclick = () => setTxType('IN');
@@ -1334,9 +1343,22 @@
 
         function renderSettings() {
             el.catsList.innerHTML = CATEGORIES.map(c => `<div class="settings-item" onclick="editCategory(${c.id})"><span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name}</span><button class="delete-btn" data-id="${c.id}" onclick="event.stopPropagation()">×</button></div>`).join('') || '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
-            el.itemsSettingsList.innerHTML = ITEMS.map(i => { const c = CATEGORIES.find(x => x.id === i.categoryId); return `<div class="settings-item"><span class="settings-item-name">${i.name} <small style="color:var(--color-text-muted)">(${c?.name || '?'})</small></span><button class="delete-btn" data-id="${i.id}">×</button></div>`; }).join('') || '<p style="color:var(--color-text-muted)">用品がありません</p>';
+            el.itemsSettingsList.innerHTML = ITEMS.map(i => { const c = CATEGORIES.find(x => x.id === i.categoryId); return `<div class="settings-item" onclick="editItem(${i.id})"><span class="settings-item-name">${i.name} <small style="color:var(--color-text-muted)">(${c?.name || '?'})</small></span><button class="delete-btn" data-id="${i.id}" onclick="event.stopPropagation()">×</button></div>`; }).join('') || '<p style="color:var(--color-text-muted)">用品がありません</p>';
             el.catsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); deleteCategory(+b.dataset.id); });
-            el.itemsSettingsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = () => deleteItemSetting(+b.dataset.id));
+            el.itemsSettingsList.querySelectorAll('.delete-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); deleteItemSetting(+b.dataset.id); });
+        }
+
+        function editItem(id) {
+            const i = ITEMS.find(x => x.id === id);
+            if (!i) return;
+            state.editingItemId = id;
+            el.addItemModalTitle.textContent = '用品編集';
+            populateCatSelect();
+            $('new-item-category').value = i.categoryId;
+            $('new-item-name').value = i.name;
+            $('new-item-unit').value = i.unit;
+            $('new-item-has-expiry').checked = i.hasExpiry;
+            openModal('addItem');
         }
 
         function editCategory(id) {
@@ -1391,7 +1413,21 @@
             const cid = +$('new-item-category').value, n = $('new-item-name').value.trim(), u = $('new-item-unit').value.trim() || '個', he = $('new-item-has-expiry').checked;
             if (!n) { alert('用品名を入力'); return; }
             showLoading(true);
-            try { const i = await apiPost({ action: 'addItem', categoryId: cid, name: n, unit: u, hasExpiry: he }); if (i.error) throw new Error(i.error); ITEMS.push(i); closeModal('addItem'); renderSettings(); $('new-item-name').value = ''; } catch (e) { handleError(e); }
+            try {
+                const action = state.editingItemId ? 'updateItem' : 'addItem';
+                const body = { action, categoryId: cid, name: n, unit: u, hasExpiry: he, id: state.editingItemId };
+                const i = await apiPost(body);
+                if (i.error) throw new Error(i.error);
+                if (state.editingItemId) {
+                    const idx = ITEMS.findIndex(x => x.id === state.editingItemId);
+                    if (idx >= 0) ITEMS[idx] = i;
+                } else {
+                    ITEMS.push(i);
+                }
+                closeModal('addItem');
+                renderSettings();
+                $('new-item-name').value = '';
+            } catch (e) { handleError(e); }
             showLoading(false);
         }
 
