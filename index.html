@@ -1135,18 +1135,52 @@
             return res.json();
         }
 
+        const CACHE_KEY = 'ems_inventory_cache';
+
         async function loadData() {
-            showLoading(true);
+            // キャッシュから即座にデータを表示
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                try {
+                    const c = JSON.parse(cached);
+                    DEPARTMENTS = c.departments || [];
+                    CATEGORIES = c.categories || [];
+                    ITEMS = c.items || [];
+                    state.stocks = c.stocks || [];
+                    state.transactions = c.transactions || [];
+                    renderDeptGrid();
+                    initBudget();
+                    showLoading(false);
+                } catch (e) { console.warn('キャッシュ読込失敗', e); }
+            }
+
+            // バックグラウンドで最新データを取得
             try {
                 const master = await apiGet('getMasterData');
                 if (master.error) throw new Error(master.error);
                 DEPARTMENTS = master.departments;
                 CATEGORIES = master.categories;
                 ITEMS = master.items;
-                renderDeptGrid();
                 state.stocks = await apiGet('getStocks');
+                state.transactions = await apiGet('getTransactions');
+
+                // キャッシュを更新
+                localStorage.setItem(CACHE_KEY, JSON.stringify({
+                    departments: DEPARTMENTS,
+                    categories: CATEGORIES,
+                    items: ITEMS,
+                    stocks: state.stocks,
+                    transactions: state.transactions,
+                    timestamp: Date.now()
+                }));
+
+                renderDeptGrid();
+                initBudget();
                 showLoading(false);
-            } catch (e) { handleError(e); }
+            } catch (e) {
+                if (!cached) handleError(e); // キャッシュがない場合のみエラー表示
+                showLoading(false);
+            }
         }
 
         function showScreen(n) { Object.values(el.screens).forEach(s => s.classList.remove('active')); el.screens[n].classList.add('active'); }
@@ -1229,9 +1263,33 @@
 
         function renderLotList(lots) {
             lots.sort((a, b) => new Date(a.expiryDate || '9999') - new Date(b.expiryDate || '9999'));
-            el.lotList.innerHTML = lots.map((l, i) => `<div class="lot-item ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}" data-idx="${i}"><span>${l.expiryDate || '期限なし'}</span><span>${l.quantity}個</span></div>`).join('');
+            el.lotList.innerHTML = lots.map((l, i) => `
+                <div class="lot-item ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}" data-idx="${i}">
+                    <span>${l.expiryDate || '期限なし'}</span>
+                    <span>${l.quantity}個</span>
+                    <button class="edit-expiry-btn" onclick="event.stopPropagation();editLotExpiry('${l.expiryDate || ''}', ${l.quantity})">📅</button>
+                </div>`).join('');
             state.selectedLot = null;
-            el.lotList.querySelectorAll('.lot-item').forEach(li => li.onclick = () => { el.lotList.querySelectorAll('.lot-item').forEach(x => x.classList.remove('selected')); li.classList.add('selected'); state.selectedLot = lots[+li.dataset.idx]; });
+            el.lotList.querySelectorAll('.lot-item').forEach(li => li.onclick = () => {
+                el.lotList.querySelectorAll('.lot-item').forEach(x => x.classList.remove('selected'));
+                li.classList.add('selected');
+                state.selectedLot = lots[+li.dataset.idx];
+            });
+        }
+
+        async function editLotExpiry(oldExpiry, qty) {
+            const newExpiry = prompt('新しい使用期限を入力 (YYYY-MM-DD)', oldExpiry || new Date().toISOString().split('T')[0]);
+            if (newExpiry === null) return; // キャンセル
+            showLoading(true);
+            try {
+                const res = await apiPost({ action: 'updateStockExpiry', deptId: state.deptId, itemId: state.itemId, oldExpiry: oldExpiry || '', newExpiry: newExpiry || '' });
+                if (res.error) throw new Error(res.error);
+                state.stocks = await apiGet('getStocks');
+                const lots = getLots(state.deptId, state.itemId);
+                renderLotList(lots);
+                alert('使用期限を更新しました');
+            } catch (e) { handleError(e); }
+            showLoading(false);
         }
 
         async function saveTx() {
