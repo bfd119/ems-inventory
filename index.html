@@ -1101,11 +1101,10 @@
             $('open-stats').onclick = () => { showScreen('analytics'); renderAnalytics(); };
             $('back-to-dashboard').onclick = () => showScreen('dashboard');
             $('open-settings').onclick = () => { showScreen('settings'); renderSettings(); };
-            $('back-from-settings').onclick = () => showScreen('departmentSelect');
+            $('back-to-home-from-settings').onclick = () => showScreen('departmentSelect');
             $('close-items-modal').onclick = () => closeModal('items');
             $('close-transaction-modal').onclick = () => closeModal('transaction');
-            // カテゴリ追加モーダル
-            $('add-category-btn-hidden') && ($('add-category-btn-hidden').onclick = openAddCategoryModal); // 動的生成のためここでのバインドは不要だが関数として定義
+
             $('close-add-category-modal').onclick = () => closeModal('addCategory');
             $('save-new-category').onclick = saveNewCategory;
 
@@ -1120,7 +1119,6 @@
             el.budgetYear.onchange = renderBudget;
             el.budgetMonth.onchange = renderBudget;
             $('export-csv').onclick = exportCSV;
-            $('add-item-btn').onclick = () => { populateCatSelect(); openModal('addItem'); };
             $('save-new-item').onclick = saveNewItem;
         }
 
