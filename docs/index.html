@@ -1189,7 +1189,7 @@
         const SUPABASE_URL = 'https://aacntdoacjjssspoctul.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhY250ZG9hY2pqc3NzcG9jdHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MDA5OTcsImV4cCI6MjA4MzQ3Njk5N30.oBliHP_Jd9NOSSK1XFcO9egQWPzVhxn_KM0OTgaR8TQ';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const ICONS = [
             'medication', 'vaccines', 'medical_services', 'bloodtype',
@@ -1334,13 +1334,13 @@
         // ============================================
 
         async function fsGetCategories() {
-            const { data, error } = await supabase.from('categories').select('*').order('id');
+            const { data, error } = await db.from('categories').select('*').order('id');
             if (error) throw error;
             return data;
         }
 
         async function fsGetItems() {
-            const { data, error } = await supabase.from('items').select('*').order('id');
+            const { data, error } = await db.from('items').select('*').order('id');
             if (error) throw error;
             // カラム名をキャメルケースに変換
             return data.map(r => ({
@@ -1350,7 +1350,7 @@
         }
 
         async function fsGetStocks() {
-            const { data, error } = await supabase.from('stocks').select('*');
+            const { data, error } = await db.from('stocks').select('*');
             if (error) throw error;
             return data.map(r => ({
                 departmentId: r.department_id, itemId: r.item_id,
@@ -1359,7 +1359,7 @@
         }
 
         async function fsGetTransactions(limit = 100) {
-            const { data, error } = await supabase.from('transactions')
+            const { data, error } = await db.from('transactions')
                 .select('*').order('timestamp', { ascending: false }).limit(limit);
             if (error) throw error;
             return data.map(r => ({
@@ -1370,14 +1370,14 @@
         }
 
         async function fsAddCategory(name, icon) {
-            const { data, error } = await supabase.from('categories')
+            const { data, error } = await db.from('categories')
                 .insert({ name, icon: icon || 'inventory_2' }).select().single();
             if (error) throw error;
             return data;
         }
 
         async function fsUpdateCategory(id, name, icon) {
-            const { data, error } = await supabase.from('categories')
+            const { data, error } = await db.from('categories')
                 .update({ name, icon: icon || 'inventory_2' }).eq('id', id).select().single();
             if (error) throw error;
             return data;
@@ -1385,14 +1385,14 @@
 
         async function fsDeleteCategory(id) {
             // 関連用品も削除
-            await supabase.from('items').delete().eq('category_id', id);
-            const { error } = await supabase.from('categories').delete().eq('id', id);
+            await db.from('items').delete().eq('category_id', id);
+            const { error } = await db.from('categories').delete().eq('id', id);
             if (error) throw error;
             return { success: true };
         }
 
         async function fsAddItem(categoryId, name, unit, hasExpiry, minStock) {
-            const { data, error } = await supabase.from('items')
+            const { data, error } = await db.from('items')
                 .insert({ category_id: categoryId, name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
                 .select().single();
             if (error) throw error;
@@ -1400,7 +1400,7 @@
         }
 
         async function fsUpdateItem(id, categoryId, name, unit, hasExpiry, minStock) {
-            const { data, error } = await supabase.from('items')
+            const { data, error } = await db.from('items')
                 .update({ category_id: categoryId, name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
                 .eq('id', id).select().single();
             if (error) throw error;
@@ -1408,14 +1408,14 @@
         }
 
         async function fsDeleteItem(id) {
-            const { error } = await supabase.from('items').delete().eq('id', id);
+            const { error } = await db.from('items').delete().eq('id', id);
             if (error) throw error;
             return { success: true };
         }
 
         async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transactionDate) {
             // 既存の在庫を検索
-            const { data: existing } = await supabase.from('stocks')
+            const { data: existing } = await db.from('stocks')
                 .select('*')
                 .eq('department_id', deptId)
                 .eq('item_id', itemId)
@@ -1423,18 +1423,18 @@
                 .single();
 
             if (existing) {
-                await supabase.from('stocks')
+                await db.from('stocks')
                     .update({ quantity: existing.quantity + quantity })
                     .eq('id', existing.id);
             } else {
-                await supabase.from('stocks')
+                await db.from('stocks')
                     .insert({ department_id: deptId, item_id: itemId, expiry_date: expiryDate || null, quantity });
             }
             return fsAddTransaction(deptId, itemId, 'IN', quantity, expiryDate, remarks, transactionDate);
         }
 
         async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transactionDate) {
-            const { data: existing, error } = await supabase.from('stocks')
+            const { data: existing, error } = await db.from('stocks')
                 .select('*')
                 .eq('department_id', deptId)
                 .eq('item_id', itemId)
@@ -1447,16 +1447,16 @@
 
             const newQty = existing.quantity - quantity;
             if (newQty <= 0) {
-                await supabase.from('stocks').delete().eq('id', existing.id);
+                await db.from('stocks').delete().eq('id', existing.id);
             } else {
-                await supabase.from('stocks').update({ quantity: newQty }).eq('id', existing.id);
+                await db.from('stocks').update({ quantity: newQty }).eq('id', existing.id);
             }
             return fsAddTransaction(deptId, itemId, 'OUT', quantity, expiryDate, remarks, transactionDate);
         }
 
         async function fsAddTransaction(deptId, itemId, type, quantity, expiryDate, remarks, transactionDate) {
             const ts = transactionDate ? new Date(transactionDate) : new Date();
-            const { data, error } = await supabase.from('transactions')
+            const { data, error } = await db.from('transactions')
                 .insert({ department_id: deptId, item_id: itemId, type, quantity, expiry_date: expiryDate || null, remarks: remarks || '', timestamp: ts.toISOString() })
                 .select().single();
             if (error) throw error;
@@ -1464,7 +1464,7 @@
         }
 
         async function fsUpdateStockExpiry(deptId, itemId, oldExpiry, newExpiry) {
-            const { data: existing, error } = await supabase.from('stocks')
+            const { data: existing, error } = await db.from('stocks')
                 .select('*')
                 .eq('department_id', deptId)
                 .eq('item_id', itemId)
@@ -1475,7 +1475,7 @@
                 throw new Error('該当する在庫ロットが見つかりません');
             }
 
-            await supabase.from('stocks').update({ expiry_date: newExpiry || null }).eq('id', existing.id);
+            await db.from('stocks').update({ expiry_date: newExpiry || null }).eq('id', existing.id);
             return { success: true };
         }
 
