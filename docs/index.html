@@ -1450,17 +1450,24 @@
                     state.transactions = c.transactions || [];
                     renderDeptGrid();
                     initBudget();
-                } catch (e) { console.warn('キャッシュ読込失敗', e); }
+                } catch (e) {
+                    console.warn('キャッシュ読込失敗', e);
+                }
             }
 
-            // Firestoreから最新データを取得
+            // Supabaseから最新データを取得
             try {
-                [CATEGORIES, ITEMS, state.stocks, state.transactions] = await Promise.all([
+                // タイムアウト付きでデータを取得
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('タイムアウト: データの読み込みに時間がかかっています')), 10000));
+
+                const dataPromise = Promise.all([
                     fsGetCategories(),
                     fsGetItems(),
                     fsGetStocks(),
                     fsGetTransactions(100)
                 ]);
+
+                [CATEGORIES, ITEMS, state.stocks, state.transactions] = await Promise.race([dataPromise, timeoutPromise]);
 
                 // キャッシュ更新
                 localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -1472,9 +1479,14 @@
                 renderDeptGrid();
                 initBudget();
             } catch (e) {
-                if (!cached) handleError(e);
+                console.error('Data loading error:', e);
+                if (!cached) {
+                    handleError(e);
+                    alert('データの読み込みに失敗しました。再読み込みしてください。\n' + (e.message || e));
+                }
+            } finally {
+                showLoading(false);
             }
-            showLoading(false);
         }
 
         function showScreen(n) { Object.values(el.screens).forEach(s => s.classList.remove('active')); el.screens[n].classList.add('active'); }
