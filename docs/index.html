@@ -1272,6 +1272,19 @@
             el.budgetTable = $('budget-table');
             el.budgetYear = $('budget-year');
             el.budgetMonth = $('budget-month');
+
+            // モーダルのキャッシュ
+            el.modals = {
+                items: el.itemsModal,
+                transaction: el.txModal,
+                addCategory: $('add-category-modal'),
+                addItem: $('add-item-modal')
+            };
+
+            // エイリアス（showTxModal互換性のため）
+            el.stockValue = el.txStock;
+            el.stockUnit = $('current-stock-unit');
+            el.txModalTitle = el.txItemName;
         }
 
         function bindEvents() {
