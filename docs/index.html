@@ -1215,72 +1215,117 @@
         const $ = id => document.getElementById(id);
         const el = {};
 
-        document.addEventListener('DOMContentLoaded', init);
-
-        function init() {
+        // Initialize Application
+        function initializeApp() {
             cacheElements();
             bindEvents();
             loadData();
         }
 
+        // Bootstrapping
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+
         function cacheElements() {
             el.loading = $('loading');
-            el.screens = { departmentSelect: $('department-select'), dashboard: $('dashboard'), analytics: $('analytics'), settings: $('settings') };
+            if (!el.loading) el.loading = document.getElementById('loading');
+
+            el.screens = {
+                home: $('screen-home'),
+                dashboard: $('screen-dashboard'),
+                analytics: $('screen-analytics'),
+                settings: $('screen-settings')
+            };
+            el.deptSelect = $('department-select');
             el.deptGrid = $('department-grid');
-            el.catGrid = $('category-grid');
-            el.deptName = $('current-department-name');
-            el.modals = { items: $('items-modal'), transaction: $('transaction-modal'), addCategory: $('add-category-modal'), addItem: $('add-item-modal') };
-            el.itemsList = $('items-list');
+            el.dashboardTitle = $('dashboard-title');
+            el.categoryGrid = $('category-grid');
+            el.itemsModal = $('items-modal');
             el.itemsModalTitle = $('items-modal-title');
-            el.txModalTitle = $('transaction-modal-title');
-            el.stockValue = $('current-stock-value');
-            el.stockUnit = $('current-stock-unit');
-            el.txQty = $('transaction-quantity');
-            el.txExpiry = $('transaction-expiry');
+            el.itemsList = $('items-list');
+            el.txModal = $('transaction-modal');
+            el.txTitle = $('transaction-title');
             el.txDate = $('transaction-date');
             el.txDateLabel = $('transaction-date-label');
-            el.txRemarks = $('transaction-remarks');
+            el.txItemName = $('transaction-modal-title');
+            el.txStock = $('current-stock-value');
+            el.txQty = $('transaction-quantity');
+            el.txExpiry = $('transaction-expiry');
             el.expiryInputGroup = $('expiry-input-group');
             el.lotSelectGroup = $('lot-select-group');
             el.lotList = $('lot-list');
+            el.txRemarks = $('transaction-remarks');
             el.saveBtn = $('save-transaction');
-            el.logList = $('log-list');
-            el.summaryList = $('summary-list');
-            el.budgetTable = $('budget-table');
-            el.budgetTable = $('budget-table');
-            el.budgetYear = $('budget-year');
-            el.budgetMonth = $('budget-month');
             el.settingsContainer = $('settings-container');
             el.newCategoryIconGrid = $('new-category-icon-grid');
             el.newCategoryIconInput = $('new-category-icon');
             el.addCategoryModalTitle = $('add-category-modal-title');
             el.addItemModalTitle = $('add-item-modal-title');
+
+            // Log & Summary & Budget elements
+            el.logList = $('log-list');
+            el.summaryList = $('summary-list');
+            el.budgetTable = $('budget-table');
+            el.budgetYear = $('budget-year');
+            el.budgetMonth = $('budget-month');
         }
 
         function bindEvents() {
-            $('back-to-home').onclick = () => showScreen('departmentSelect');
-            $('open-stats').onclick = () => { showScreen('analytics'); switchTab('summary'); renderAnalytics(); };
-            $('open-analytics-top').onclick = () => { state.deptId = null; showScreen('analytics'); switchTab('summary'); renderAnalytics(); };
-            $('back-to-dashboard').onclick = () => showScreen('dashboard');
-            $('open-settings').onclick = () => { showScreen('settings'); renderSettings(); };
-            $('back-to-home-from-settings').onclick = () => showScreen('departmentSelect');
-            $('close-items-modal').onclick = () => closeModal('items');
-            $('close-transaction-modal').onclick = () => closeModal('transaction');
+            $('back-to-home').onclick = () => showScreen('home');
+            $('open-stats').onclick = () => {
+                showScreen('analytics');
+                updateAnalytics();
+            };
+            $('open-analytics-top').onclick = () => {
+                state.deptId = null; // 全体集計
+                showScreen('analytics');
+                updateAnalytics();
+            };
+            $('back-to-dashboard').onclick = () => {
+                if (state.deptId) showScreen('dashboard');
+                else showScreen('home');
+            };
+            $('open-settings').onclick = () => {
+                showScreen('settings');
+                renderSettings();
+            };
+            $('back-to-home-from-settings').onclick = () => showScreen('home');
 
-            $('close-add-category-modal').onclick = () => closeModal('addCategory');
+            $('close-items-modal').onclick = () => el.itemsModal.classList.remove('active');
+            $('close-transaction-modal').onclick = () => el.txModal.classList.remove('active');
+
+            // カテゴリ追加モーダル
+            $('close-add-category-modal').onclick = () => $('add-category-modal').classList.remove('active');
             $('save-new-category').onclick = saveNewCategory;
 
-            $('close-add-item-modal').onclick = () => closeModal('addItem');
-            document.querySelectorAll('.modal-overlay').forEach(o => o.onclick = () => Object.keys(el.modals).forEach(k => closeModal(k)));
+            // 用品追加モーダル
+            $('close-add-item-modal').onclick = () => $('add-item-modal').classList.remove('active');
+
+            // Generic modal overlay close (for all modals)
+            document.querySelectorAll('.modal-overlay').forEach(o => o.onclick = (e) => {
+                // Find the parent modal and close it
+                const modal = e.target.closest('.modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            });
+
             $('btn-type-in').onclick = () => setTxType('IN');
             $('btn-type-out').onclick = () => setTxType('OUT');
-            $('qty-minus').onclick = () => { const v = +el.txQty.value - 1; if (v >= 1) el.txQty.value = v; };
-            $('qty-plus').onclick = () => { el.txQty.value = +el.txQty.value + 1; };
+
+            $('qty-minus').onclick = () => { el.txQty.value = Math.max(1, (+el.txQty.value || 0) - 1); };
+            $('qty-plus').onclick = () => { el.txQty.value = (+el.txQty.value || 0) + 1; };
+
             $('save-transaction').onclick = saveTx;
+
             document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
-            el.budgetYear.onchange = renderBudget;
-            el.budgetMonth.onchange = renderBudget;
+            $('budget-year').onchange = renderBudget;
+            $('budget-month').onchange = renderBudget;
             $('export-csv').onclick = exportCSV;
+
             $('save-new-item').onclick = saveNewItem;
         }
 
