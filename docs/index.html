@@ -1234,14 +1234,14 @@
             if (!el.loading) el.loading = document.getElementById('loading');
 
             el.screens = {
-                home: $('screen-home'),
-                dashboard: $('screen-dashboard'),
-                analytics: $('screen-analytics'),
-                settings: $('screen-settings')
+                home: $('department-select'),
+                dashboard: $('dashboard'),
+                analytics: $('analytics'),
+                settings: $('settings')
             };
             el.deptSelect = $('department-select');
             el.deptGrid = $('department-grid');
-            el.dashboardTitle = $('dashboard-title');
+            el.deptName = $('current-department-name');
             el.categoryGrid = $('category-grid');
             el.itemsModal = $('items-modal');
             el.itemsModalTitle = $('items-modal-title');
@@ -1277,12 +1277,12 @@
             $('back-to-home').onclick = () => showScreen('home');
             $('open-stats').onclick = () => {
                 showScreen('analytics');
-                updateAnalytics();
+                renderAnalytics();
             };
             $('open-analytics-top').onclick = () => {
                 state.deptId = null; // 全体集計
                 showScreen('analytics');
-                updateAnalytics();
+                renderAnalytics();
             };
             $('back-to-dashboard').onclick = () => {
                 if (state.deptId) showScreen('dashboard');
