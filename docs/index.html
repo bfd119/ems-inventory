@@ -1084,6 +1084,30 @@
             transform: scale(1.05);
             box-shadow: var(--shadow-md);
         }
+
+        /* ダッシュボードフッター */
+        .dashboard-footer {
+            text-align: center;
+            padding: var(--spacing-lg) 0;
+            margin-top: auto;
+        }
+
+        .guide-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            transition: all 0.2s;
+        }
+
+        .guide-link:hover {
+            color: var(--color-accent-primary);
+            background: var(--color-bg-secondary);
+        }
     </style>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -1117,6 +1141,9 @@
             <button class="stats-btn" id="open-stats">📊 在庫状況</button>
         </header>
         <div class="category-grid" id="category-grid"></div>
+        <div class="dashboard-footer">
+            <a href="manual.html" class="guide-link">📖 使い方ガイド</a>
+        </div>
     </section>
 
     <section id="analytics" class="screen">
