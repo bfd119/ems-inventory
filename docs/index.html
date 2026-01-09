@@ -1002,6 +1002,86 @@
                 margin-bottom: var(--spacing-xl);
             }
         }
+
+        /* トグルスイッチ */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--spacing-md);
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            color: var(--color-text-primary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: var(--color-accent-gradient);
+        }
+
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        /* カテゴリ追加ボタン（設定画面） */
+        .settings-add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--color-accent-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .settings-add-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
     </style>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -1155,7 +1235,7 @@
                     <div class="icon-selection-grid" id="new-category-icon-grid"></div>
                     <input type="hidden" id="new-category-icon">
                 </div>
-                <button class="save-btn" id="save-new-category">追加</button>
+                <button class="save-btn" id="save-new-category">保存</button>
             </div>
         </div>
     </div>
@@ -1172,7 +1252,12 @@
                         placeholder="例: 生理食塩水 500ml"></div>
                 <div class="form-group"><label>単位</label><input type="text" id="new-item-unit" placeholder="例: 本"
                         value="個"></div>
-                <div class="form-group"><label><input type="checkbox" id="new-item-has-expiry" checked> 使用期限あり</label>
+                <div class="form-group toggle-group">
+                    <label class="toggle-label">使用期限あり</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="new-item-has-expiry">
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
                 <div class="form-group"><label>最低在庫数 <small style="color:var(--color-text-muted)">(任意)</small></label>
                     <input type="number" id="new-item-min-stock" placeholder="0" min="0" value="0">
@@ -1980,7 +2065,7 @@
         }
 
         function renderSettingsCategories() {
-            let h = '<div class="settings-section"><h3 class="section-title">カテゴリ一覧 <button class="btn-sm" onclick="openAddCategoryModal()">＋追加</button></h3><div class="settings-list">';
+            let h = '<div class="settings-section"><h3 class="section-title">カテゴリ一覧 <button class="settings-add-btn" onclick="openAddCategoryModal()">＋追加</button></h3><div class="settings-list">';
             if (CATEGORIES.length === 0) h += '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
             else {
                 h += CATEGORIES.map(c => `
@@ -2129,6 +2214,10 @@
                 }
                 closeModal('addItem');
                 renderSettings();
+                // 用品一覧画面が開いていた場合は即座に更新
+                if (state.catId === cid) {
+                    showItemsModal();
+                }
                 $('new-item-name').value = '';
             } catch (e) { handleError(e); }
             showLoading(false);
