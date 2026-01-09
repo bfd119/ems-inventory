@@ -1243,6 +1243,7 @@
             el.deptGrid = $('department-grid');
             el.deptName = $('current-department-name');
             el.categoryGrid = $('category-grid');
+            el.catGrid = el.categoryGrid; // alias for renderCatGrid compatibility
             el.itemsModal = $('items-modal');
             el.itemsModalTitle = $('items-modal-title');
             el.itemsList = $('items-list');
@@ -1384,8 +1385,20 @@
         }
 
         async function fsDeleteCategory(id) {
-            // 関連用品も削除
+            // 関連用品のIDを取得
+            const { data: items } = await db.from('items').select('id').eq('category_id', id);
+            const itemIds = items ? items.map(i => i.id) : [];
+
+            // 関連する取引履歴を削除
+            if (itemIds.length > 0) {
+                await db.from('transactions').delete().in('item_id', itemIds);
+                await db.from('stocks').delete().in('item_id', itemIds);
+            }
+
+            // 関連用品を削除
             await db.from('items').delete().eq('category_id', id);
+
+            // カテゴリを削除
             const { error } = await db.from('categories').delete().eq('id', id);
             if (error) throw error;
             return { success: true };
@@ -1408,6 +1421,11 @@
         }
 
         async function fsDeleteItem(id) {
+            // 関連する取引履歴と在庫を先に削除
+            await db.from('transactions').delete().eq('item_id', id);
+            await db.from('stocks').delete().eq('item_id', id);
+
+            // 用品を削除
             const { error } = await db.from('items').delete().eq('id', id);
             if (error) throw error;
             return { success: true };
