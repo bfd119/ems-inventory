@@ -1108,6 +1108,100 @@
             color: var(--color-accent-primary);
             background: var(--color-bg-secondary);
         }
+
+        /* 検索バー */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .search-toggle {
+            font-size: 1.2rem;
+            color: var(--color-text-secondary);
+            padding: var(--spacing-xs);
+        }
+
+        .search-bar {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-card);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            gap: var(--spacing-sm);
+        }
+
+        .search-icon {
+            color: var(--color-text-muted);
+            font-size: 1.2rem;
+        }
+
+        .search-input-wrapper input {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            color: var(--color-text-primary);
+            outline: none;
+        }
+
+        .search-input-wrapper input::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        .search-clear {
+            font-size: 1.2rem;
+            color: var(--color-text-muted);
+            padding: 4px;
+            display: none;
+        }
+
+        .search-clear.visible {
+            display: block;
+        }
+
+        .search-suggestions {
+            margin-top: var(--spacing-sm);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-xs);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .suggestion-item:hover {
+            background: var(--color-bg-secondary);
+        }
+
+        .suggestion-item-name {
+            font-weight: 500;
+        }
+
+        .suggestion-item-category {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        .suggestion-item-stock {
+            font-size: 0.9rem;
+            color: var(--color-accent-primary);
+            font-weight: 600;
+        }
     </style>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -1138,8 +1232,20 @@
         <header class="dashboard-header">
             <button class="back-btn" id="back-to-home">←</button>
             <h2 class="department-name" id="current-department-name">部署名</h2>
-            <button class="stats-btn" id="open-stats">📊 在庫状況</button>
+            <div class="header-actions">
+                <button class="icon-btn search-toggle" id="toggle-search"><span
+                        class="material-symbols-outlined">search</span></button>
+                <button class="stats-btn" id="open-stats">📊 在庫状況</button>
+            </div>
         </header>
+        <div class="search-bar" id="search-bar" style="display: none;">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="text" id="item-search" placeholder="用品名を検索..." autocomplete="off">
+                <button class="search-clear" id="search-clear">×</button>
+            </div>
+            <div class="search-suggestions" id="search-suggestions"></div>
+        </div>
         <div class="category-grid" id="category-grid"></div>
         <div class="dashboard-footer">
             <a href="manual.html" class="guide-link">📖 使い方ガイド</a>
@@ -1455,6 +1561,11 @@
             $('export-csv').onclick = exportCSV;
 
             $('save-new-item').onclick = saveNewItem;
+
+            // 検索機能
+            $('toggle-search').onclick = toggleSearchBar;
+            $('item-search').oninput = handleSearchInput;
+            $('search-clear').onclick = clearSearch;
         }
 
         // ============================================
@@ -1694,6 +1805,78 @@
             el.deptName.textContent = d.name + ' 在庫管理';
             renderCatGrid();
             showScreen('dashboard');
+            // 検索バーを閉じる
+            $('search-bar').style.display = 'none';
+            $('item-search').value = '';
+            $('search-suggestions').innerHTML = '';
+        }
+
+        // 検索機能
+        function toggleSearchBar() {
+            const bar = $('search-bar');
+            const isVisible = bar.style.display !== 'none';
+            bar.style.display = isVisible ? 'none' : 'block';
+            if (!isVisible) {
+                $('item-search').focus();
+            }
+        }
+
+        function handleSearchInput(e) {
+            const query = e.target.value.trim().toLowerCase();
+            const clearBtn = $('search-clear');
+            clearBtn.classList.toggle('visible', query.length > 0);
+
+            if (query.length === 0) {
+                $('search-suggestions').innerHTML = '';
+                return;
+            }
+
+            // 用品を検索
+            const matches = ITEMS.filter(item =>
+                item.name.toLowerCase().includes(query)
+            ).slice(0, 10); // 最大10件
+
+            renderSearchSuggestions(matches);
+        }
+
+        function renderSearchSuggestions(items) {
+            const container = $('search-suggestions');
+            if (items.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:var(--color-text-muted);padding:1rem;">該当する用品がありません</p>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const cat = CATEGORIES.find(c => c.id === item.categoryId);
+                const catName = cat ? cat.name : '';
+                const lots = getLots(state.deptId, item.id);
+                const total = lots.reduce((a, l) => a + l.quantity, 0);
+                return `<div class="suggestion-item" data-item-id="${item.id}" data-cat-id="${item.categoryId}">
+                    <div>
+                        <div class="suggestion-item-name">${item.name}</div>
+                        <div class="suggestion-item-category">${catName}</div>
+                    </div>
+                    <div class="suggestion-item-stock">${total}${item.unit}</div>
+                </div>`;
+            }).join('');
+
+            // クリックイベント
+            container.querySelectorAll('.suggestion-item').forEach(el => {
+                el.onclick = () => {
+                    const itemId = +el.dataset.itemId;
+                    const catId = +el.dataset.catId;
+                    state.catId = catId;
+                    state.itemId = itemId;
+                    showTxModal();
+                    clearSearch();
+                };
+            });
+        }
+
+        function clearSearch() {
+            $('item-search').value = '';
+            $('search-suggestions').innerHTML = '';
+            $('search-clear').classList.remove('visible');
         }
 
         function renderCatGrid() {
