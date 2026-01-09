@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>使い方ガイド - 救急用品在庫管理</title>
+    <title>操作説明書 - 救急用品在庫管理</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
@@ -19,10 +19,11 @@
             min-height: 100vh;
             color: #333;
             padding: 20px;
+            line-height: 1.8;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
@@ -48,7 +49,16 @@
             text-decoration: underline;
         }
 
-        .step {
+        .intro {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .toc {
             background: white;
             border-radius: 16px;
             padding: 24px;
@@ -56,7 +66,38 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
-        .step-number {
+        .toc h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: #1a1a2e;
+        }
+
+        .toc ol {
+            padding-left: 24px;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: #4a6bff;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-number {
             display: inline-block;
             width: 32px;
             height: 32px;
@@ -69,25 +110,67 @@
             margin-bottom: 12px;
         }
 
-        .step h2 {
+        .section h2 {
             font-size: 1.1rem;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             color: #1a1a2e;
         }
 
-        .step p {
-            color: #666;
-            line-height: 1.8;
-            font-size: 0.95rem;
+        .section h3 {
+            font-size: 1rem;
+            margin: 16px 0 12px;
+            color: #1a1a2e;
         }
 
-        .step img {
+        .section h4 {
+            font-size: 0.95rem;
+            margin: 12px 0 8px;
+            color: #4a6bff;
+        }
+
+        .section p {
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .section img {
             width: 100%;
-            max-width: 300px;
+            max-width: 350px;
             border-radius: 12px;
             margin: 16px auto;
             display: block;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .section ul,
+        .section ol {
+            padding-left: 24px;
+            margin-bottom: 12px;
+            color: #666;
+        }
+
+        .section li {
+            margin-bottom: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #1a1a2e;
         }
 
         .tip {
@@ -95,7 +178,7 @@
             border-left: 4px solid #ffc107;
             padding: 16px;
             border-radius: 0 12px 12px 0;
-            margin-top: 16px;
+            margin: 16px 0;
         }
 
         .tip-title {
@@ -104,82 +187,350 @@
             margin-bottom: 8px;
         }
 
+        .flow-section {
+            background: #f0f9ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .flow-section h3 {
+            color: #0369a1;
+            margin-top: 0;
+        }
+
         footer {
             text-align: center;
             margin-top: 40px;
             color: #888;
             font-size: 0.85rem;
         }
+
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 24px 0;
+        }
+
+        .qr-fixed {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            text-align: center;
+        }
+
+        .qr-fixed img {
+            width: 80px;
+            height: 80px;
+            display: block;
+        }
+
+        .qr-fixed .qr-label {
+            font-size: 0.65rem;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 480px) {
+            .qr-fixed {
+                padding: 8px;
+            }
+
+            .qr-fixed img {
+                width: 60px;
+                height: 60px;
+            }
+
+            .qr-fixed .qr-label {
+                font-size: 0.6rem;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- 右上固定QRコード -->
+    <div class="qr-fixed">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://bfd119.github.io/ems-inventory/"
+            alt="アプリQRコード">
+        <div class="qr-label">📱 アプリを開く</div>
+    </div>
+
     <div class="container">
         <a href="index.html" class="back-link">← アプリに戻る</a>
 
         <header>
-            <h1>🚑 救急用品在庫管理 使い方ガイド</h1>
-            <p style="color: #666;">かんたん3ステップで在庫管理</p>
+            <h1>🚑 救急用品在庫管理 操作説明書</h1>
         </header>
 
-        <div class="step">
-            <span class="step-number">1</span>
-            <h2>部署を選択する</h2>
-            <p>まず、あなたの担当部署をタップして選択してください。</p>
-            <img src="images/step1.png" alt="部署選択画面" onerror="this.style.display='none'">
-            <div class="tip">
-                <div class="tip-title">💡 ヒント</div>
-                <p>部署ごとに在庫が分かれています。担当の部署を選んでください。</p>
-            </div>
+        <div class="intro">
+            <p>このアプリは、消防署の救急用品在庫をスマートフォンやパソコンで簡単に管理できるシステムです。</p>
         </div>
 
-        <div class="step">
-            <span class="step-number">2</span>
-            <h2>カテゴリを選択する</h2>
-            <p>用品のカテゴリ（医薬品、気道管理、感染防止など）をタップして選択します。</p>
-            <img src="images/step2.png" alt="カテゴリ選択画面" onerror="this.style.display='none'">
+        <nav class="toc">
+            <h2>📋 目次</h2>
+            <ol>
+                <li><a href="#section1">部署の選択（ホーム画面）</a></li>
+                <li><a href="#section2">カテゴリの選択（ダッシュボード）</a></li>
+                <li><a href="#section3">用品一覧の確認</a></li>
+                <li><a href="#section4">入庫・出庫の記録</a></li>
+                <li><a href="#section5">カテゴリ・用品の設定</a></li>
+                <li><a href="#flows">よくある操作フロー</a></li>
+            </ol>
+        </nav>
+
+        <!-- セクション1: 部署の選択 -->
+        <div class="section" id="section1">
+            <span class="section-number">1</span>
+            <h2>部署の選択（ホーム画面）</h2>
+            <p>アプリを開くと、最初に部署選択画面が表示されます。</p>
+            <img src="images/screen_home.png" alt="ホーム画面" onerror="this.style.display='none'">
+
+            <h3>操作方法</h3>
+            <ol>
+                <li><strong>自分の部署のボタン</strong>をタップします</li>
+                <li>選択した部署のダッシュボードに移動します</li>
+            </ol>
+
+            <h3>画面下部のメニュー</h3>
+            <table>
+                <tr>
+                    <th>ボタン</th>
+                    <th>機能</th>
+                </tr>
+                <tr>
+                    <td>📊 在庫状況・使用履歴</td>
+                    <td>全体の在庫状況と使用履歴を確認</td>
+                </tr>
+                <tr>
+                    <td>⚙️ カテゴリ・用品設定</td>
+                    <td>カテゴリや用品の追加・編集・削除</td>
+                </tr>
+                <tr>
+                    <td>📖 使い方ガイド</td>
+                    <td>このマニュアルへのリンク</td>
+                </tr>
+            </table>
         </div>
 
-        <div class="step">
-            <span class="step-number">3</span>
-            <h2>用品を選んで入出庫を記録</h2>
-            <p>用品リストから記録したい用品をタップ。「入庫」または「出庫」を選んで数量を入力し、保存ボタンを押してください。</p>
-            <img src="images/step3.png" alt="入出庫記録画面" onerror="this.style.display='none'">
-            <div class="tip">
-                <div class="tip-title">📅 使用期限について</div>
-                <p>使用期限がある用品は、入庫時に期限を設定できます。出庫時は期限の近いものから自動で選択されます。期限切れが近い用品は赤く表示されます。</p>
-            </div>
-        </div>
+        <!-- セクション2: カテゴリの選択 -->
+        <div class="section" id="section2">
+            <span class="section-number">2</span>
+            <h2>カテゴリの選択（ダッシュボード）</h2>
+            <p>部署を選択すると、用品カテゴリの一覧が表示されます。</p>
+            <img src="images/screen_dashboard.png" alt="ダッシュボード" onerror="this.style.display='none'">
 
-        <div class="step">
-            <span class="step-number">⚙️</span>
-            <h2>その他の機能</h2>
-            <ul style="color: #666; line-height: 2; padding-left: 20px;">
-                <li><strong>📊 在庫状況・使用履歴</strong> - 在庫状況、使用実績、履歴の確認、CSVエクスポート</li>
-                <li><strong>⚙️ 設定</strong> - カテゴリ・用品の追加・編集・削除</li>
-                <li><strong>📅 期限編集</strong> - 出庫画面で使用期限を後から変更可能</li>
+            <h3>操作方法</h3>
+            <ol>
+                <li><strong>カテゴリのタイル</strong>をタップして、そのカテゴリの用品一覧を表示します</li>
+                <li>右上の <strong>「在庫状況」</strong> をタップすると、この部署の在庫サマリーを確認できます</li>
+                <li><strong>「＋追加」</strong> タイルをタップすると、新しいカテゴリを追加できます</li>
+                <li><strong>「←」</strong> ボタンで部署選択画面に戻ります</li>
+            </ol>
+
+            <h3>カテゴリ一覧（例）</h3>
+            <ul>
+                <li>医薬品、静脈路確保、気管挿管、血糖測定、気道管理</li>
+                <li>感染防止衣、感染防止、外傷、消毒、その他、心電図</li>
             </ul>
         </div>
 
-        <div class="step" style="text-align: center;">
-            <span class="step-number">📱</span>
-            <h2>アプリにアクセス</h2>
-            <p style="margin-bottom: 16px;">下のQRコードをスマートフォンで読み取ると、このアプリにアクセスできます。</p>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://bfd119.github.io/ems-inventory/"
-                alt="アプリQRコード"
-                style="width: 200px; height: 200px; box-shadow: none; border: 1px solid #eee; border-radius: 8px;">
-            <p style="margin-top: 12px; font-size: 0.85rem; color: #888;">
-                <a href="https://bfd119.github.io/ems-inventory/"
-                    style="color: #4a6bff;">https://bfd119.github.io/ems-inventory/</a>
-            </p>
-            <div class="tip">
-                <div class="tip-title">📌 ホーム画面に追加</div>
-                <p>iPhoneの場合は「共有」→「ホーム画面に追加」、Androidの場合は「メニュー」→「ホーム画面に追加」で、アプリのようにアイコンから起動できます。</p>
+        <!-- セクション3: 用品一覧の確認 -->
+        <div class="section" id="section3">
+            <span class="section-number">3</span>
+            <h2>用品一覧の確認</h2>
+            <p>カテゴリをタップすると、そのカテゴリに登録されている用品の一覧が表示されます。</p>
+            <img src="images/screen_items.png" alt="用品一覧" onerror="this.style.display='none'">
+
+            <h3>表示内容</h3>
+            <table>
+                <tr>
+                    <th>項目</th>
+                    <th>説明</th>
+                </tr>
+                <tr>
+                    <td>用品名</td>
+                    <td>アドレナリン、ブドウ糖 など</td>
+                </tr>
+                <tr>
+                    <td>現在庫数</td>
+                    <td>右側に「◯個」と表示</td>
+                </tr>
+                <tr>
+                    <td>ロット数</td>
+                    <td>使用期限が設定されている用品は「◯ロット」と表示</td>
+                </tr>
+            </table>
+
+            <h3>操作方法</h3>
+            <ol>
+                <li><strong>用品名をタップ</strong> → 入庫・出庫画面を開きます</li>
+                <li><strong>「＋用品を追加」</strong> → 新しい用品をこのカテゴリに追加します</li>
+                <li><strong>「×」ボタン</strong> → 一覧を閉じてダッシュボードに戻ります</li>
+            </ol>
+        </div>
+
+        <!-- セクション4: 入庫・出庫の記録 -->
+        <div class="section" id="section4">
+            <span class="section-number">4</span>
+            <h2>入庫・出庫の記録</h2>
+            <p>用品をタップすると、入庫・出庫を記録する画面が表示されます。</p>
+            <img src="images/screen_transaction.png" alt="入出庫画面" onerror="this.style.display='none'">
+
+            <h3>画面構成</h3>
+            <table>
+                <tr>
+                    <th>項目</th>
+                    <th>説明</th>
+                </tr>
+                <tr>
+                    <td>現在庫</td>
+                    <td>現在の在庫数が表示されます</td>
+                </tr>
+                <tr>
+                    <td>入庫 / 出庫</td>
+                    <td>どちらの操作かを選択します</td>
+                </tr>
+                <tr>
+                    <td>入庫日（出庫日）</td>
+                    <td>日付を入力します（デフォルトは今日）</td>
+                </tr>
+                <tr>
+                    <td>数量</td>
+                    <td>「−」「＋」ボタンまたは直接入力で数量を指定</td>
+                </tr>
+                <tr>
+                    <td>備考</td>
+                    <td>メモを入力できます（定期補充、救急活動で使用 など）</td>
+                </tr>
+                <tr>
+                    <td>署所間移動</td>
+                    <td>他の部署からの受け取り、または他の部署への譲渡を記録</td>
+                </tr>
+            </table>
+
+            <h4>📥 入庫（補充）の場合</h4>
+            <ol>
+                <li><strong>「入庫」</strong> が選択されていることを確認</li>
+                <li><strong>入庫日</strong> を必要に応じて変更</li>
+                <li><strong>数量</strong> を入力</li>
+                <li>必要に応じて <strong>備考</strong> を入力</li>
+                <li><strong>「保存」</strong> をタップ</li>
+            </ol>
+
+            <h4>📤 出庫（使用）の場合</h4>
+            <ol>
+                <li><strong>「出庫」</strong> をタップして切り替え</li>
+                <li>使用期限のある用品は、出庫するロットを選択</li>
+                <li><strong>数量</strong> を入力</li>
+                <li>必要に応じて <strong>備考</strong> を入力</li>
+                <li><strong>「保存」</strong> をタップ</li>
+            </ol>
+
+            <h4>🔄 署所間移動の場合</h4>
+            <ol>
+                <li><strong>「署所間移動」</strong> にチェックを入れる</li>
+                <li>相手先の部署を選択</li>
+                <li>通常通り保存</li>
+            </ol>
+        </div>
+
+        <!-- セクション5: カテゴリ・用品の設定 -->
+        <div class="section" id="section5">
+            <span class="section-number">5</span>
+            <h2>カテゴリ・用品の設定</h2>
+            <p>ホーム画面下部の <strong>「カテゴリ・用品設定」</strong> をタップすると、設定画面が開きます。</p>
+            <img src="images/screen_settings.png" alt="設定画面" onerror="this.style.display='none'">
+
+            <h3>カテゴリ一覧</h3>
+            <ul>
+                <li>登録されているすべてのカテゴリが表示されます</li>
+                <li><strong>「＋追加」ボタン</strong> で新しいカテゴリを追加</li>
+                <li><strong>✏️（編集アイコン）</strong> でカテゴリ名・アイコンを変更</li>
+                <li><strong>×（削除ボタン）</strong> でカテゴリを削除（関連する用品も削除されます）</li>
+            </ul>
+
+            <h3>カテゴリ内の用品管理</h3>
+            <ol>
+                <li>カテゴリ名をタップすると、そのカテゴリ内の用品一覧が表示されます</li>
+                <li><strong>「＋このカテゴリに用品追加」</strong> で新規用品を追加</li>
+                <li>各用品の編集・削除も可能です</li>
+            </ol>
+
+            <h3>新規カテゴリ追加</h3>
+            <ol>
+                <li><strong>「＋追加」</strong> ボタンをタップ</li>
+                <li>カテゴリ名を入力</li>
+                <li>アイコンを選択</li>
+                <li><strong>「保存」</strong> をタップ</li>
+            </ol>
+
+            <h3>新規用品追加</h3>
+            <ol>
+                <li>該当カテゴリを開く、または設定画面から追加</li>
+                <li>用品名を入力</li>
+                <li>単位を設定（個、本、枚 など）</li>
+                <li><strong>「使用期限あり」</strong> トグルを必要に応じてON</li>
+                <li>最低在庫数を設定（任意）</li>
+                <li><strong>「追加」</strong> をタップ</li>
+            </ol>
+        </div>
+
+        <!-- よくある操作フロー -->
+        <div class="section" id="flows">
+            <span class="section-number">💡</span>
+            <h2>よくある操作フロー</h2>
+
+            <div class="flow-section">
+                <h3>📥 定期補充を記録する</h3>
+                <ol>
+                    <li>部署を選択</li>
+                    <li>カテゴリを選択</li>
+                    <li>用品をタップ</li>
+                    <li>「入庫」を選択</li>
+                    <li>数量を入力</li>
+                    <li>備考に「定期補充」と入力</li>
+                    <li>「保存」をタップ</li>
+                </ol>
+            </div>
+
+            <div class="flow-section">
+                <h3>📤 救急活動での使用を記録する</h3>
+                <ol>
+                    <li>部署を選択</li>
+                    <li>カテゴリを選択</li>
+                    <li>使用した用品をタップ</li>
+                    <li>「出庫」を選択</li>
+                    <li>ロットを選択（期限管理のある用品）</li>
+                    <li>数量を入力</li>
+                    <li>備考に「救急活動で使用」と入力</li>
+                    <li>「保存」をタップ</li>
+                </ol>
+            </div>
+
+            <div class="flow-section">
+                <h3>📊 在庫状況を確認する</h3>
+                <ol>
+                    <li>ホーム画面で「在庫状況・使用履歴」をタップ</li>
+                    <li>全部署の在庫サマリーを確認</li>
+                    <li>または特定部署のダッシュボードで「在庫状況」をタップ</li>
+                </ol>
             </div>
         </div>
 
+        <div class="section" style="text-align: center;">
+            <span class="section-number">❓</span>
+            <h2>お問い合わせ</h2>
+            <p>操作でご不明な点がありましたら、管理者までお問い合わせください。</p>
+        </div>
+
         <footer>
-            <p>© 救急用品在庫管理システム</p>
+            <p><strong>救急用品在庫管理システム</strong> © 2026</p>
         </footer>
     </div>
 </body>
