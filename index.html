@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EMS在庫管理システム</title>
+    <meta name="description" content="消防救急資器材の在庫管理システム - 11部署の在庫を一元管理">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- 部署選択画面 -->
+    <section id="department-select" class="screen active">
+        <div class="screen-header">
+            <h1 class="app-title">
+                <span class="title-icon">🚒</span>
+                EMS在庫管理
+            </h1>
+            <p class="app-subtitle">部署を選択してください</p>
+        </div>
+        <div class="department-grid" id="department-grid">
+            <!-- JavaScript で生成 -->
+        </div>
+    </section>
+
+    <!-- 部署ダッシュボード画面 -->
+    <section id="dashboard" class="screen">
+        <header class="dashboard-header">
+            <button class="back-btn" id="back-to-home" aria-label="戻る">
+                <span class="back-icon">←</span>
+            </button>
+            <h2 class="department-name" id="current-department-name">部署名</h2>
+            <button class="stats-btn" id="open-stats" aria-label="統計">
+                <span class="stats-icon">📊</span>
+            </button>
+        </header>
+        <div class="category-grid" id="category-grid">
+            <!-- JavaScript で生成 -->
+        </div>
+    </section>
+
+    <!-- 統計・分析画面 -->
+    <section id="analytics" class="screen">
+        <header class="dashboard-header">
+            <button class="back-btn" id="back-to-dashboard" aria-label="戻る">
+                <span class="back-icon">←</span>
+            </button>
+            <h2 class="department-name">全体統計・分析</h2>
+            <div class="header-spacer"></div>
+        </header>
+        <div class="analytics-tabs">
+            <button class="tab-btn active" data-tab="summary">在庫状況</button>
+            <button class="tab-btn" data-tab="budget">使用実績</button>
+            <button class="tab-btn" data-tab="log">履歴</button>
+        </div>
+        <div class="analytics-content">
+            <div id="tab-summary" class="tab-content active">
+                <div class="summary-list" id="summary-list">
+                    <!-- JavaScript で生成 -->
+                </div>
+            </div>
+            <div id="tab-budget" class="tab-content">
+                <div class="budget-controls">
+                    <select id="budget-year" class="budget-select"></select>
+                    <select id="budget-month" class="budget-select">
+                        <option value="all">全期間</option>
+                    </select>
+                </div>
+                <div class="budget-table-wrapper">
+                    <table class="budget-table" id="budget-table">
+                        <!-- JavaScript で生成 -->
+                    </table>
+                </div>
+                <button class="export-btn" id="export-csv">
+                    <span>📥</span> CSVエクスポート
+                </button>
+            </div>
+            <div id="tab-log" class="tab-content">
+                <div class="log-list" id="log-list">
+                    <!-- JavaScript で生成 -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 用品一覧モーダル -->
+    <div class="modal" id="items-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="items-modal-title">カテゴリ名</h3>
+                <button class="modal-close" id="close-items-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <ul class="items-list" id="items-list">
+                    <!-- JavaScript で生成 -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 入出庫モーダル -->
+    <div class="modal" id="transaction-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="transaction-modal-title">用品名</h3>
+                <button class="modal-close" id="close-transaction-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="current-stock">
+                    <span class="stock-label">現在庫:</span>
+                    <span class="stock-value" id="current-stock-value">0</span>
+                    <span class="stock-unit" id="current-stock-unit">個</span>
+                </div>
+                <div class="transaction-type-toggle">
+                    <button class="type-btn active" data-type="IN" id="btn-type-in">入庫</button>
+                    <button class="type-btn" data-type="OUT" id="btn-type-out">出庫</button>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-quantity">数量</label>
+                    <div class="quantity-input">
+                        <button class="qty-btn" id="qty-minus">−</button>
+                        <input type="number" id="transaction-quantity" value="1" min="1">
+                        <button class="qty-btn" id="qty-plus">+</button>
+                    </div>
+                </div>
+                <div class="form-group expiry-group" id="expiry-group">
+                    <label for="transaction-expiry">使用期限（入庫時のみ）</label>
+                    <input type="date" id="transaction-expiry">
+                </div>
+                <div class="form-group">
+                    <label for="transaction-remarks">備考</label>
+                    <input type="text" id="transaction-remarks" list="remarks-suggestions" placeholder="備考を入力...">
+                    <datalist id="remarks-suggestions">
+                        <option value="使用期限切れ">
+                        <option value="定期補充">
+                        <option value="救急活動で使用">
+                        <option value="訓練で使用">
+                        <option value="破損・汚損">
+                        <option value="他部署へ移動">
+                        <option value="他部署から受入">
+                    </datalist>
+                </div>
+                <button class="save-btn" id="save-transaction">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
