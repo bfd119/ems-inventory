@@ -19,7 +19,7 @@ const DEPARTMENTS = [
 
 // カテゴリマスターデータ
 const CATEGORIES = [
-    { id: 1, name: "輸液", icon: "💉" },
+    { id: 1, name: "輸液", icon: "🩸" },
     { id: 2, name: "薬剤", icon: "💊" },
     { id: 3, name: "気道管理", icon: "🫁" },
     { id: 4, name: "資機材", icon: "🩺" },
@@ -34,13 +34,13 @@ const ITEMS = [
     { id: 2, categoryId: 1, name: "生理食塩水 100ml", unit: "本", hasExpiry: true },
     { id: 3, categoryId: 1, name: "乳酸リンゲル液 500ml", unit: "本", hasExpiry: true },
     { id: 4, categoryId: 1, name: "5%ブドウ糖液 500ml", unit: "本", hasExpiry: true },
-    
+
     // 薬剤（カテゴリID: 2）
     { id: 10, categoryId: 2, name: "アドレナリン 1mg", unit: "アンプル", hasExpiry: true },
     { id: 11, categoryId: 2, name: "アトロピン 0.5mg", unit: "アンプル", hasExpiry: true },
     { id: 12, categoryId: 2, name: "リドカイン 2%", unit: "アンプル", hasExpiry: true },
     { id: 13, categoryId: 2, name: "50%ブドウ糖液 20ml", unit: "アンプル", hasExpiry: true },
-    
+
     // 気道管理（カテゴリID: 3）
     { id: 20, categoryId: 3, name: "気管チューブ 7.0mm", unit: "本", hasExpiry: true },
     { id: 21, categoryId: 3, name: "気管チューブ 7.5mm", unit: "本", hasExpiry: true },
@@ -48,7 +48,7 @@ const ITEMS = [
     { id: 23, categoryId: 3, name: "ラリンゲアルマスク #3", unit: "個", hasExpiry: true },
     { id: 24, categoryId: 3, name: "ラリンゲアルマスク #4", unit: "個", hasExpiry: true },
     { id: 25, categoryId: 3, name: "吸引カテーテル 14Fr", unit: "本", hasExpiry: true },
-    
+
     // 資機材（カテゴリID: 4）
     { id: 30, categoryId: 4, name: "留置針 18G", unit: "本", hasExpiry: true },
     { id: 31, categoryId: 4, name: "留置針 20G", unit: "本", hasExpiry: true },
@@ -56,7 +56,7 @@ const ITEMS = [
     { id: 33, categoryId: 4, name: "輸液セット", unit: "セット", hasExpiry: true },
     { id: 34, categoryId: 4, name: "三方活栓", unit: "個", hasExpiry: true },
     { id: 35, categoryId: 4, name: "延長チューブ", unit: "本", hasExpiry: true },
-    
+
     // 消耗品（カテゴリID: 5）
     { id: 40, categoryId: 5, name: "サージカルテープ", unit: "巻", hasExpiry: false },
     { id: 41, categoryId: 5, name: "ガーゼ（滅菌）", unit: "枚", hasExpiry: true },
@@ -65,7 +65,7 @@ const ITEMS = [
     { id: 44, categoryId: 5, name: "ディスポ手袋 M", unit: "箱", hasExpiry: true },
     { id: 45, categoryId: 5, name: "ディスポ手袋 L", unit: "箱", hasExpiry: true },
     { id: 46, categoryId: 5, name: "アルコール綿", unit: "包", hasExpiry: true },
-    
+
     // その他（カテゴリID: 6）
     { id: 50, categoryId: 6, name: "電極パッド（成人）", unit: "セット", hasExpiry: true },
     { id: 51, categoryId: 6, name: "電極パッド（小児）", unit: "セット", hasExpiry: true },
@@ -86,12 +86,12 @@ const STORAGE_KEYS = {
 function generateInitialStocks() {
     const stocks = [];
     const today = new Date();
-    
+
     DEPARTMENTS.forEach(dept => {
         ITEMS.forEach(item => {
             // ランダムな初期在庫（0〜20）
             const quantity = Math.floor(Math.random() * 21);
-            
+
             // 使用期限がある用品の場合、ランダムな期限を設定（-30日〜+365日）
             let expiryDate = null;
             if (item.hasExpiry) {
@@ -100,7 +100,7 @@ function generateInitialStocks() {
                 expiry.setDate(expiry.getDate() + daysOffset);
                 expiryDate = expiry.toISOString().split('T')[0];
             }
-            
+
             stocks.push({
                 departmentId: dept.id,
                 itemId: item.id,
@@ -109,7 +109,7 @@ function generateInitialStocks() {
             });
         });
     });
-    
+
     return stocks;
 }
 
@@ -181,7 +181,7 @@ function getStock(departmentId, itemId) {
 function updateStock(departmentId, itemId, quantity, expiryDate = null) {
     const stocks = getStocks();
     const index = stocks.findIndex(s => s.departmentId === departmentId && s.itemId === itemId);
-    
+
     if (index >= 0) {
         stocks[index].quantity = quantity;
         if (expiryDate !== null) {
@@ -195,7 +195,7 @@ function updateStock(departmentId, itemId, quantity, expiryDate = null) {
             expiryDate
         });
     }
-    
+
     saveStocks(stocks);
 }
 
@@ -233,13 +233,13 @@ function getItemsByCategory(categoryId) {
  */
 function getExpiryStatus(expiryDate) {
     if (!expiryDate) return 'none';
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const expiry = new Date(expiryDate);
     const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) return 'expired';
     if (diffDays <= 30) return 'warning';
     return 'ok';
@@ -253,9 +253,9 @@ function getExpiringThisMonth() {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
-    
+
     const expiringItems = [];
-    
+
     stocks.forEach(stock => {
         if (stock.expiryDate && stock.quantity > 0) {
             const expiry = new Date(stock.expiryDate);
@@ -272,14 +272,14 @@ function getExpiringThisMonth() {
             }
         }
     });
-    
+
     // 部署順にソート
     expiringItems.sort((a, b) => {
-        const deptOrder = DEPARTMENTS.findIndex(d => d.name === a.departmentName) 
-                        - DEPARTMENTS.findIndex(d => d.name === b.departmentName);
+        const deptOrder = DEPARTMENTS.findIndex(d => d.name === a.departmentName)
+            - DEPARTMENTS.findIndex(d => d.name === b.departmentName);
         if (deptOrder !== 0) return deptOrder;
         return new Date(a.expiryDate) - new Date(b.expiryDate);
     });
-    
+
     return expiringItems;
 }
