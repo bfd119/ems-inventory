@@ -121,38 +121,7 @@
             }
         }
 
-        @media (min-width: 768px) {
-            .screen {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: var(--spacing-lg);
-            }
 
-            .department-grid {
-                max-width: 100%;
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: var(--spacing-md);
-            }
-
-            .category-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                gap: var(--spacing-md);
-            }
-
-            .modal-content {
-                max-width: 600px;
-                border-radius: var(--border-radius-xl);
-                max-height: 90vh;
-                margin: auto;
-                position: relative;
-                box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
-            }
-
-            .modal {
-                align-items: center;
-                padding: var(--spacing-lg);
-            }
-        }
 
         #department-select {
             justify-content: center;
@@ -1055,17 +1024,7 @@
             background: var(--color-primary-light);
         }
 
-        @media (min-width: 768px) {
-            .screen {
-                max-width: 420px;
-                margin: 0 auto;
-            }
 
-            .modal-content {
-                border-radius: var(--border-radius-xl);
-                margin-bottom: var(--spacing-xl);
-            }
-        }
 
         /* トグルスイッチ */
         .toggle-group {
@@ -1422,6 +1381,95 @@
             color: var(--color-accent-primary);
             font-weight: 600;
         }
+
+        .matrix-detail-row td {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            background: #faf9f7;
+            border-top: 1px dotted var(--color-border);
+        }
+
+        .matrix-detail-label {
+            text-align: right !important;
+            padding-right: var(--spacing-md) !important;
+            font-weight: 500;
+            color: var(--color-text-muted);
+        }
+
+        .lot-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .lot-tag {
+            font-size: 0.75rem;
+            background: #e0f2f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #00695c;
+        }
+
+        .lot-tag.expired {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .lot-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 4px;
+            font-size: 0.65rem;
+            color: var(--color-text-secondary);
+        }
+
+        .lot-item-matrix {
+            background: rgba(0, 0, 0, 0.03);
+            padding: 1px 3px;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+
+        .lot-item-matrix.expired-lot {
+            color: var(--color-danger);
+            background: #ffebee;
+        }
+
+        /* PC向けレスポンシブ設定（末尾に配置して優先適用） */
+        @media (min-width: 768px) {
+            .screen {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: var(--spacing-lg);
+            }
+
+            .department-grid {
+                max-width: 100%;
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: var(--spacing-md);
+            }
+
+            .category-grid {
+                grid-template-columns: repeat(7, 1fr);
+                gap: var(--spacing-md);
+            }
+
+            .modal-content {
+                max-width: 600px;
+                border-radius: var(--border-radius-xl);
+                max-height: 90vh;
+                margin: auto;
+                position: relative;
+                box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
+            }
+
+            .modal {
+                align-items: center;
+                padding: var(--spacing-lg);
+            }
+        }
     </style>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -1436,8 +1484,7 @@
 
     <section id="department-select" class="screen active">
         <div class="screen-header">
-            <h1 class="app-title"><span><span class="material-symbols-outlined"
-                        style="font-size: 2rem;">local_fire_department</span></span>救急用品在庫管理</h1>
+            <h1 class="app-title">🚑救急用品在庫表</h1>
             <p class="app-subtitle">部署を選択してください</p>
         </div>
         <div class="department-grid" id="department-grid"></div>
@@ -1544,8 +1591,8 @@
                 <div class="current-stock"><span class="stock-label">現在庫:</span><span class="stock-value"
                         id="current-stock-value">0</span><span id="current-stock-unit">個</span></div>
                 <div class="transaction-type-toggle">
-                    <button class="type-btn active" data-type="IN" id="btn-type-in">入庫</button>
                     <button class="type-btn" data-type="OUT" id="btn-type-out">出庫</button>
+                    <button class="type-btn active" data-type="IN" id="btn-type-in">入庫</button>
                 </div>
                 <div class="form-group" id="lot-select-group" style="display:none;"><label>出庫ロット選択:</label>
                     <div class="lot-list" id="lot-list"></div>
@@ -2136,7 +2183,25 @@
                     const lots = getLots(state.deptId, item.id);
                     const total = lots.reduce((a, l) => a + l.quantity, 0);
                     const hasExpired = lots.some(l => getExpStatus(l.expiryDate) === 'expired');
-                    return `<li class="item-row" data-id="${item.id}"><div class="item-info"><div class="item-name">${item.name}</div><div class="item-expiry-info ${hasExpired ? 'has-expired' : ''}">${item.hasExpiry ? lots.length + 'ロット' : ''}${hasExpired ? ' (期限切れあり)' : ''}</div></div><div class="item-stock">${total}${item.unit}</div></li>`;
+
+                    let lotInfoHtml = '';
+                    if (item.hasExpiry && lots.length > 0) {
+                        const sortedLots = [...lots].sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
+                        lotInfoHtml = `<div class="lot-tags">` +
+                            sortedLots.map(l => {
+                                const isExp = getExpStatus(l.expiryDate) === 'expired';
+                                return `<span class="lot-tag ${isExp ? 'expired' : ''}">${l.expiryDate || '期限なし'}: ${l.quantity}</span>`;
+                            }).join('') + `</div>`;
+                    }
+
+                    return `<li class="item-row" data-id="${item.id}">
+                        <div class="item-info">
+                            <div class="item-name">${item.name}</div>
+                            ${lotInfoHtml}
+                            <div class="item-expiry-info ${hasExpired ? 'has-expired' : ''}">${hasExpired ? '⚠️期限切れあり' : ''}</div>
+                        </div>
+                        <div class="item-stock">${total}${item.unit}</div>
+                    </li>`;
                 }).join('');
             }
             // 追加ボタン
@@ -2157,7 +2222,7 @@
             el.txRemarks.value = '';
             el.txDate.value = new Date().toISOString().split('T')[0];
             state.selectedLot = null;
-            setTxType('IN');
+            setTxType('OUT');
             closeModal('items');
             openModal('transaction');
         }
@@ -2251,7 +2316,12 @@
             el.saveBtn.disabled = true;
             showLoading(true);
             try {
-                const txDate = el.txDate.value || new Date().toISOString().split('T')[0];
+                // 日付が今日なら現在時刻を使用
+                let txDate = el.txDate.value || new Date().toISOString().split('T')[0];
+                const today = new Date().toISOString().split('T')[0];
+                if (txDate === today) {
+                    txDate = new Date().toISOString();
+                }
 
                 if (isTransfer) {
                     // 署所間移動の場合
@@ -2274,6 +2344,7 @@
                 }
 
                 state.stocks = await fsGetStocks();
+                renderAnalytics(); // 全体画面更新
                 closeModal('transaction');
                 showItemsModal();
             } catch (e) { handleError(e); }
@@ -2296,10 +2367,11 @@
         }
 
         function renderLog() {
-            // 部署フィルタ (state.deptIdがない場合は全部署)
-            const txs = state.deptId
-                ? state.transactions.filter(t => t.departmentId === state.deptId)
-                : state.transactions;
+            // 部署フィルタ & 出庫のみ
+            let txs = state.transactions.filter(t => t.type === 'OUT');
+            if (state.deptId) {
+                txs = txs.filter(t => t.departmentId === state.deptId);
+            }
 
             if (txs.length === 0) {
                 el.logList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>履歴がありません</p></div>';
@@ -2349,7 +2421,7 @@
                     <div class="matrix-accordion-item" id="accordion-${cat.id}">
                         <div class="matrix-accordion-header" onclick="toggleMatrixAccordion(${cat.id})">
                             <div class="matrix-accordion-title">
-                                <span class="matrix-category-icon material-symbols-outlined">${cat.icon}</span>
+                                <span class="matrix-category-icon material-symbols-outlined" style="color: ${ICON_COLORS[cat.icon] || ''}">${cat.icon}</span>
                                 <span>${cat.name}</span>
                             </div>
                             <span class="material-symbols-outlined accordion-toggle-icon">expand_more</span>
@@ -2366,18 +2438,10 @@
         }
 
         function renderMatrixTable(items) {
-            // 署所リスト（警防課、合計用を除いたもの）
-            // 署所ID順序: 三次(1), 作木(2), 吉舎(3), 三和(4), 口和(5), 甲奴(6), 庄原(7), 西城(8), 高野(9), 東城(10), 警防課(99)
-            // 表示順: 警防課 -> 各署所(ID順) -> 署所計
-
-            // まず警防課、次にID順の署所
-            const keibouka = DEPARTMENTS.find(d => d.id === 99);
-            const otherDepts = DEPARTMENTS.filter(d => d.id !== 99).sort((a, b) => a.id - b.id);
-
-            // 表示用署所リスト
-            const displayDepts = [];
-            if (keibouka) displayDepts.push(keibouka);
-            displayDepts.push(...otherDepts);
+            // 署所リスト: 各署所(ID順) -> 署所計 -> 警防課
+            // 警防課IDは1、その他は2〜10
+            const keibouka = DEPARTMENTS.find(d => d.id === 1);
+            const otherDepts = DEPARTMENTS.filter(d => d.id !== 1).sort((a, b) => a.id - b.id);
 
             let html = `
                 <div class="matrix-table-wrapper">
@@ -2385,40 +2449,132 @@
                         <thead>
                             <tr>
                                 <th>用品名</th>
+                                ${otherDepts.map(d => `<th>${d.name}</th>`).join('')}
+                                <th class="total-col-header">署所計</th>
+                                <th class="keibouka-col-header">警防課</th>
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
 
-            // ヘッダー生成
-            displayDepts.forEach(d => {
-                const isKeibouka = d.id === 99;
-                html += `<th class="dept-header-cell ${isKeibouka ? 'keibouka-col-header' : ''}">${d.name}</th>`;
-            });
-
-            // 合計列ヘッダー
-            html += `<th class="dept-header-cell total-col-header">署所計</th>`;
-            html += `</tr></thead><tbody>`;
-
-            // ボディ生成
             items.forEach(item => {
-                const lots = getLots(null, item.id); // 全署所のロット取得
-
-                html += `<tr><td>${item.name}</td>`;
-
-                let subTotal = 0; // 署所計（警防課除く）
-
-                displayDepts.forEach(d => {
-                    const deptLots = lots.filter(l => l.departmentId === d.id);
-                    const qty = deptLots.reduce((a, l) => a + l.quantity, 0);
-                    const isKeibouka = d.id === 99;
-
-                    if (!isKeibouka) {
-                        subTotal += qty;
+                const lots = getLots(null, item.id);
+                // 期限ロット情報の収集
+                const lotsByExp = {};
+                // 有効な期限を持つロットを抽出
+                lots.forEach(l => {
+                    // データによっては expiryDate だったり expirationDate だったりする
+                    const expDate = l.expiryDate || l.expirationDate;
+                    if (expDate && expDate !== '9999-12-31' && expDate.trim() !== '') {
+                        if (!lotsByExp[expDate]) lotsByExp[expDate] = [];
+                        lotsByExp[expDate].push(l);
                     }
+                });
+                const hasExpiry = Object.keys(lotsByExp).length > 0;
 
-                    html += `<td class="${isKeibouka ? 'keibouka-col' : ''}">${qty > 0 ? qty : '-'}</td>`;
+                // 全体行の計算
+                // 各署所の在庫とロット内訳
+                const deptQtys = {};
+                const deptLotDetails = {}; // 署所ごとのロット詳細 HTML
+
+                let subTotal = 0; // 警防課以外の合計
+                otherDepts.forEach(d => {
+                    const deptLots = lots.filter(l => l.departmentId === d.id && l.quantity > 0);
+                    const q = deptLots.reduce((a, b) => a + b.quantity, 0);
+                    deptQtys[d.id] = q;
+                    subTotal += q;
+
+                    // ロット内訳生成
+                    if (q > 0 && hasExpiry) {
+                        // 期限順にソート
+                        deptLots.sort((a, b) => {
+                            const dateA = a.expiryDate || a.expirationDate || '9999';
+                            const dateB = b.expiryDate || b.expirationDate || '9999';
+                            return dateA.localeCompare(dateB);
+                        });
+
+                        let detailsHtml = '<div class="lot-breakdown">';
+                        deptLots.forEach(l => {
+                            const expDate = l.expiryDate || l.expirationDate;
+                            if (expDate && expDate !== '9999-12-31') {
+                                // 日付を短縮 (YYYY-MM-DD -> YY/MM/DD)
+                                const shortDate = expDate.substring(2).replace(/-/g, '/');
+                                // 期限切れチェック
+                                const isExp = getExpStatus(expDate) === 'expired';
+                                detailsHtml += `<span class="lot-item-matrix ${isExp ? 'expired-lot' : ''}">${shortDate}: ${l.quantity}</span>`;
+                            }
+                        });
+                        detailsHtml += '</div>';
+                        // 内訳がある場合のみセット
+                        if (deptLots.some(l => {
+                            const d = l.expiryDate || l.expirationDate;
+                            return d && d !== '9999-12-31';
+                        })) {
+                            deptLotDetails[d.id] = detailsHtml;
+                        }
+                    }
                 });
 
-                // 合計列
-                html += `<td class="total-col">${subTotal > 0 ? subTotal : '-'}</td></tr>`;
+                // 警防課の在庫とロット内訳
+                let keiboukaQty = 0;
+                let keiboukaDetailsHtml = '';
+                if (keibouka) {
+                    const kLots = lots.filter(l => l.departmentId === keibouka.id && l.quantity > 0);
+                    keiboukaQty = kLots.reduce((a, b) => a + b.quantity, 0);
+
+                    if (keiboukaQty > 0 && hasExpiry) {
+                        kLots.sort((a, b) => {
+                            const dateA = a.expiryDate || a.expirationDate || '9999';
+                            const dateB = b.expiryDate || b.expirationDate || '9999';
+                            return dateA.localeCompare(dateB);
+                        });
+
+                        keiboukaDetailsHtml = '<div class="lot-breakdown">';
+                        kLots.forEach(l => {
+                            const expDate = l.expiryDate || l.expirationDate;
+                            if (expDate && expDate !== '9999-12-31') {
+                                const shortDate = expDate.substring(2).replace(/-/g, '/');
+                                const isExp = getExpStatus(expDate) === 'expired';
+                                keiboukaDetailsHtml += `<span class="lot-item-matrix ${isExp ? 'expired-lot' : ''}">${shortDate}: ${l.quantity}</span>`;
+                            }
+                        });
+                        keiboukaDetailsHtml += '</div>';
+                        // 有効な期限表示がなければ空にする
+                        if (!kLots.some(l => {
+                            const d = l.expiryDate || l.expirationDate;
+                            return d && d !== '9999-12-31';
+                        })) {
+                            keiboukaDetailsHtml = '';
+                        }
+                    }
+                }
+
+                // メイン行描画
+                html += `<tr class="matrix-item-row">
+                    <td class="item-name-cell">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-unit">${item.unit}</div>
+                    </td>`;
+
+                // 各署所列
+                otherDepts.forEach(d => {
+                    const q = deptQtys[d.id];
+                    const details = deptLotDetails[d.id] || '';
+                    html += `<td>
+                        ${q > 0 ? `<div class="cell-qty">${q}</div>` : '-'}
+                        ${details}
+                    </td>`;
+                });
+
+                // 署所計
+                html += `<td class="total-col">${subTotal > 0 ? subTotal : '-'}</td>`;
+
+                // 警防課
+                html += `<td class="keibouka-col">
+                    ${keiboukaQty > 0 ? `<div class="cell-qty">${keiboukaQty}</div>` : '-'}
+                    ${keiboukaDetailsHtml}
+                </td>`;
+                html += `</tr>`;
             });
 
             html += `</tbody></table></div>`;
@@ -2434,17 +2590,14 @@
 
         function exportMatrixCSV() {
             // CSV生成ロジック
-            // ヘッダー: 用品ID, カテゴリ, 用品名, 単位, 警防課, 三次..., 署所計
+            // ヘッダー: 用品ID, カテゴリ, 用品名, 単位, 三次...東城, 署所計, 警防課
             const keibouka = DEPARTMENTS.find(d => d.id === 99);
             const otherDepts = DEPARTMENTS.filter(d => d.id !== 99).sort((a, b) => a.id - b.id);
-            const displayDepts = [];
-            if (keibouka) displayDepts.push(keibouka);
-            displayDepts.push(...otherDepts);
 
             let csv = '\uFEFF'; // BOM
 
             // ヘッダー行
-            const header = ['ID', 'カテゴリ', '用品名', '単位', ...displayDepts.map(d => d.name), '署所計'];
+            const header = ['ID', 'カテゴリ', '用品名', '単位', ...otherDepts.map(d => d.name), '署所計', '警防課'];
             csv += header.join(',') + '\n';
 
             // データ行
@@ -2460,25 +2613,33 @@
                 ];
 
                 let subTotal = 0;
-                displayDepts.forEach(d => {
+                // 各署所
+                otherDepts.forEach(d => {
                     const qty = lots.filter(l => l.departmentId === d.id).reduce((a, l) => a + l.quantity, 0);
                     row.push(qty);
-                    if (d.id !== 99) subTotal += qty;
+                    subTotal += qty;
                 });
 
+                // 署所計
                 row.push(subTotal);
+
+                // 警防課
+                const keiboukaQty = keibouka ? lots.filter(l => l.departmentId === keibouka.id).reduce((a, l) => a + l.quantity, 0) : 0;
+                row.push(keiboukaQty);
+
                 csv += row.join(',') + '\n';
             });
 
-            // ダウンロード処理
+            // ダウンロード
             const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
+            const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `在庫マトリックス_${fmtDate(new Date())}.csv`;
+            a.setAttribute('href', url);
+            a.setAttribute('download', `救急用品在庫表_${new Date().toISOString().split('T')[0]}.csv`);
             a.click();
-            URL.revokeObjectURL(url);
         }
+
+
 
         // グローバルスコープに関数追加（onclick属性のため）
         window.toggleMatrixAccordion = toggleMatrixAccordion;
@@ -2502,8 +2663,9 @@
                 const existing = catData[item.categoryId].items.find(x => x.item.id === item.id);
                 if (existing) {
                     existing.qty += s.quantity;
+                    existing.lots.push(s);
                 } else {
-                    catData[item.categoryId].items.push({ item, qty: s.quantity, lowStock: false });
+                    catData[item.categoryId].items.push({ item, qty: s.quantity, lowStock: false, lots: [s] });
                 }
             });
 
@@ -2527,9 +2689,24 @@
                 const itemsHtml = c.items.map(s => {
                     const lowClass = s.lowStock ? 'low-stock' : '';
                     const minLabel = s.item.minStock ? `<span class="min-stock-label">最低:${s.item.minStock}</span>` : '';
+
+                    // ロット情報の表示（期限付きのみ）
+                    let lotInfoHtml = '';
+                    if (s.item.hasExpiry && s.lots.length > 0) {
+                        const sortedLots = [...s.lots].sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
+                        lotInfoHtml = `<div class="lot-tags">` +
+                            sortedLots.map(l => {
+                                const isExp = getExpStatus(l.expiryDate) === 'expired';
+                                return `<span class="lot-tag ${isExp ? 'expired' : ''}">${l.expiryDate || '期限なし'}: ${l.quantity}</span>`;
+                            }).join('') + `</div>`;
+                    }
+
                     return `<div class="summary-item ${lowClass}">
                         <div class="summary-item-header">
-                            <span class="summary-item-name">${s.item.name} ${minLabel}</span>
+                            <div>
+                                <span class="summary-item-name">${s.item.name} ${minLabel}</span>
+                                ${lotInfoHtml}
+                            </div>
                             <span class="summary-item-total">${s.qty}${s.item.unit}</span>
                         </div>
                     </div>`;
@@ -2790,7 +2967,7 @@
             showLoading(false);
         }
 
-        function getLots(deptId, itemId) { return state.stocks.filter(s => s.departmentId === deptId && s.itemId === itemId && s.quantity > 0); }
+        function getLots(deptId, itemId) { return state.stocks.filter(s => (deptId === null || s.departmentId === deptId) && s.itemId === itemId && s.quantity > 0); }
         function getExpStatus(d) { if (!d) return 'none'; const t = new Date(); t.setHours(0, 0, 0, 0); return Math.ceil((new Date(d) - t) / 864e5) < 0 ? 'expired' : 'ok'; }
         function fmtDT(s) {
             if (!s) return '-';
