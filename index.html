@@ -121,6 +121,39 @@
             }
         }
 
+        @media (min-width: 768px) {
+            .screen {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: var(--spacing-lg);
+            }
+
+            .department-grid {
+                max-width: 100%;
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: var(--spacing-md);
+            }
+
+            .category-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: var(--spacing-md);
+            }
+
+            .modal-content {
+                max-width: 600px;
+                border-radius: var(--border-radius-xl);
+                max-height: 90vh;
+                margin: auto;
+                position: relative;
+                box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
+            }
+
+            .modal {
+                align-items: center;
+                padding: var(--spacing-lg);
+            }
+        }
+
         #department-select {
             justify-content: center;
             align-items: center;
@@ -132,7 +165,7 @@
         }
 
         .app-title {
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -1138,6 +1171,164 @@
             background: var(--color-bg-secondary);
         }
 
+        /* -------------------------------------------
+           在庫マトリックス表示（新レイアウト）
+        ------------------------------------------- */
+        .matrix-controls {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .matrix-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .matrix-accordion-item {
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            background: var(--color-bg-card);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .matrix-accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md);
+            background: var(--color-bg-secondary);
+            cursor: pointer;
+            user-select: none;
+            transition: background var(--transition-fast);
+        }
+
+        .matrix-accordion-header:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .matrix-accordion-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .matrix-category-icon {
+            font-size: 1.4rem;
+        }
+
+        .accordion-toggle-icon {
+            transition: transform var(--transition-fast);
+        }
+
+        .matrix-accordion-item.open .accordion-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .matrix-accordion-content {
+            display: none;
+            padding: var(--spacing-sm);
+            background: var(--color-bg-card);
+            overflow-x: auto;
+        }
+
+        .matrix-accordion-item.open .matrix-accordion-content {
+            display: block;
+        }
+
+        /* マトリックステーブル */
+        .inventory-matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            min-width: 600px;
+        }
+
+        .inventory-matrix-table th,
+        .inventory-matrix-table td {
+            border: 1px solid var(--color-border);
+            padding: var(--spacing-xs);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* ヘッダー行 */
+        .inventory-matrix-table thead th {
+            background: var(--color-bg-tertiary);
+            font-weight: 600;
+            padding: var(--spacing-sm) var(--spacing-xs);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* 署所名ヘッダー */
+        .dept-header-cell {
+            writing-mode: horizontal-tb;
+            /* 署所名は横書き */
+            min-width: 50px;
+        }
+
+        /* 左端の列（用品名）を固定 */
+        .inventory-matrix-table tbody td:first-child,
+        .inventory-matrix-table thead th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background: var(--color-bg-secondary);
+            font-weight: 500;
+            text-align: left;
+            min-width: 140px;
+            /* 用品名列の幅確保 */
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-left: var(--spacing-sm);
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 列ヘッダーの左端（コーナー） */
+        .inventory-matrix-table thead th:first-child {
+            z-index: 30;
+            /* 最前面 */
+            background: var(--color-bg-tertiary);
+            text-align: center;
+        }
+
+        /* 署所計列のハイライト */
+        .total-col {
+            background: #e0f2fe;
+            /* 薄い青 */
+            font-weight: 700;
+        }
+
+        .total-col-header {
+            background: #bae6fd !important;
+            /* 青 */
+        }
+
+        /* 警防課列のハイライト */
+        .keibouka-col {
+            background: #fffbeb;
+            /* 薄い黄色 */
+        }
+
+        .keibouka-col-header {
+            background: #fde68a !important;
+            /* 黄色 */
+        }
+
+        .matrix-table-wrapper {
+            max-height: 600px;
+            /* 縦スクロール用 */
+            overflow: auto;
+        }
+
         /* 検索バー */
         .header-actions {
             display: flex;
@@ -2128,66 +2319,174 @@
             if (state.deptId) {
                 renderSummaryByCategory(state.deptId);
             } else {
-                // 全体表示：署所別×カテゴリ別に表示
-                renderSummaryByDepartment();
+                // 全体表示：在庫マトリックス表示
+                renderInventoryMatrix();
             }
         }
 
-        // 署所別×カテゴリ別の在庫一覧を表示
-        function renderSummaryByDepartment() {
-            let html = '';
-            DEPARTMENTS.forEach(dept => {
-                const deptStocks = state.stocks.filter(s => s.departmentId === dept.id && s.quantity > 0);
-                if (deptStocks.length === 0) return;
+        // ------------------------------------------------------------------
+        // 在庫マトリックス表示
+        // ------------------------------------------------------------------
+        function renderInventoryMatrix() {
+            const container = el.summaryList;
 
-                // カテゴリごとにグループ化
-                const catData = {};
-                CATEGORIES.forEach(c => { catData[c.id] = { category: c, items: [] }; });
+            // CSVダウンロードボタン
+            let html = `
+                <div class="matrix-controls">
+                    <button class="export-btn" style="width: auto; padding: 8px 16px;" onclick="exportMatrixCSV()">
+                        <span class="material-symbols-outlined">download</span>CSVエクスポート
+                    </button>
+                </div>
+                <div class="matrix-accordion">
+            `;
 
-                deptStocks.forEach(s => {
-                    const item = ITEMS.find(i => i.id === s.itemId);
-                    if (!item || !catData[item.categoryId]) return;
-                    const existing = catData[item.categoryId].items.find(x => x.item.id === item.id);
-                    if (existing) {
-                        existing.qty += s.quantity;
-                    } else {
-                        catData[item.categoryId].items.push({ item, qty: s.quantity });
-                    }
-                });
+            CATEGORIES.forEach(cat => {
+                // このカテゴリに属する用品があるか確認
+                const catItems = ITEMS.filter(i => i.categoryId === cat.id);
+                if (catItems.length === 0) return;
 
-                const catsWithItems = Object.values(catData).filter(c => c.items.length > 0);
-                if (catsWithItems.length === 0) return;
-
-                html += `<div class="summary-department">
-                    <div class="summary-dept-header">${dept.name}</div>`;
-
-                catsWithItems.forEach(c => {
-                    const catColor = ICON_COLORS[c.category.icon] || '#607D8B';
-                    html += `<div class="summary-category" style="border-left: 4px solid ${catColor}">
-                        <div class="summary-category-header">
-                            <span class="material-symbols-outlined" style="color:${catColor}">${c.category.icon}</span>
-                            <span>${c.category.name}</span>
-                        </div>`;
-                    c.items.forEach(s => {
-                        const lowClass = (s.item.minStock && s.qty < s.item.minStock) ? 'low-stock' : '';
-                        html += `<div class="summary-item ${lowClass}">
-                            <div class="summary-item-header">
-                                <span class="summary-item-name">${s.item.name}</span>
-                                <span class="summary-item-total">${s.qty}${s.item.unit}</span>
+                html += `
+                    <div class="matrix-accordion-item" id="accordion-${cat.id}">
+                        <div class="matrix-accordion-header" onclick="toggleMatrixAccordion(${cat.id})">
+                            <div class="matrix-accordion-title">
+                                <span class="matrix-category-icon material-symbols-outlined">${cat.icon}</span>
+                                <span>${cat.name}</span>
                             </div>
-                        </div>`;
-                    });
-                    html += '</div>';
-                });
-                html += '</div>';
+                            <span class="material-symbols-outlined accordion-toggle-icon">expand_more</span>
+                        </div>
+                        <div class="matrix-accordion-content">
+                            ${renderMatrixTable(catItems)}
+                        </div>
+                    </div>
+                `;
             });
 
-            if (!html) {
-                el.summaryList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>在庫がありません</p></div>';
-                return;
-            }
-            el.summaryList.innerHTML = html;
+            html += '</div>';
+            container.innerHTML = html;
         }
+
+        function renderMatrixTable(items) {
+            // 署所リスト（警防課、合計用を除いたもの）
+            // 署所ID順序: 三次(1), 作木(2), 吉舎(3), 三和(4), 口和(5), 甲奴(6), 庄原(7), 西城(8), 高野(9), 東城(10), 警防課(99)
+            // 表示順: 警防課 -> 各署所(ID順) -> 署所計
+
+            // まず警防課、次にID順の署所
+            const keibouka = DEPARTMENTS.find(d => d.id === 99);
+            const otherDepts = DEPARTMENTS.filter(d => d.id !== 99).sort((a, b) => a.id - b.id);
+
+            // 表示用署所リスト
+            const displayDepts = [];
+            if (keibouka) displayDepts.push(keibouka);
+            displayDepts.push(...otherDepts);
+
+            let html = `
+                <div class="matrix-table-wrapper">
+                    <table class="inventory-matrix-table">
+                        <thead>
+                            <tr>
+                                <th>用品名</th>
+            `;
+
+            // ヘッダー生成
+            displayDepts.forEach(d => {
+                const isKeibouka = d.id === 99;
+                html += `<th class="dept-header-cell ${isKeibouka ? 'keibouka-col-header' : ''}">${d.name}</th>`;
+            });
+
+            // 合計列ヘッダー
+            html += `<th class="dept-header-cell total-col-header">署所計</th>`;
+            html += `</tr></thead><tbody>`;
+
+            // ボディ生成
+            items.forEach(item => {
+                const lots = getLots(null, item.id); // 全署所のロット取得
+
+                html += `<tr><td>${item.name}</td>`;
+
+                let subTotal = 0; // 署所計（警防課除く）
+
+                displayDepts.forEach(d => {
+                    const deptLots = lots.filter(l => l.departmentId === d.id);
+                    const qty = deptLots.reduce((a, l) => a + l.quantity, 0);
+                    const isKeibouka = d.id === 99;
+
+                    if (!isKeibouka) {
+                        subTotal += qty;
+                    }
+
+                    html += `<td class="${isKeibouka ? 'keibouka-col' : ''}">${qty > 0 ? qty : '-'}</td>`;
+                });
+
+                // 合計列
+                html += `<td class="total-col">${subTotal > 0 ? subTotal : '-'}</td></tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function toggleMatrixAccordion(catId) {
+            const item = document.getElementById(`accordion-${catId}`);
+            if (item) {
+                item.classList.toggle('open');
+            }
+        }
+
+        function exportMatrixCSV() {
+            // CSV生成ロジック
+            // ヘッダー: 用品ID, カテゴリ, 用品名, 単位, 警防課, 三次..., 署所計
+            const keibouka = DEPARTMENTS.find(d => d.id === 99);
+            const otherDepts = DEPARTMENTS.filter(d => d.id !== 99).sort((a, b) => a.id - b.id);
+            const displayDepts = [];
+            if (keibouka) displayDepts.push(keibouka);
+            displayDepts.push(...otherDepts);
+
+            let csv = '\uFEFF'; // BOM
+
+            // ヘッダー行
+            const header = ['ID', 'カテゴリ', '用品名', '単位', ...displayDepts.map(d => d.name), '署所計'];
+            csv += header.join(',') + '\n';
+
+            // データ行
+            ITEMS.forEach(item => {
+                const cat = CATEGORIES.find(c => c.id === item.categoryId);
+                const lots = getLots(null, item.id);
+
+                const row = [
+                    item.id,
+                    cat ? cat.name : '',
+                    item.name,
+                    item.unit
+                ];
+
+                let subTotal = 0;
+                displayDepts.forEach(d => {
+                    const qty = lots.filter(l => l.departmentId === d.id).reduce((a, l) => a + l.quantity, 0);
+                    row.push(qty);
+                    if (d.id !== 99) subTotal += qty;
+                });
+
+                row.push(subTotal);
+                csv += row.join(',') + '\n';
+            });
+
+            // ダウンロード処理
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `在庫マトリックス_${fmtDate(new Date())}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // グローバルスコープに関数追加（onclick属性のため）
+        window.toggleMatrixAccordion = toggleMatrixAccordion;
+        window.exportMatrixCSV = exportMatrixCSV;
+        window.openAddCategoryModal = openAddCategoryModal; // 既存のグローバル関数も念のため再宣言
+
+        // 署所別×カテゴリ別の在庫一覧を表示（削除予定だったが既存ロジック互換のため一応残すが使用しない）
+        function unused_renderSummaryByDepartment() { return; }
 
         // 特定部署のカテゴリ別在庫を表示
         function renderSummaryByCategory(deptId) {
