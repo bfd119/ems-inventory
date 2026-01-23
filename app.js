@@ -29,6 +29,7 @@ function cacheElements() {
     elements.screens = {
         departmentSelect: document.getElementById('department-select'),
         dashboard: document.getElementById('dashboard'),
+        deptInventory: document.getElementById('dept-inventory'),
         analytics: document.getElementById('analytics')
     };
 
@@ -38,7 +39,8 @@ function cacheElements() {
 
     elements.modals = {
         items: document.getElementById('items-modal'),
-        transaction: document.getElementById('transaction-modal')
+        transaction: document.getElementById('transaction-modal'),
+        otherDept: document.getElementById('other-dept-modal')
     };
 
     elements.itemsList = document.getElementById('items-list');
@@ -72,6 +74,19 @@ function bindEvents() {
     });
     document.getElementById('back-to-dashboard').addEventListener('click', () => showScreen('dashboard'));
 
+    // 署所別在庫画面
+    document.getElementById('open-dept-inventory').addEventListener('click', () => {
+        showScreen('deptInventory');
+        renderDepartmentInventory();
+    });
+    document.getElementById('back-to-dashboard-from-inv').addEventListener('click', () => showScreen('dashboard'));
+    document.getElementById('export-dept-csv').addEventListener('click', exportDeptInventoryCSV);
+
+    // 他署所在庫確認モーダル
+    document.getElementById('open-other-dept').addEventListener('click', openOtherDeptModal);
+    document.getElementById('close-other-dept-modal').addEventListener('click', () => closeModal('otherDept'));
+    document.getElementById('other-dept-select').addEventListener('change', renderOtherDeptComparison);
+
     // モーダル閉じる
     document.getElementById('close-items-modal').addEventListener('click', () => closeModal('items'));
     document.getElementById('close-transaction-modal').addEventListener('click', () => closeModal('transaction'));
@@ -81,6 +96,7 @@ function bindEvents() {
         overlay.addEventListener('click', () => {
             closeModal('items');
             closeModal('transaction');
+            closeModal('otherDept');
         });
     });
 
@@ -104,6 +120,9 @@ function bindEvents() {
     elements.budgetYear.addEventListener('change', renderBudgetReport);
     elements.budgetMonth.addEventListener('change', renderBudgetReport);
     document.getElementById('export-csv').addEventListener('click', exportCSV);
+
+    // 在庫マトリックスCSVエクスポート
+    document.getElementById('export-matrix-csv').addEventListener('click', exportMatrixCSV);
 }
 
 /**
@@ -354,7 +373,7 @@ function saveTransaction() {
  */
 function renderAnalytics() {
     renderLogList();
-    renderSummaryList();
+    renderInventoryMatrix();
     initBudgetControls();
     renderBudgetReport();
 }
@@ -399,58 +418,174 @@ function renderLogList() {
 }
 
 /**
- * 在庫サマリーを描画
+ * 在庫マトリックス（アコーディオン形式）を描画
  */
-function renderSummaryList() {
+function renderInventoryMatrix() {
+    const container = document.getElementById('matrix-accordion');
     const stocks = getStocks();
 
-    // 用品ごとに集計
-    const summary = {};
-    ITEMS.forEach(item => {
-        summary[item.id] = {
-            item: item,
-            total: 0,
-            departments: []
-        };
-    });
+    // 署所リスト（警防課(ID:1)を除く）
+    const stations = DEPARTMENTS.filter(d => d.id !== 1);
+    const keibouka = DEPARTMENTS.find(d => d.id === 1);
 
-    stocks.forEach(stock => {
-        if (stock.quantity > 0) {
-            const dept = getDepartment(stock.departmentId);
-            summary[stock.itemId].total += stock.quantity;
-            summary[stock.itemId].departments.push({
-                name: dept.name,
-                quantity: stock.quantity
-            });
-        }
-    });
+    // カテゴリごとにアコーディオンを生成
+    let html = CATEGORIES.map(category => {
+        const categoryItems = getItemsByCategory(category.id);
 
-    // 在庫がある用品のみ表示
-    const activeItems = Object.values(summary).filter(s => s.total > 0);
-
-    if (activeItems.length === 0) {
-        elements.summaryList.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">📦</div>
-                <p>在庫がありません</p>
+        return `
+            <div class="matrix-accordion-item">
+                <div class="matrix-accordion-header" data-category-id="${category.id}">
+                    <div class="matrix-accordion-title">
+                        <span class="category-icon">${category.icon}</span>
+                        <span>${category.name}</span>
+                    </div>
+                    <span class="accordion-toggle-icon">▼</span>
+                </div>
+                <div class="matrix-accordion-content">
+                    <div class="matrix-table-wrapper">
+                        ${renderMatrixTable(categoryItems, stocks, keibouka, stations)}
+                    </div>
+                </div>
             </div>
         `;
-        return;
-    }
+    }).join('');
 
-    elements.summaryList.innerHTML = activeItems.map(s => `
-        <div class="summary-item">
-            <div class="summary-item-header">
-                <span class="summary-item-name">${s.item.name}</span>
-                <span class="summary-item-total">${s.total}${s.item.unit}</span>
-            </div>
-            <div class="summary-departments">
-                ${s.departments.map(d => `
-                    <span class="summary-dept">${d.name}: ${d.quantity}</span>
-                `).join('')}
-            </div>
-        </div>
-    `).join('');
+    container.innerHTML = html;
+
+    // アコーディオン開閉イベント
+    container.querySelectorAll('.matrix-accordion-header').forEach(header => {
+        header.addEventListener('click', () => {
+            header.parentElement.classList.toggle('open');
+        });
+    });
+}
+
+/**
+ * カテゴリ内のマトリックステーブルを生成（署所が縦軸、用品が横軸）
+ */
+function renderMatrixTable(items, stocks, keibouka, stations) {
+    let html = '<table class="inventory-matrix-table"><thead><tr>';
+    html += '<th>署所＼用品</th>';
+
+    // 横軸：各用品
+    items.forEach(item => {
+        // 長い名前は短縮表示
+        const shortName = item.name.length > 10 ? item.name.substring(0, 10) + '...' : item.name;
+        html += `<th title="${item.name}">${shortName}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    // 縦軸：各署所（三次→東城の順）
+    stations.forEach(station => {
+        html += '<tr>';
+        html += `<td>${station.name}</td>`;
+
+        items.forEach(item => {
+            const stock = stocks.find(s =>
+                s.departmentId === station.id && s.itemId === item.id
+            );
+            const qty = stock ? stock.quantity : 0;
+            html += `<td class="${qty === 0 ? 'stock-zero' : ''}">${qty || '-'}</td>`;
+        });
+
+        html += '</tr>';
+    });
+
+    // 署所合計行（警防課を除く）
+    html += '<tr class="total-row">';
+    html += '<td class="total-cell">署所計</td>';
+    items.forEach(item => {
+        let total = 0;
+        stations.forEach(station => {
+            const stock = stocks.find(s =>
+                s.departmentId === station.id && s.itemId === item.id
+            );
+            total += stock ? stock.quantity : 0;
+        });
+        html += `<td class="total-cell">${total}</td>`;
+    });
+    html += '</tr>';
+
+    // 警防課行
+    html += '<tr class="keibouka-row">';
+    html += '<td class="keibouka-cell">' + keibouka.name + '</td>';
+    items.forEach(item => {
+        const stock = stocks.find(s =>
+            s.departmentId === keibouka.id && s.itemId === item.id
+        );
+        const qty = stock ? stock.quantity : 0;
+        html += `<td class="keibouka-cell ${qty === 0 ? 'stock-zero' : ''}">${qty || '-'}</td>`;
+    });
+    html += '</tr>';
+
+    html += '</tbody></table>';
+    return html;
+}
+
+/**
+ * 在庫マトリックスをCSV出力（署所が縦軸、用品が横軸）
+ */
+function exportMatrixCSV() {
+    const stocks = getStocks();
+    const stations = DEPARTMENTS.filter(d => d.id !== 1);
+    const keibouka = DEPARTMENTS.find(d => d.id === 1);
+
+    let csv = '\ufeff'; // BOM for Excel
+
+    CATEGORIES.forEach((category, catIndex) => {
+        const items = getItemsByCategory(category.id);
+
+        // カテゴリヘッダー
+        if (catIndex > 0) csv += '\n';
+        csv += `【${category.name}】\n`;
+
+        // 用品名ヘッダー
+        csv += '署所,' + items.map(i => `"${i.name}"`).join(',') + '\n';
+
+        // 各署所の行
+        stations.forEach(station => {
+            const values = items.map(item => {
+                const stock = stocks.find(s =>
+                    s.departmentId === station.id && s.itemId === item.id
+                );
+                return stock ? stock.quantity : 0;
+            });
+            csv += station.name + ',' + values.join(',') + '\n';
+        });
+
+        // 署所合計行
+        const totals = items.map(item => {
+            let total = 0;
+            stations.forEach(station => {
+                const stock = stocks.find(s =>
+                    s.departmentId === station.id && s.itemId === item.id
+                );
+                total += stock ? stock.quantity : 0;
+            });
+            return total;
+        });
+        csv += '署所計,' + totals.join(',') + '\n';
+
+        // 警防課行
+        const keiboukaValues = items.map(item => {
+            const stock = stocks.find(s =>
+                s.departmentId === keibouka.id && s.itemId === item.id
+            );
+            return stock ? stock.quantity : 0;
+        });
+        csv += keibouka.name + ',' + keiboukaValues.join(',') + '\n';
+    });
+
+    // ダウンロード
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+    a.download = `EMS在庫一覧_${dateStr}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 /**
@@ -631,5 +766,230 @@ function formatDateTime(dateStr) {
     return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+/* ============================================
+   署所別在庫表示機能
+   ============================================ */
+
+/**
+ * 署所別在庫一覧を描画
+ */
+function renderDepartmentInventory() {
+    const dept = getDepartment(state.currentDepartmentId);
+    document.getElementById('dept-inventory-title').textContent = `${dept.name} 在庫一覧`;
+
+    const container = document.getElementById('dept-matrix-accordion');
+    const stocks = getStocks();
+
+    // カテゴリごとにアコーディオンを生成
+    let html = CATEGORIES.map(category => {
+        const categoryItems = getItemsByCategory(category.id);
+
+        return `
+            <div class="matrix-accordion-item">
+                <div class="matrix-accordion-header" data-category-id="${category.id}">
+                    <div class="matrix-accordion-title">
+                        <span class="category-icon">${category.icon}</span>
+                        <span>${category.name}</span>
+                    </div>
+                    <span class="accordion-toggle-icon">▼</span>
+                </div>
+                <div class="matrix-accordion-content">
+                    <div class="matrix-table-wrapper">
+                        ${renderDeptInventoryTable(categoryItems, stocks, state.currentDepartmentId)}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+
+    // アコーディオン開閉イベント
+    container.querySelectorAll('.matrix-accordion-header').forEach(header => {
+        header.addEventListener('click', () => {
+            header.parentElement.classList.toggle('open');
+        });
+    });
+}
+
+/**
+ * 署所別在庫テーブルを生成
+ */
+function renderDeptInventoryTable(items, stocks, departmentId) {
+    let html = '<table class="inventory-matrix-table"><thead><tr>';
+    html += '<th>用品名</th>';
+    html += '<th>現在庫</th>';
+    html += '<th>使用期限</th>';
+    html += '</tr></thead><tbody>';
+
+    items.forEach(item => {
+        const stock = stocks.find(s =>
+            s.departmentId === departmentId && s.itemId === item.id
+        );
+        const qty = stock ? stock.quantity : 0;
+        const expiryDate = stock ? stock.expiryDate : null;
+        const expiryStatus = getExpiryStatus(expiryDate);
+
+        let expiryText = '-';
+        let expiryClass = '';
+        if (item.hasExpiry && expiryDate) {
+            expiryText = formatDate(expiryDate);
+            if (expiryStatus === 'expired') {
+                expiryClass = 'stock-low';
+                expiryText = '期限切れ';
+            } else if (expiryStatus === 'warning') {
+                expiryClass = 'stock-low';
+            }
+        } else if (!item.hasExpiry) {
+            expiryText = '期限なし';
+        }
+
+        html += '<tr>';
+        html += `<td>${item.name}</td>`;
+        html += `<td class="${qty === 0 ? 'stock-zero' : ''}">${qty}${item.unit}</td>`;
+        html += `<td class="${expiryClass}">${expiryText}</td>`;
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    return html;
+}
+
+/**
+ * 署所別在庫CSVエクスポート
+ */
+function exportDeptInventoryCSV() {
+    const dept = getDepartment(state.currentDepartmentId);
+    const stocks = getStocks();
+
+    let csv = '\ufeff'; // BOM for Excel
+    csv += `${dept.name} 在庫一覧\n\n`;
+
+    CATEGORIES.forEach(category => {
+        csv += `【${category.name}】\n`;
+        csv += '用品名,現在庫,使用期限\n';
+
+        const items = getItemsByCategory(category.id);
+        items.forEach(item => {
+            const stock = stocks.find(s =>
+                s.departmentId === state.currentDepartmentId && s.itemId === item.id
+            );
+            const qty = stock ? stock.quantity : 0;
+            const expiryDate = stock && stock.expiryDate ? stock.expiryDate : '-';
+
+            csv += `"${item.name}",${qty}${item.unit},${expiryDate}\n`;
+        });
+        csv += '\n';
+    });
+
+    // ダウンロード
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+    a.download = `${dept.name}_在庫一覧_${dateStr}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+/* ============================================
+   他署所在庫確認機能
+   ============================================ */
+
+/**
+ * 他署所在庫確認モーダルを開く
+ */
+function openOtherDeptModal() {
+    const select = document.getElementById('other-dept-select');
+
+    // 自署所以外の署所をリストに追加
+    const otherDepts = DEPARTMENTS.filter(d => d.id !== state.currentDepartmentId);
+    select.innerHTML = otherDepts.map(dept =>
+        `<option value="${dept.id}">${dept.name}</option>`
+    ).join('');
+
+    openModal('otherDept');
+    renderOtherDeptComparison();
+}
+
+/**
+ * 他署所との在庫比較を描画
+ */
+function renderOtherDeptComparison() {
+    const container = document.getElementById('other-dept-accordion');
+    const stocks = getStocks();
+    const myDeptId = state.currentDepartmentId;
+    const otherDeptId = parseInt(document.getElementById('other-dept-select').value);
+
+    const myDept = getDepartment(myDeptId);
+    const otherDept = getDepartment(otherDeptId);
+
+    // カテゴリごとにアコーディオンを生成
+    let html = CATEGORIES.map(category => {
+        const categoryItems = getItemsByCategory(category.id);
+
+        return `
+            <div class="matrix-accordion-item open">
+                <div class="matrix-accordion-header" data-category-id="${category.id}">
+                    <div class="matrix-accordion-title">
+                        <span class="category-icon">${category.icon}</span>
+                        <span>${category.name}</span>
+                    </div>
+                    <span class="accordion-toggle-icon">▼</span>
+                </div>
+                <div class="matrix-accordion-content">
+                    <div class="matrix-table-wrapper">
+                        ${renderComparisonTable(categoryItems, stocks, myDeptId, otherDeptId, myDept, otherDept)}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+
+    // アコーディオン開閉イベント
+    container.querySelectorAll('.matrix-accordion-header').forEach(header => {
+        header.addEventListener('click', () => {
+            header.parentElement.classList.toggle('open');
+        });
+    });
+}
+
+/**
+ * 比較テーブルを生成
+ */
+function renderComparisonTable(items, stocks, myDeptId, otherDeptId, myDept, otherDept) {
+    let html = '<table class="comparison-table"><thead><tr>';
+    html += '<th>用品名</th>';
+    html += `<th class="my-dept-col">${myDept.name}<br>(自署所)</th>`;
+    html += `<th class="other-dept-col">${otherDept.name}</th>`;
+    html += '</tr></thead><tbody>';
+
+    items.forEach(item => {
+        const myStock = stocks.find(s =>
+            s.departmentId === myDeptId && s.itemId === item.id
+        );
+        const otherStock = stocks.find(s =>
+            s.departmentId === otherDeptId && s.itemId === item.id
+        );
+
+        const myQty = myStock ? myStock.quantity : 0;
+        const otherQty = otherStock ? otherStock.quantity : 0;
+
+        html += '<tr>';
+        html += `<td>${item.name}</td>`;
+        html += `<td class="my-dept-col ${myQty === 0 ? 'stock-zero' : ''}">${myQty}${item.unit}</td>`;
+        html += `<td class="other-dept-col ${otherQty === 0 ? 'stock-zero' : ''}">${otherQty}${item.unit}</td>`;
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    return html;
+}
+
 // アプリ起動
 document.addEventListener('DOMContentLoaded', initApp);
+

@@ -4,58 +4,60 @@
 
 /* --- CSS変数（デザイントークン） --- */
 :root {
-    /* カラーパレット */
-    --color-bg-primary: #0f0f1a;
-    --color-bg-secondary: #1a1a2e;
-    --color-bg-tertiary: #252542;
-    --color-bg-card: rgba(255, 255, 255, 0.05);
-    --color-bg-card-hover: rgba(255, 255, 255, 0.1);
-    
-    --color-text-primary: #ffffff;
-    --color-text-secondary: rgba(255, 255, 255, 0.7);
-    --color-text-muted: rgba(255, 255, 255, 0.5);
-    
-    --color-accent-primary: #6366f1;
-    --color-accent-secondary: #8b5cf6;
-    --color-accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
-    
-    --color-success: #22c55e;
-    --color-warning: #f59e0b;
-    --color-danger: #ef4444;
-    --color-info: #3b82f6;
-    
-    --color-in: #22c55e;
-    --color-out: #ef4444;
-    
+    /* カラーパレット - Claude風ウォームベージュテーマ */
+    --color-bg-primary: #FAF9F6;
+    --color-bg-secondary: #F5F3EF;
+    --color-bg-tertiary: #EBE8E2;
+    --color-bg-card: rgba(0, 0, 0, 0.03);
+    --color-bg-card-hover: rgba(0, 0, 0, 0.06);
+
+    --color-text-primary: #2D2A26;
+    --color-text-secondary: rgba(45, 42, 38, 0.7);
+    --color-text-muted: rgba(45, 42, 38, 0.5);
+
+    --color-accent-primary: #D97706;
+    --color-accent-secondary: #B45309;
+    --color-accent-gradient: linear-gradient(135deg, #D97706, #B45309);
+
+    --color-success: #059669;
+    --color-warning: #D97706;
+    --color-danger: #DC2626;
+    --color-info: #2563EB;
+
+    --color-in: #059669;
+    --color-out: #DC2626;
+
     /* スペーシング */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 16px;
     --spacing-lg: 24px;
     --spacing-xl: 32px;
-    
+
     /* ボーダー */
     --border-radius-sm: 8px;
     --border-radius-md: 12px;
     --border-radius-lg: 16px;
     --border-radius-xl: 24px;
-    
+
     /* シャドウ */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
-    
+
     /* トランジション */
     --transition-fast: 150ms ease;
     --transition-normal: 250ms ease;
     --transition-slow: 350ms ease;
-    
+
     /* フォント */
     --font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* --- リセット・ベース --- */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -84,7 +86,8 @@ button {
     color: inherit;
 }
 
-input, select {
+input,
+select {
     font-family: inherit;
     font-size: 1rem;
 }
@@ -104,8 +107,15 @@ input, select {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ============================================
@@ -155,7 +165,7 @@ input, select {
     align-items: center;
     justify-content: center;
     background: var(--color-bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius-md);
     font-size: 1rem;
     font-weight: 500;
@@ -203,6 +213,11 @@ input, select {
     background: var(--color-bg-card-hover);
 }
 
+.header-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
 .header-spacer {
     width: 44px;
 }
@@ -228,7 +243,7 @@ input, select {
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
     background: var(--color-bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius-md);
     transition: all var(--transition-fast);
     min-height: 100px;
@@ -413,7 +428,7 @@ input, select {
     flex: 1;
     padding: var(--spacing-sm) var(--spacing-md);
     background: var(--color-bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius-sm);
     color: var(--color-text-primary);
 }
@@ -434,7 +449,7 @@ input, select {
 .budget-table td {
     padding: var(--spacing-sm);
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     white-space: nowrap;
 }
 
@@ -514,8 +529,13 @@ input, select {
 }
 
 @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
 }
 
 .modal-header {
@@ -523,7 +543,7 @@ input, select {
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .modal-header h3 {
@@ -669,7 +689,7 @@ input, select {
     width: 100%;
     padding: var(--spacing-sm) var(--spacing-md);
     background: var(--color-bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius-sm);
     color: var(--color-text-primary);
 }
@@ -690,7 +710,7 @@ input, select {
     text-align: center;
     padding: var(--spacing-sm);
     background: var(--color-bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius-sm);
     color: var(--color-text-primary);
     font-size: 1.25rem;
@@ -704,7 +724,7 @@ input, select {
     align-items: center;
     justify-content: center;
     background: var(--color-bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius-sm);
     font-size: 1.5rem;
     transition: background var(--transition-fast);
@@ -757,16 +777,515 @@ input, select {
 }
 
 /* ============================================
+   在庫マトリックス表示
+   ============================================ */
+.inventory-matrix-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+/* アコーディオン */
+.matrix-accordion-item {
+    background: var(--color-bg-card);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    margin-bottom: var(--spacing-sm);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.matrix-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.matrix-accordion-header:hover {
+    background: var(--color-bg-card-hover);
+}
+
+.matrix-accordion-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-weight: 600;
+}
+
+.accordion-toggle-icon {
+    transition: transform var(--transition-fast);
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.matrix-accordion-item.open .accordion-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.matrix-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-normal);
+}
+
+.matrix-accordion-item.open .matrix-accordion-content {
+    max-height: 3000px;
+}
+
+/* マトリックステーブルラッパー */
+.matrix-table-wrapper {
+    overflow-x: auto;
+    padding: var(--spacing-sm);
+    padding-top: 0;
+}
+
+/* マトリックステーブル */
+.inventory-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+}
+
+.inventory-matrix-table th,
+.inventory-matrix-table td {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    min-width: 50px;
+}
+
+.inventory-matrix-table thead th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/* 縦軸ヘッダー（用品名） */
+.inventory-matrix-table tbody td:first-child {
+    position: sticky;
+    left: 0;
+    background: var(--color-bg-secondary);
+    font-weight: 500;
+    text-align: left;
+    z-index: 1;
+    min-width: 120px;
+}
+
+.inventory-matrix-table thead th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+}
+
+/* 警防課行のハイライト */
+.inventory-matrix-table tr.keibouka-row {
+    background: rgba(255, 235, 59, 0.08);
+}
+
+.inventory-matrix-table td.keibouka-cell {
+    background: rgba(255, 235, 59, 0.15);
+}
+
+/* 署所合計行のハイライト */
+.inventory-matrix-table tr.total-row {
+    background: rgba(100, 181, 246, 0.08);
+}
+
+.inventory-matrix-table td.total-cell,
+.inventory-matrix-table th.total-header {
+    background: rgba(100, 181, 246, 0.15);
+    font-weight: 600;
+}
+
+/* 在庫数0の場合 */
+.inventory-matrix-table td.stock-zero {
+    color: var(--color-text-muted);
+}
+
+/* 在庫数警告（少ない）*/
+.inventory-matrix-table td.stock-low {
+    color: var(--color-warning);
+}
+
+/* マトリックスエクスポートボタン */
+.matrix-export-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-md);
+    background: var(--color-accent-gradient);
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    transition: opacity var(--transition-fast);
+    margin-top: var(--spacing-md);
+}
+
+.matrix-export-btn:hover {
+    opacity: 0.9;
+}
+
+/* ============================================
+   署所別在庫画面
+   ============================================ */
+.dept-inventory-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    margin-bottom: var(--spacing-md);
+}
+
+.other-dept-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-card);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+    transition: all var(--transition-fast);
+}
+
+.other-dept-btn:hover {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-accent-primary);
+}
+
+.inventory-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-card);
+    border-radius: var(--border-radius-sm);
+    font-size: 1.1rem;
+    transition: background var(--transition-fast);
+}
+
+.inventory-btn:hover {
+    background: var(--color-bg-card-hover);
+}
+
+/* ============================================
+   他署所在庫確認モーダル
+   ============================================ */
+.other-dept-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius-xl);
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn var(--transition-normal);
+}
+
+.other-dept-header {
+    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.other-dept-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.other-dept-info {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+.other-dept-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.other-dept-selector label {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.other-dept-selector select {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-card);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+}
+
+.other-dept-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: var(--spacing-sm);
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.comparison-table thead th {
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+.comparison-table tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+}
+
+.comparison-table .my-dept-col {
+    background: rgba(100, 181, 246, 0.1);
+}
+
+.comparison-table .other-dept-col {
+    background: rgba(255, 235, 59, 0.1);
+}
+
+/* ============================================
    レスポンシブ対応
    ============================================ */
+
+/* タブレット (768px〜1023px) */
 @media (min-width: 768px) {
     .screen {
-        max-width: 480px;
+        max-width: 100%;
+        padding: var(--spacing-lg);
+    }
+
+    #department-select {
+        padding: var(--spacing-xl);
+    }
+
+    .department-grid {
+        max-width: 640px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .department-btn {
+        font-size: 1.1rem;
+        padding: var(--spacing-md);
+    }
+
+    .category-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-md);
+        max-width: 800px;
         margin: 0 auto;
     }
-    
+
+    .category-tile {
+        padding: var(--spacing-lg);
+        min-height: 120px;
+    }
+
+    .category-icon {
+        font-size: 2.5rem;
+    }
+
+    .category-name {
+        font-size: 0.95rem;
+    }
+
+    /* モーダルを中央配置に */
+    .modal {
+        align-items: center;
+    }
+
     .modal-content {
+        max-width: 600px;
         border-radius: var(--border-radius-xl);
-        margin-bottom: var(--spacing-xl);
+        margin-bottom: 0;
+        max-height: 80vh;
+    }
+
+    /* 統計画面 */
+    .analytics-tabs {
+        max-width: 600px;
+        margin: 0 auto var(--spacing-md);
+    }
+
+    .analytics-content {
+        max-width: 100%;
+    }
+
+    .summary-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .log-list {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* マトリックステーブル */
+    .inventory-matrix-table {
+        font-size: 0.85rem;
+    }
+
+    .inventory-matrix-table th,
+    .inventory-matrix-table td {
+        padding: var(--spacing-sm);
+    }
+}
+
+/* PC (1024px〜1439px) */
+@media (min-width: 1024px) {
+    .app-title {
+        font-size: 2.25rem;
+    }
+
+    .title-icon {
+        font-size: 2.5rem;
+    }
+
+    .app-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .department-grid {
+        max-width: 800px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .department-btn {
+        font-size: 1.15rem;
+        min-height: 100px;
+    }
+
+    .category-grid {
+        grid-template-columns: repeat(6, 1fr);
+        max-width: 1000px;
+    }
+
+    .category-tile {
+        padding: var(--spacing-lg);
+        min-height: 140px;
+    }
+
+    .category-icon {
+        font-size: 3rem;
+    }
+
+    .category-name {
+        font-size: 1rem;
+    }
+
+    .modal-content {
+        max-width: 720px;
+    }
+
+    .dashboard-header {
+        max-width: 1000px;
+        margin: 0 auto var(--spacing-md);
+        padding: var(--spacing-md) 0;
+    }
+
+    .department-name {
+        font-size: 1.3rem;
+    }
+
+    .back-btn,
+    .stats-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 1.5rem;
+    }
+
+    /* 統計画面 */
+    .summary-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* マトリックステーブル */
+    .inventory-matrix-table {
+        font-size: 0.9rem;
+    }
+
+    .inventory-matrix-table tbody td:first-child {
+        min-width: 180px;
+    }
+
+    .matrix-accordion-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+
+    .matrix-accordion-title {
+        font-size: 1.1rem;
+    }
+}
+
+/* 大画面PC (1440px以上) */
+@media (min-width: 1440px) {
+    .department-grid {
+        max-width: 960px;
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .department-btn {
+        font-size: 1.2rem;
+        min-height: 110px;
+    }
+
+    .category-grid {
+        max-width: 1200px;
+    }
+
+    .dashboard-header {
+        max-width: 1200px;
+    }
+
+    .summary-list {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .log-list {
+        max-width: 1000px;
+    }
+
+    /* マトリックステーブル */
+    .inventory-matrix-table {
+        font-size: 0.95rem;
+    }
+
+    .inventory-matrix-table th,
+    .inventory-matrix-table td {
+        padding: var(--spacing-sm) var(--spacing-md);
+        min-width: 70px;
+    }
+
+    .inventory-matrix-table tbody td:first-child {
+        min-width: 220px;
     }
 }

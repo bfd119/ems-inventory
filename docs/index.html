@@ -1690,12 +1690,20 @@
         }
 
         async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transactionDate) {
-            const { data: existing, error } = await db.from('stocks')
+            // expiryDateがnullまたは空文字の場合は両方を考慮して検索
+            let query = db.from('stocks')
                 .select('*')
                 .eq('department_id', deptId)
-                .eq('item_id', itemId)
-                .eq('expiry_date', expiryDate || null)
-                .single();
+                .eq('item_id', itemId);
+
+            if (expiryDate && expiryDate !== '') {
+                query = query.eq('expiry_date', expiryDate);
+            } else {
+                // 期限なしの場合：nullまたは空文字列で検索
+                query = query.or('expiry_date.is.null,expiry_date.eq.');
+            }
+
+            const { data: existing, error } = await query.single();
 
             if (error || !existing || existing.quantity < quantity) {
                 throw new Error('在庫不足');
@@ -1720,12 +1728,19 @@
         }
 
         async function fsUpdateStockExpiry(deptId, itemId, oldExpiry, newExpiry) {
-            const { data: existing, error } = await db.from('stocks')
+            // oldExpiryがnullまたは空文字の場合は両方を考慮して検索
+            let query = db.from('stocks')
                 .select('*')
                 .eq('department_id', deptId)
-                .eq('item_id', itemId)
-                .eq('expiry_date', oldExpiry || null)
-                .single();
+                .eq('item_id', itemId);
+
+            if (oldExpiry && oldExpiry !== '') {
+                query = query.eq('expiry_date', oldExpiry);
+            } else {
+                query = query.or('expiry_date.is.null,expiry_date.eq.');
+            }
+
+            const { data: existing, error } = await query.single();
 
             if (error || !existing) {
                 throw new Error('該当する在庫ロットが見つかりません');

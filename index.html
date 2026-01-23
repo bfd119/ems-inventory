@@ -32,12 +32,39 @@
                 <span class="back-icon">←</span>
             </button>
             <h2 class="department-name" id="current-department-name">部署名</h2>
-            <button class="stats-btn" id="open-stats" aria-label="統計">
-                <span class="stats-icon">📊</span>
-            </button>
+            <div class="header-buttons">
+                <button class="inventory-btn" id="open-dept-inventory" aria-label="在庫一覧">
+                    <span>📋</span>
+                </button>
+                <button class="stats-btn" id="open-stats" aria-label="統計">
+                    <span class="stats-icon">📊</span>
+                </button>
+            </div>
         </header>
         <div class="category-grid" id="category-grid">
             <!-- JavaScript で生成 -->
+        </div>
+    </section>
+
+    <!-- 署所別在庫一覧画面 -->
+    <section id="dept-inventory" class="screen">
+        <header class="dashboard-header">
+            <button class="back-btn" id="back-to-dashboard-from-inv" aria-label="戻る">
+                <span class="back-icon">←</span>
+            </button>
+            <h2 class="department-name" id="dept-inventory-title">〇〇 在庫一覧</h2>
+            <button class="other-dept-btn" id="open-other-dept" aria-label="他署所の在庫を見る">
+                <span>🔍</span>
+                <span>他署所</span>
+            </button>
+        </header>
+        <div class="inventory-matrix-container">
+            <div class="matrix-accordion" id="dept-matrix-accordion">
+                <!-- JavaScript で生成 -->
+            </div>
+            <button class="matrix-export-btn" id="export-dept-csv">
+                <span>📥</span> 在庫CSVエクスポート
+            </button>
         </div>
     </section>
 
@@ -57,8 +84,13 @@
         </div>
         <div class="analytics-content">
             <div id="tab-summary" class="tab-content active">
-                <div class="summary-list" id="summary-list">
-                    <!-- JavaScript で生成 -->
+                <div class="inventory-matrix-container">
+                    <div class="matrix-accordion" id="matrix-accordion">
+                        <!-- JavaScript で生成 -->
+                    </div>
+                    <button class="matrix-export-btn" id="export-matrix-csv">
+                        <span>📥</span> 在庫一覧CSVエクスポート
+                    </button>
                 </div>
             </div>
             <div id="tab-budget" class="tab-content">
@@ -145,6 +177,31 @@
                     </datalist>
                 </div>
                 <button class="save-btn" id="save-transaction">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 他署所在庫確認モーダル -->
+    <div class="modal" id="other-dept-modal">
+        <div class="modal-overlay"></div>
+        <div class="other-dept-modal-content">
+            <div class="modal-header">
+                <h3>他署所在庫確認</h3>
+                <button class="modal-close" id="close-other-dept-modal">×</button>
+            </div>
+            <div class="other-dept-header">
+                <p class="other-dept-info">在庫不足の補充先を探しましょう</p>
+                <div class="other-dept-selector">
+                    <label for="other-dept-select">署所を選択:</label>
+                    <select id="other-dept-select">
+                        <!-- JavaScript で生成 -->
+                    </select>
+                </div>
+            </div>
+            <div class="other-dept-body">
+                <div class="matrix-accordion" id="other-dept-accordion">
+                    <!-- JavaScript で生成 -->
+                </div>
             </div>
         </div>
     </div>
