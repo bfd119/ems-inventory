@@ -4,88 +4,1293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>救急用品在庫管理システム</title>
-    <meta name="description" content="消防救急資器材の在庫管理システム - 11部署の在庫を一元管理">
-    <link rel="stylesheet" href="styles.css">
+    <title>救急用品在庫管理</title>
+    <meta name="description" content="消防救急資器材の在庫管理システム">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg-primary: #faf9f7;
+            --color-bg-secondary: #f5f4f0;
+            --color-bg-tertiary: #e8e6e1;
+            --color-bg-card: #ffffff;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #5c5c5c;
+            --color-text-muted: #8c8c8c;
+            --color-accent-primary: #d97706;
+            --color-accent-secondary: #ea580c;
+            --color-accent-gradient: linear-gradient(135deg, #d97706, #ea580c);
+            --color-success: #16a34a;
+            --color-danger: #dc2626;
+            --color-in: #16a34a;
+            --color-out: #dc2626;
+            --color-border: rgba(0, 0, 0, 0.08);
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-xl: 24px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition-fast: 150ms ease;
+            --font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            min-height: 100dvh;
+            line-height: 1.5;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            touch-action: manipulation;
+            /* ダブルタップズーム防止 */
+        }
+
+        input,
+        select {
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            min-height: 100dvh;
+            padding: var(--spacing-md);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(250, 249, 247, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--color-bg-tertiary);
+            border-top-color: var(--color-accent-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #department-select {
+            justify-content: center;
+            align-items: center;
+            gap: var(--spacing-xl);
+        }
+
+        .screen-header {
+            text-align: center;
+        }
+
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            color: var(--color-accent-primary);
+        }
+
+        .app-subtitle {
+            margin-top: var(--spacing-sm);
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .department-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            width: 100%;
+            max-width: 340px;
+        }
+
+        .department-btn {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .department-btn:hover {
+            border-color: var(--color-accent-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .settings-link {
+            margin-top: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .settings-link:hover {
+            color: var(--color-accent-primary);
+        }
+
+        .top-links {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-lg);
+        }
+
+        .top-links .settings-link {
+            margin-top: 0;
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) 0;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stats-btn {
+            height: 40px;
+            padding: 0 var(--spacing-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+        }
+
+        .header-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-sm);
+            min-width: 50px;
+        }
+
+        .header-action-btn:hover {
+            border-color: var(--color-accent-primary);
+        }
+
+        .header-action-btn .material-symbols-outlined {
+            font-size: 1.1rem;
+            color: var(--color-accent-primary);
+        }
+
+        .header-action-btn .action-label {
+            font-size: 0.55rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+        }
+
+        .back-btn:hover,
+        .stats-btn:hover {
+            border-color: var(--color-accent-primary);
+        }
+
+        .header-spacer {
+            width: 40px;
+        }
+
+        .department-name {
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            flex: 1;
+            align-content: start;
+        }
+
+        .category-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            aspect-ratio: 1;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .category-tile.add-tile {
+            border: 2px dashed var(--color-border);
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .add-icon {
+            font-size: 2rem;
+            color: var(--color-text-muted);
+        }
+
+        .add-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-lg);
+            border: 2px dashed var(--color-border);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            margin-top: var(--spacing-sm);
+        }
+
+        .add-item-icon {
+            font-size: 1.5rem;
+            color: var(--color-text-muted);
+        }
+
+        .add-item-text {
+            color: var(--color-text-muted);
+        }
+
+        .transfer-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+        }
+
+        .transfer-checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+
+        #transfer-checkbox-text {
+            font-weight: 500;
+        }
+
+        .category-tile:hover {
+            border-color: var(--color-accent-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .category-icon {
+            font-size: 1.75rem;
+        }
+
+        .category-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-align: center;
+            color: var(--color-text-secondary);
+        }
+
+        .analytics-tabs {
+            display: flex;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: var(--spacing-sm);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        .tab-btn.active {
+            background: var(--color-accent-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .analytics-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .log-list,
+        .summary-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .log-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .log-type {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .log-type.in {
+            background: rgba(22, 163, 74, 0.1);
+            color: var(--color-in);
+        }
+
+        .log-type.out {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--color-out);
+        }
+
+        .log-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .log-item-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .log-meta {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        .log-quantity {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .summary-item {
+            padding: var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .summary-item.low-stock {
+            background: #fff5f5;
+            border-color: #e53e3e;
+        }
+
+        .summary-department {
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .summary-dept-header {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            padding-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--color-accent-primary);
+        }
+
+        .summary-category {
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .summary-category-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .min-stock-label {
+            font-size: 0.7rem;
+            color: #e53e3e;
+            background: #fff5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+        }
+
+        .summary-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .summary-item-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .summary-item-total {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-accent-primary);
+        }
+
+        .summary-departments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .summary-dept {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            background: var(--color-bg-tertiary);
+            border-radius: 4px;
+            color: var(--color-text-secondary);
+        }
+
+        .budget-controls {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .budget-select {
+            flex: 1;
+            padding: var(--spacing-sm);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            color: var(--color-text-primary);
+        }
+
+        .budget-table-wrapper {
+            flex: 1;
+            overflow: auto;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .budget-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .budget-table th,
+        .budget-table td {
+            padding: var(--spacing-sm);
+            text-align: center;
+            border: 1px solid var(--color-border);
+            white-space: nowrap;
+        }
+
+        .budget-table th {
+            background: var(--color-bg-tertiary);
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+
+        .budget-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: var(--color-bg-card);
+            font-weight: 500;
+            text-align: left;
+        }
+
+        .export-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            width: 100%;
+            padding: var(--spacing-md);
+            background: var(--color-accent-gradient);
+            color: white;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .settings-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .settings-section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .add-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--color-accent-primary);
+            color: white;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .settings-item-name {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .delete-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-danger);
+            font-size: 1rem;
+            border-radius: 50%;
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            max-height: 85vh;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.25s ease;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg-tertiary);
+            border-radius: 50%;
+            font-size: 1rem;
+            color: var(--color-text-secondary);
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-md);
+        }
+
+        .items-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+        }
+
+        .item-row:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .item-expiry-info {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        .item-expiry-info.has-expired {
+            color: var(--color-danger);
+        }
+
+        .item-stock {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-left: var(--spacing-md);
+            color: var(--color-accent-primary);
+        }
+
+        .current-stock {
+            text-align: center;
+            padding: var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stock-label {
+            color: var(--color-text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .stock-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 var(--spacing-sm);
+            color: var(--color-accent-primary);
+        }
+
+        .transaction-type-toggle {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .type-btn[data-type="IN"].active {
+            background: rgba(22, 163, 74, 0.1);
+            border-color: var(--color-in);
+            color: var(--color-in);
+        }
+
+        .type-btn[data-type="OUT"].active {
+            background: rgba(220, 38, 38, 0.1);
+            border-color: var(--color-out);
+            color: var(--color-out);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            color: var(--color-text-primary);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-accent-primary);
+        }
+
+        .quantity-input {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .quantity-input input {
+            flex: 1;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .qty-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg-tertiary);
+            border-radius: var(--border-radius-sm);
+            font-size: 1.25rem;
+        }
+
+        .lot-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .lot-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-secondary);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+        }
+
+        .lot-item.selected {
+            border-color: var(--color-accent-primary);
+            background: rgba(217, 119, 6, 0.1);
+        }
+
+        .lot-item.expired {
+            color: var(--color-danger);
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: var(--color-accent-gradient);
+            color: white;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: var(--spacing-md);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xl);
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .category-icon .material-symbols-outlined {
+            font-size: 2.5rem;
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+            opacity: 0.5;
+        }
+
+        .api-config {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .api-config label {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+        }
+
+        .api-config input {
+            width: 100%;
+            margin-top: var(--spacing-xs);
+            font-size: 0.8rem;
+        }
+
+        .icon-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-xs);
+        }
+
+        .icon-option {
+            font-size: 1.5rem;
+            text-align: center;
+            padding: var(--spacing-xs);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            background: var(--color-bg-secondary);
+            transition: all 0.2s;
+        }
+
+        .icon-option:hover {
+            background: var(--color-bg-card);
+        }
+
+        .icon-option.selected {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+
+        @media (min-width: 768px) {
+            .screen {
+                max-width: 420px;
+                margin: 0 auto;
+            }
+
+            .modal-content {
+                border-radius: var(--border-radius-xl);
+                margin-bottom: var(--spacing-xl);
+            }
+        }
+
+        /* トグルスイッチ */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--spacing-md);
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            color: var(--color-text-primary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: var(--color-accent-gradient);
+        }
+
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        /* カテゴリ追加ボタン（設定画面） */
+        .settings-add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--color-accent-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .settings-add-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ダッシュボードフッター */
+        .dashboard-footer {
+            text-align: center;
+            padding: var(--spacing-lg) 0;
+            margin-top: auto;
+        }
+
+        .guide-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            transition: all 0.2s;
+        }
+
+        .guide-link:hover {
+            color: var(--color-accent-primary);
+            background: var(--color-bg-secondary);
+        }
+
+        /* 検索バー */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .search-toggle {
+            font-size: 1.2rem;
+            color: var(--color-text-secondary);
+            padding: var(--spacing-xs);
+        }
+
+        .search-bar {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-card);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            gap: var(--spacing-sm);
+        }
+
+        .search-icon {
+            color: var(--color-text-muted);
+            font-size: 1.2rem;
+        }
+
+        .search-input-wrapper input {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            color: var(--color-text-primary);
+            outline: none;
+        }
+
+        .search-input-wrapper input::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        .search-clear {
+            font-size: 1.2rem;
+            color: var(--color-text-muted);
+            padding: 4px;
+            display: none;
+        }
+
+        .search-clear.visible {
+            display: block;
+        }
+
+        .search-suggestions {
+            margin-top: var(--spacing-sm);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-xs);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .suggestion-item:hover {
+            background: var(--color-bg-secondary);
+        }
+
+        .suggestion-item-name {
+            font-weight: 500;
+        }
+
+        .suggestion-item-category {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        .suggestion-item-stock {
+            font-size: 0.9rem;
+            color: var(--color-accent-primary);
+            font-weight: 600;
+        }
+    </style>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
-    <!-- 部署選択画面 -->
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+    </div>
+
     <section id="department-select" class="screen active">
         <div class="screen-header">
-            <h1 class="app-title">
-                <span class="title-icon">🚑</span>
-                救急用品在庫管理
-            </h1>
+            <h1 class="app-title"><span><span class="material-symbols-outlined"
+                        style="font-size: 2rem;">local_fire_department</span></span>救急用品在庫管理</h1>
             <p class="app-subtitle">部署を選択してください</p>
         </div>
-        <div class="global-actions">
-            <button class="global-action-btn" id="open-global-inventory">
-                <span class="action-icon">📊</span>
-                <span class="action-text">全体在庫状況</span>
-            </button>
-            <button class="global-action-btn" id="open-global-usage">
-                <span class="action-icon">📈</span>
-                <span class="action-text">使用実績</span>
-            </button>
-        </div>
-        <div class="department-grid" id="department-grid">
-            <!-- JavaScript で生成 -->
+        <div class="department-grid" id="department-grid"></div>
+        <div class="top-links">
+            <button class="settings-link" id="open-analytics-top">📊 在庫状況・使用履歴</button>
+            <button class="settings-link" id="open-settings">⚙️ カテゴリ・用品設定</button>
+            <a href="manual.html" class="settings-link">📖 使い方ガイド</a>
         </div>
     </section>
 
-    <!-- 部署ダッシュボード画面 -->
     <section id="dashboard" class="screen">
         <header class="dashboard-header">
-            <button class="back-btn" id="back-to-home" aria-label="戻る">
-                <span class="back-icon">←</span>
-            </button>
+            <button class="back-btn" id="back-to-home">←</button>
             <h2 class="department-name" id="current-department-name">部署名</h2>
-            <div class="header-buttons">
-                <button class="header-action-btn" id="open-dept-inventory" aria-label="自署在庫">
-                    <span class="action-icon">📋</span>
+            <div class="header-actions">
+                <button class="icon-btn search-toggle" id="toggle-search"><span
+                        class="material-symbols-outlined">search</span></button>
+                <button class="header-action-btn" id="open-dept-inventory">
+                    <span class="material-symbols-outlined">inventory</span>
                     <span class="action-label">自署在庫</span>
                 </button>
-                <button class="header-action-btn" id="open-stats" aria-label="全体在庫">
-                    <span class="action-icon">📊</span>
+                <button class="header-action-btn" id="open-stats">
+                    <span class="material-symbols-outlined">bar_chart</span>
                     <span class="action-label">全体在庫</span>
                 </button>
             </div>
         </header>
-        <div class="category-grid" id="category-grid">
-            <!-- JavaScript で生成 -->
-        </div>
-    </section>
-
-    <!-- 署所別在庫一覧画面 -->
-    <section id="dept-inventory" class="screen">
-        <header class="dashboard-header">
-            <button class="back-btn" id="back-to-dashboard-from-inv" aria-label="戻る">
-                <span class="back-icon">←</span>
-            </button>
-            <h2 class="department-name" id="dept-inventory-title">〇〇 在庫一覧</h2>
-            <button class="other-dept-btn" id="open-other-dept" aria-label="他署所の在庫を見る">
-                <span>🔍</span>
-                <span>他署所</span>
-            </button>
-        </header>
-        <div class="inventory-matrix-container">
-            <div class="matrix-accordion" id="dept-matrix-accordion">
-                <!-- JavaScript で生成 -->
+        <div class="search-bar" id="search-bar" style="display: none;">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="text" id="item-search" placeholder="用品名を検索..." autocomplete="off">
+                <button class="search-clear" id="search-clear">×</button>
             </div>
-            <button class="matrix-export-btn" id="export-dept-csv">
-                <span>📥</span> 在庫CSVエクスポート
-            </button>
+            <div class="search-suggestions" id="search-suggestions"></div>
+        </div>
+        <div class="category-grid" id="category-grid"></div>
+        <div class="dashboard-footer">
+            <a href="manual.html" class="guide-link">📖 使い方ガイド</a>
         </div>
     </section>
 
-    <!-- 統計・分析画面 -->
     <section id="analytics" class="screen">
         <header class="dashboard-header">
-            <button class="back-btn" id="back-to-dashboard" aria-label="戻る">
-                <span class="back-icon">←</span>
-            </button>
+            <button class="back-btn" id="back-to-dashboard">←</button>
             <h2 class="department-name">全体統計・分析</h2>
             <div class="header-spacer"></div>
         </header>
@@ -96,14 +1301,7 @@
         </div>
         <div class="analytics-content">
             <div id="tab-summary" class="tab-content active">
-                <div class="inventory-matrix-container">
-                    <div class="matrix-accordion" id="matrix-accordion">
-                        <!-- JavaScript で生成 -->
-                    </div>
-                    <button class="matrix-export-btn" id="export-matrix-csv">
-                        <span>📥</span> 在庫一覧CSVエクスポート
-                    </button>
-                </div>
+                <div class="summary-list" id="summary-list"></div>
             </div>
             <div id="tab-budget" class="tab-content">
                 <div class="budget-controls">
@@ -113,113 +1311,1204 @@
                     </select>
                 </div>
                 <div class="budget-table-wrapper">
-                    <table class="budget-table" id="budget-table">
-                        <!-- JavaScript で生成 -->
-                    </table>
+                    <table class="budget-table" id="budget-table"></table>
                 </div>
-                <button class="export-btn" id="export-csv">
-                    <span>📥</span> CSVエクスポート
-                </button>
+                <button class="export-btn" id="export-csv">📥 CSVエクスポート</button>
             </div>
             <div id="tab-log" class="tab-content">
-                <div class="log-list" id="log-list">
-                    <!-- JavaScript で生成 -->
-                </div>
+                <div class="log-list" id="log-list"></div>
             </div>
         </div>
     </section>
 
-    <!-- 用品一覧モーダル -->
+    <section id="settings" class="screen">
+        <header class="dashboard-header">
+            <button class="back-btn" id="back-to-home-from-settings">←</button>
+            <h2 class="department-name">設定</h2>
+            <div class="header-spacer"></div>
+        </header>
+        <div id="settings-container"></div>
+    </section>
+
     <div class="modal" id="items-modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="items-modal-title">カテゴリ名</h3>
-                <button class="modal-close" id="close-items-modal">×</button>
+                <h3 id="items-modal-title">カテゴリ名</h3><button class="modal-close" id="close-items-modal">×</button>
             </div>
             <div class="modal-body">
-                <ul class="items-list" id="items-list">
-                    <!-- JavaScript で生成 -->
-                </ul>
+                <ul class="items-list" id="items-list"></ul>
             </div>
         </div>
     </div>
 
-    <!-- 入出庫モーダル -->
     <div class="modal" id="transaction-modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="transaction-modal-title">用品名</h3>
-                <button class="modal-close" id="close-transaction-modal">×</button>
+                <h3 id="transaction-modal-title">用品名</h3><button class="modal-close"
+                    id="close-transaction-modal">×</button>
             </div>
             <div class="modal-body">
-                <div class="current-stock">
-                    <span class="stock-label">現在庫:</span>
-                    <span class="stock-value" id="current-stock-value">0</span>
-                    <span class="stock-unit" id="current-stock-unit">個</span>
-                </div>
+                <div class="current-stock"><span class="stock-label">現在庫:</span><span class="stock-value"
+                        id="current-stock-value">0</span><span id="current-stock-unit">個</span></div>
                 <div class="transaction-type-toggle">
                     <button class="type-btn active" data-type="IN" id="btn-type-in">入庫</button>
                     <button class="type-btn" data-type="OUT" id="btn-type-out">出庫</button>
                 </div>
-                <div class="form-group">
-                    <label for="transaction-quantity">数量</label>
-                    <div class="quantity-input">
-                        <button class="qty-btn" id="qty-minus">−</button>
-                        <input type="number" id="transaction-quantity" value="1" min="1">
-                        <button class="qty-btn" id="qty-plus">+</button>
+                <div class="form-group" id="lot-select-group" style="display:none;"><label>出庫ロット選択:</label>
+                    <div class="lot-list" id="lot-list"></div>
+                </div>
+                <div class="form-group" id="expiry-input-group" style="display:none;"><label
+                        for="transaction-expiry">使用期限</label><input type="date" id="transaction-expiry"></div>
+                <div class="form-group"><label id="transaction-date-label">入庫日</label><input type="date"
+                        id="transaction-date"></div>
+                <div class="form-group"><label>数量</label>
+                    <div class="quantity-input"><button class="qty-btn" id="qty-minus">−</button><input type="number"
+                            id="transaction-quantity" value="1" min="1"><button class="qty-btn" id="qty-plus">+</button>
                     </div>
                 </div>
-                <div class="form-group expiry-group" id="expiry-group">
-                    <label for="transaction-expiry">使用期限（入庫時のみ）</label>
-                    <input type="date" id="transaction-expiry">
-                </div>
-                <div class="form-group">
-                    <label for="transaction-remarks">備考</label>
-                    <input type="text" id="transaction-remarks" list="remarks-suggestions" placeholder="備考を入力...">
-                    <datalist id="remarks-suggestions">
+                <div class="form-group"><label>備考</label><input type="text" id="transaction-remarks"
+                        list="remarks-suggestions" placeholder="備考..."><datalist id="remarks-suggestions">
                         <option value="使用期限切れ">
                         <option value="定期補充">
                         <option value="救急活動で使用">
                         <option value="訓練で使用">
-                        <option value="破損・汚損">
-                        <option value="他部署へ移動">
-                        <option value="他部署から受入">
-                    </datalist>
+                        <option value="他署から受領">
+                        <option value="他署へ譲渡">
+                    </datalist></div>
+                <div class="form-group" id="transfer-group" style="display:none;">
+                    <label class="transfer-checkbox-label">
+                        <input type="checkbox" id="is-transfer">
+                        <span id="transfer-checkbox-text">署所間移動（他署からもらう）</span>
+                    </label>
+                    <div id="transfer-dept-select" style="display:none;margin-top:8px;">
+                        <label id="transfer-label">どこから？</label>
+                        <select id="transfer-dept"></select>
+                    </div>
                 </div>
                 <button class="save-btn" id="save-transaction">保存</button>
             </div>
         </div>
     </div>
 
-    <!-- 他署所在庫確認モーダル -->
-    <div class="modal" id="other-dept-modal">
+    <div class="modal" id="add-category-modal">
         <div class="modal-overlay"></div>
-        <div class="other-dept-modal-content">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>他署所在庫確認</h3>
-                <button class="modal-close" id="close-other-dept-modal">×</button>
+                <h3 id="add-category-modal-title">カテゴリ追加</h3><button class="modal-close"
+                    id="close-add-category-modal">×</button>
             </div>
-            <div class="other-dept-header">
-                <p class="other-dept-info">在庫不足の補充先を探しましょう</p>
-                <div class="other-dept-selector">
-                    <label for="other-dept-select">署所を選択:</label>
-                    <select id="other-dept-select">
-                        <!-- JavaScript で生成 -->
-                    </select>
+            <div class="modal-body">
+                <div class="form-group"><label>カテゴリ名</label><input type="text" id="new-category-name"
+                        placeholder="例: 輸液"></div>
+                <div class="form-group"><label>アイコン選択</label>
+                    <div class="icon-selection-grid" id="new-category-icon-grid"></div>
+                    <input type="hidden" id="new-category-icon">
                 </div>
-            </div>
-            <div class="other-dept-body">
-                <div class="matrix-accordion" id="other-dept-accordion">
-                    <!-- JavaScript で生成 -->
-                </div>
+                <button class="save-btn" id="save-new-category">保存</button>
             </div>
         </div>
     </div>
 
-    <script src="data.js"></script>
-    <script src="app.js"></script>
+    <div class="modal" id="add-item-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="add-item-modal-title">用品追加</h3><button class="modal-close" id="close-add-item-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>カテゴリ</label><select id="new-item-category"></select></div>
+                <div class="form-group"><label>用品名</label><input type="text" id="new-item-name"
+                        placeholder="例: 生理食塩水 500ml"></div>
+                <div class="form-group"><label>単位</label><input type="text" id="new-item-unit" placeholder="例: 本"
+                        value="個"></div>
+                <div class="form-group toggle-group">
+                    <label class="toggle-label">使用期限あり</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="new-item-has-expiry">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="form-group"><label>最低在庫数 <small style="color:var(--color-text-muted)">(任意)</small></label>
+                    <input type="number" id="new-item-min-stock" placeholder="0" min="0" value="0">
+                </div>
+                <button class="save-btn" id="save-new-item">追加</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // Supabase 設定
+        // ============================================
+        const SUPABASE_URL = 'https://aacntdoacjjssspoctul.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhY250ZG9hY2pqc3NzcG9jdHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MDA5OTcsImV4cCI6MjA4MzQ3Njk5N30.oBliHP_Jd9NOSSK1XFcO9egQWPzVhxn_KM0OTgaR8TQ';
+
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const ICONS = [
+            'medication', 'vaccines', 'medical_services', 'bloodtype',
+            'sick', 'checkroom', 'clean_hands', 'healing',
+            'sanitizer', 'inventory_2', 'monitor_heart', 'ambulance', 'edit_note', 'content_cut'
+        ];
+        const ICON_COLORS = {
+            'medication': '#E91E63', 'vaccines': '#03A9F4', 'medical_services': '#3F51B5',
+            'bloodtype': '#F44336', 'sick': '#4CAF50', 'checkroom': '#FF9800',
+            'clean_hands': '#009688', 'healing': '#FFC107', 'sanitizer': '#00BCD4',
+            'inventory_2': '#607D8B', 'monitor_heart': '#9C27B0', 'ambulance': '#FBC02D',
+            'edit_note': '#795548', 'content_cut': '#607D8B'
+        };
+        // 部署マスター（固定）
+        const DEPARTMENTS = [
+            { id: 1, name: "警防課" }, { id: 2, name: "三次" }, { id: 3, name: "作木" },
+            { id: 4, name: "吉舎" }, { id: 5, name: "三和" }, { id: 6, name: "口和" },
+            { id: 7, name: "甲奴" }, { id: 8, name: "庄原" }, { id: 9, name: "西城" },
+            { id: 10, name: "高野" }, { id: 11, name: "東城" }
+        ];
+        let CATEGORIES = [], ITEMS = [];
+        const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, editingCategoryId: null, editingItemId: null, settingsCatId: null };
+        const $ = id => document.getElementById(id);
+        const el = {};
+
+        // Initialize Application
+        function initializeApp() {
+            cacheElements();
+            bindEvents();
+            loadData();
+        }
+
+        // Bootstrapping
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+
+        function cacheElements() {
+            el.loading = $('loading');
+            if (!el.loading) el.loading = document.getElementById('loading');
+
+            el.screens = {
+                home: $('department-select'),
+                dashboard: $('dashboard'),
+                analytics: $('analytics'),
+                settings: $('settings')
+            };
+            el.deptSelect = $('department-select');
+            el.deptGrid = $('department-grid');
+            el.deptName = $('current-department-name');
+            el.categoryGrid = $('category-grid');
+            el.catGrid = el.categoryGrid; // alias for renderCatGrid compatibility
+            el.itemsModal = $('items-modal');
+            el.itemsModalTitle = $('items-modal-title');
+            el.itemsList = $('items-list');
+            el.txModal = $('transaction-modal');
+            el.txTitle = $('transaction-title');
+            el.txDate = $('transaction-date');
+            el.txDateLabel = $('transaction-date-label');
+            el.txItemName = $('transaction-modal-title');
+            el.txStock = $('current-stock-value');
+            el.txQty = $('transaction-quantity');
+            el.txExpiry = $('transaction-expiry');
+            el.expiryInputGroup = $('expiry-input-group');
+            el.lotSelectGroup = $('lot-select-group');
+            el.lotList = $('lot-list');
+            el.txRemarks = $('transaction-remarks');
+            el.saveBtn = $('save-transaction');
+            el.settingsContainer = $('settings-container');
+            el.newCategoryIconGrid = $('new-category-icon-grid');
+            el.newCategoryIconInput = $('new-category-icon');
+            el.addCategoryModalTitle = $('add-category-modal-title');
+            el.addItemModalTitle = $('add-item-modal-title');
+
+            // Log & Summary & Budget elements
+            el.logList = $('log-list');
+            el.summaryList = $('summary-list');
+            el.budgetTable = $('budget-table');
+            el.budgetYear = $('budget-year');
+            el.budgetMonth = $('budget-month');
+
+            // モーダルのキャッシュ
+            el.modals = {
+                items: el.itemsModal,
+                transaction: el.txModal,
+                addCategory: $('add-category-modal'),
+                addItem: $('add-item-modal')
+            };
+
+            // エイリアス（showTxModal互換性のため）
+            el.stockValue = el.txStock;
+            el.stockUnit = $('current-stock-unit');
+            el.txModalTitle = el.txItemName;
+        }
+
+        function bindEvents() {
+            $('back-to-home').onclick = () => showScreen('home');
+            $('open-dept-inventory').onclick = () => {
+                showScreen('analytics');
+                switchTab('summary');
+                renderAnalytics();
+            };
+            $('open-stats').onclick = () => {
+                state.deptId = null; // 全体集計
+                showScreen('analytics');
+                renderAnalytics();
+            };
+            $('open-analytics-top').onclick = () => {
+                state.deptId = null; // 全体集計
+                showScreen('analytics');
+                renderAnalytics();
+            };
+            $('back-to-dashboard').onclick = () => {
+                if (state.deptId) showScreen('dashboard');
+                else showScreen('home');
+            };
+            $('open-settings').onclick = () => {
+                showScreen('settings');
+                renderSettings();
+            };
+            $('back-to-home-from-settings').onclick = () => showScreen('home');
+
+            $('close-items-modal').onclick = () => el.itemsModal.classList.remove('active');
+            $('close-transaction-modal').onclick = () => el.txModal.classList.remove('active');
+
+            // カテゴリ追加モーダル
+            $('close-add-category-modal').onclick = () => $('add-category-modal').classList.remove('active');
+            $('save-new-category').onclick = saveNewCategory;
+
+            // 用品追加モーダル
+            $('close-add-item-modal').onclick = () => $('add-item-modal').classList.remove('active');
+
+            // Generic modal overlay close (for all modals)
+            document.querySelectorAll('.modal-overlay').forEach(o => o.onclick = (e) => {
+                // Find the parent modal and close it
+                const modal = e.target.closest('.modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            });
+
+            $('btn-type-in').onclick = () => setTxType('IN');
+            $('btn-type-out').onclick = () => setTxType('OUT');
+
+            $('qty-minus').onclick = () => { el.txQty.value = Math.max(1, (+el.txQty.value || 0) - 1); };
+            $('qty-plus').onclick = () => { el.txQty.value = (+el.txQty.value || 0) + 1; };
+
+            $('save-transaction').onclick = saveTx;
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+            $('budget-year').onchange = renderBudget;
+            $('budget-month').onchange = renderBudget;
+            $('export-csv').onclick = exportCSV;
+
+            $('save-new-item').onclick = saveNewItem;
+
+            // 検索機能
+            $('toggle-search').onclick = toggleSearchBar;
+            $('item-search').oninput = handleSearchInput;
+            $('search-clear').onclick = clearSearch;
+        }
+
+        // ============================================
+        // Supabase API
+        // ============================================
+
+        async function fsGetCategories() {
+            const { data, error } = await db.from('categories').select('*').order('id');
+            if (error) throw error;
+            return data;
+        }
+
+        async function fsGetItems() {
+            const { data, error } = await db.from('items').select('*').order('id');
+            if (error) throw error;
+            // カラム名をキャメルケースに変換
+            return data.map(r => ({
+                id: r.id, categoryId: r.category_id, name: r.name, unit: r.unit,
+                hasExpiry: r.has_expiry, minStock: r.min_stock
+            }));
+        }
+
+        async function fsGetStocks() {
+            const { data, error } = await db.from('stocks').select('*');
+            if (error) throw error;
+            return data.map(r => ({
+                departmentId: r.department_id, itemId: r.item_id,
+                expiryDate: r.expiry_date, quantity: r.quantity, id: r.id
+            }));
+        }
+
+        async function fsGetTransactions(limit = 100) {
+            const { data, error } = await db.from('transactions')
+                .select('*').order('timestamp', { ascending: false }).limit(limit);
+            if (error) throw error;
+            return data.map(r => ({
+                id: r.id, departmentId: r.department_id, itemId: r.item_id,
+                type: r.type, quantity: r.quantity, expiryDate: r.expiry_date,
+                remarks: r.remarks, timestamp: r.timestamp
+            }));
+        }
+
+        async function fsAddCategory(name, icon) {
+            const { data, error } = await db.from('categories')
+                .insert({ name, icon: icon || 'inventory_2' }).select().single();
+            if (error) throw error;
+            return data;
+        }
+
+        async function fsUpdateCategory(id, name, icon) {
+            const { data, error } = await db.from('categories')
+                .update({ name, icon: icon || 'inventory_2' }).eq('id', id).select().single();
+            if (error) throw error;
+            return data;
+        }
+
+        async function fsDeleteCategory(id) {
+            // 関連用品のIDを取得
+            const { data: items } = await db.from('items').select('id').eq('category_id', id);
+            const itemIds = items ? items.map(i => i.id) : [];
+
+            // 関連する取引履歴を削除
+            if (itemIds.length > 0) {
+                await db.from('transactions').delete().in('item_id', itemIds);
+                await db.from('stocks').delete().in('item_id', itemIds);
+            }
+
+            // 関連用品を削除
+            await db.from('items').delete().eq('category_id', id);
+
+            // カテゴリを削除
+            const { error } = await db.from('categories').delete().eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        }
+
+        async function fsAddItem(categoryId, name, unit, hasExpiry, minStock) {
+            const { data, error } = await db.from('items')
+                .insert({ category_id: categoryId, name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
+                .select().single();
+            if (error) throw error;
+            return { id: data.id, categoryId: data.category_id, name: data.name, unit: data.unit, hasExpiry: data.has_expiry, minStock: data.min_stock };
+        }
+
+        async function fsUpdateItem(id, categoryId, name, unit, hasExpiry, minStock) {
+            const { data, error } = await db.from('items')
+                .update({ category_id: categoryId, name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
+                .eq('id', id).select().single();
+            if (error) throw error;
+            return { id: data.id, categoryId: data.category_id, name: data.name, unit: data.unit, hasExpiry: data.has_expiry, minStock: data.min_stock };
+        }
+
+        async function fsDeleteItem(id) {
+            // 関連する取引履歴と在庫を先に削除
+            await db.from('transactions').delete().eq('item_id', id);
+            await db.from('stocks').delete().eq('item_id', id);
+
+            // 用品を削除
+            const { error } = await db.from('items').delete().eq('id', id);
+            if (error) throw error;
+            return { success: true };
+        }
+
+        async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transactionDate) {
+            // 既存の在庫を検索
+            const { data: existing } = await db.from('stocks')
+                .select('*')
+                .eq('department_id', deptId)
+                .eq('item_id', itemId)
+                .eq('expiry_date', expiryDate || null)
+                .single();
+
+            if (existing) {
+                await db.from('stocks')
+                    .update({ quantity: existing.quantity + quantity })
+                    .eq('id', existing.id);
+            } else {
+                await db.from('stocks')
+                    .insert({ department_id: deptId, item_id: itemId, expiry_date: expiryDate || null, quantity });
+            }
+            return fsAddTransaction(deptId, itemId, 'IN', quantity, expiryDate, remarks, transactionDate);
+        }
+
+        async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transactionDate) {
+            const { data: existing, error } = await db.from('stocks')
+                .select('*')
+                .eq('department_id', deptId)
+                .eq('item_id', itemId)
+                .eq('expiry_date', expiryDate || null)
+                .single();
+
+            if (error || !existing || existing.quantity < quantity) {
+                throw new Error('在庫不足');
+            }
+
+            const newQty = existing.quantity - quantity;
+            if (newQty <= 0) {
+                await db.from('stocks').delete().eq('id', existing.id);
+            } else {
+                await db.from('stocks').update({ quantity: newQty }).eq('id', existing.id);
+            }
+            return fsAddTransaction(deptId, itemId, 'OUT', quantity, expiryDate, remarks, transactionDate);
+        }
+
+        async function fsAddTransaction(deptId, itemId, type, quantity, expiryDate, remarks, transactionDate) {
+            const ts = transactionDate ? new Date(transactionDate) : new Date();
+            const { data, error } = await db.from('transactions')
+                .insert({ department_id: deptId, item_id: itemId, type, quantity, expiry_date: expiryDate || null, remarks: remarks || '', timestamp: ts.toISOString() })
+                .select().single();
+            if (error) throw error;
+            return { id: data.id, departmentId: data.department_id, itemId: data.item_id, type: data.type, quantity: data.quantity, expiryDate: data.expiry_date, remarks: data.remarks, timestamp: data.timestamp };
+        }
+
+        async function fsUpdateStockExpiry(deptId, itemId, oldExpiry, newExpiry) {
+            const { data: existing, error } = await db.from('stocks')
+                .select('*')
+                .eq('department_id', deptId)
+                .eq('item_id', itemId)
+                .eq('expiry_date', oldExpiry || null)
+                .single();
+
+            if (error || !existing) {
+                throw new Error('該当する在庫ロットが見つかりません');
+            }
+
+            await db.from('stocks').update({ expiry_date: newExpiry || null }).eq('id', existing.id);
+            return { success: true };
+        }
+
+        const CACHE_KEY = 'ems_inventory_cache';
+
+        async function loadData() {
+            showLoading(true);
+
+            // キャッシュから即座に表示
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                try {
+                    const c = JSON.parse(cached);
+                    CATEGORIES = c.categories || [];
+                    ITEMS = c.items || [];
+                    state.stocks = c.stocks || [];
+                    state.transactions = c.transactions || [];
+                    renderDeptGrid();
+                    initBudget();
+                } catch (e) {
+                    console.warn('キャッシュ読込失敗', e);
+                }
+            }
+
+            // Supabaseから最新データを取得
+            try {
+                // タイムアウト付きでデータを取得
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('タイムアウト: データの読み込みに時間がかかっています')), 10000));
+
+                const dataPromise = Promise.all([
+                    fsGetCategories(),
+                    fsGetItems(),
+                    fsGetStocks(),
+                    fsGetTransactions(100)
+                ]);
+
+                [CATEGORIES, ITEMS, state.stocks, state.transactions] = await Promise.race([dataPromise, timeoutPromise]);
+
+                // キャッシュ更新
+                localStorage.setItem(CACHE_KEY, JSON.stringify({
+                    categories: CATEGORIES, items: ITEMS,
+                    stocks: state.stocks, transactions: state.transactions,
+                    timestamp: Date.now()
+                }));
+
+                renderDeptGrid();
+                initBudget();
+            } catch (e) {
+                console.error('Data loading error:', e);
+                if (!cached) {
+                    handleError(e);
+                    alert('データの読み込みに失敗しました。再読み込みしてください。\n' + (e.message || e));
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showScreen(n) { Object.values(el.screens).forEach(s => s.classList.remove('active')); el.screens[n].classList.add('active'); }
+        function openModal(n) { el.modals[n].classList.add('active'); }
+        function closeModal(n) { el.modals[n].classList.remove('active'); }
+        function showLoading(s) { el.loading.classList.toggle('hidden', !s); }
+
+        function renderDeptGrid() {
+            el.deptGrid.innerHTML = DEPARTMENTS.map(d => `<button class="department-btn" data-id="${d.id}">${d.name}</button>`).join('');
+            el.deptGrid.querySelectorAll('.department-btn').forEach(b => b.onclick = () => { state.deptId = +b.dataset.id; showDashboard(); });
+        }
+
+        function showDashboard() {
+            const d = DEPARTMENTS.find(x => x.id === state.deptId);
+            el.deptName.textContent = d.name + ' 在庫管理';
+            renderCatGrid();
+            showScreen('dashboard');
+            // 検索バーを閉じる
+            $('search-bar').style.display = 'none';
+            $('item-search').value = '';
+            $('search-suggestions').innerHTML = '';
+        }
+
+        // 検索機能
+        function toggleSearchBar() {
+            const bar = $('search-bar');
+            const isVisible = bar.style.display !== 'none';
+            bar.style.display = isVisible ? 'none' : 'block';
+            if (!isVisible) {
+                $('item-search').focus();
+            }
+        }
+
+        function handleSearchInput(e) {
+            const query = e.target.value.trim().toLowerCase();
+            const clearBtn = $('search-clear');
+            clearBtn.classList.toggle('visible', query.length > 0);
+
+            if (query.length === 0) {
+                $('search-suggestions').innerHTML = '';
+                return;
+            }
+
+            // 用品を検索
+            const matches = ITEMS.filter(item =>
+                item.name.toLowerCase().includes(query)
+            ).slice(0, 10); // 最大10件
+
+            renderSearchSuggestions(matches);
+        }
+
+        function renderSearchSuggestions(items) {
+            const container = $('search-suggestions');
+            if (items.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:var(--color-text-muted);padding:1rem;">該当する用品がありません</p>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const cat = CATEGORIES.find(c => c.id === item.categoryId);
+                const catName = cat ? cat.name : '';
+                const lots = getLots(state.deptId, item.id);
+                const total = lots.reduce((a, l) => a + l.quantity, 0);
+                return `<div class="suggestion-item" data-item-id="${item.id}" data-cat-id="${item.categoryId}">
+                    <div>
+                        <div class="suggestion-item-name">${item.name}</div>
+                        <div class="suggestion-item-category">${catName}</div>
+                    </div>
+                    <div class="suggestion-item-stock">${total}${item.unit}</div>
+                </div>`;
+            }).join('');
+
+            // クリックイベント
+            container.querySelectorAll('.suggestion-item').forEach(el => {
+                el.onclick = () => {
+                    const itemId = +el.dataset.itemId;
+                    const catId = +el.dataset.catId;
+                    state.catId = catId;
+                    state.itemId = itemId;
+                    showTxModal();
+                    clearSearch();
+                };
+            });
+        }
+
+        function clearSearch() {
+            $('item-search').value = '';
+            $('search-suggestions').innerHTML = '';
+            $('search-clear').classList.remove('visible');
+        }
+
+        function renderCatGrid() {
+            if (CATEGORIES.length === 0) {
+                el.catGrid.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><span class="material-symbols-outlined" style="font-size: 3rem;">inventory_2</span></div><p>カテゴリがありません</p></div><button class="category-tile add-tile" onclick="openAddCategoryModal()"><span class="add-icon">+</span><span class="category-name">カテゴリ追加</span></button>';
+                return;
+            }
+            let html = CATEGORIES.map(c => `<button class="category-tile" data-id="${c.id}"><span class="category-icon"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span></span><span class="category-name">${c.name}</span></button>`).join('');
+            // 追加ボタン
+            html += '<button class="category-tile add-tile" onclick="openAddCategoryModal()"><span class="add-icon">+</span><span class="category-name">追加</span></button>';
+            el.catGrid.innerHTML = html;
+            el.catGrid.querySelectorAll('.category-tile:not(.add-tile)').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
+        }
+
+        function showItemsModal() {
+            const c = CATEGORIES.find(x => x.id === state.catId);
+            el.itemsModalTitle.textContent = c.name;
+            const items = ITEMS.filter(i => i.categoryId === state.catId);
+            let html = '';
+            if (items.length === 0) {
+                html = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>用品がありません</p></div>';
+            } else {
+                html = items.map(item => {
+                    const lots = getLots(state.deptId, item.id);
+                    const total = lots.reduce((a, l) => a + l.quantity, 0);
+                    const hasExpired = lots.some(l => getExpStatus(l.expiryDate) === 'expired');
+                    return `<li class="item-row" data-id="${item.id}"><div class="item-info"><div class="item-name">${item.name}</div><div class="item-expiry-info ${hasExpired ? 'has-expired' : ''}">${item.hasExpiry ? lots.length + 'ロット' : ''}${hasExpired ? ' (期限切れあり)' : ''}</div></div><div class="item-stock">${total}${item.unit}</div></li>`;
+                }).join('');
+            }
+            // 追加ボタン
+            html += `<li class="item-row add-item-row" onclick="openAddItemModal(${state.catId})"><div class="add-item-icon">+</div><div class="add-item-text">用品を追加</div></li>`;
+            el.itemsList.innerHTML = html;
+            el.itemsList.querySelectorAll('.item-row:not(.add-item-row)').forEach(r => r.onclick = () => { state.itemId = +r.dataset.id; showTxModal(); });
+            openModal('items');
+        }
+
+        function showTxModal() {
+            const item = ITEMS.find(i => i.id === state.itemId);
+            const lots = getLots(state.deptId, state.itemId);
+            const total = lots.reduce((a, l) => a + l.quantity, 0);
+            el.txModalTitle.textContent = item.name;
+            el.stockValue.textContent = total;
+            el.stockUnit.textContent = item.unit;
+            el.txQty.value = 1;
+            el.txRemarks.value = '';
+            el.txDate.value = new Date().toISOString().split('T')[0];
+            state.selectedLot = null;
+            setTxType('IN');
+            closeModal('items');
+            openModal('transaction');
+        }
+
+        function setTxType(t) {
+            state.txType = t;
+            $('btn-type-in').classList.toggle('active', t === 'IN');
+            $('btn-type-out').classList.toggle('active', t === 'OUT');
+            el.txDateLabel.textContent = t === 'IN' ? '入庫日' : '出庫日';
+            const item = ITEMS.find(i => i.id === state.itemId);
+            const lots = getLots(state.deptId, state.itemId);
+            if (t === 'IN' && item.hasExpiry) {
+                el.expiryInputGroup.style.display = 'block';
+                el.lotSelectGroup.style.display = 'none';
+                const def = new Date(); def.setFullYear(def.getFullYear() + 1);
+                el.txExpiry.value = def.toISOString().split('T')[0];
+            } else if (t === 'OUT' && item.hasExpiry && lots.length > 0) {
+                el.expiryInputGroup.style.display = 'none';
+                el.lotSelectGroup.style.display = 'block';
+                renderLotList(lots);
+            } else {
+                el.expiryInputGroup.style.display = 'none';
+                el.lotSelectGroup.style.display = 'none';
+            }
+            // 署所間移動オプションを表示
+            $('transfer-group').style.display = 'block';
+            $('is-transfer').checked = false;
+            $('transfer-dept-select').style.display = 'none';
+            // 移動先の部署セレクトを生成
+            const otherDepts = DEPARTMENTS.filter(d => d.id !== state.deptId);
+            $('transfer-dept').innerHTML = otherDepts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            // 入庫/出庫で表現を変更
+            if (t === 'IN') {
+                $('transfer-checkbox-text').textContent = '署所間移動（他署からもらう）';
+                $('transfer-label').textContent = 'どこから？';
+            } else {
+                $('transfer-checkbox-text').textContent = '署所間移動（他署へわたす）';
+                $('transfer-label').textContent = 'どこへ？';
+            }
+            $('is-transfer').onchange = () => {
+                $('transfer-dept-select').style.display = $('is-transfer').checked ? 'block' : 'none';
+            };
+        }
+
+        function renderLotList(lots) {
+            lots.sort((a, b) => new Date(a.expiryDate || '9999') - new Date(b.expiryDate || '9999'));
+            el.lotList.innerHTML = lots.map((l, i) => `
+                <div class="lot-item ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}" data-idx="${i}">
+                    <span>${l.expiryDate || '期限なし'}</span>
+                    <span>${l.quantity}個</span>
+                    <button class="edit-expiry-btn" onclick="event.stopPropagation();editLotExpiry('${l.expiryDate || ''}', ${l.quantity})">📅</button>
+                </div>`).join('');
+            state.selectedLot = null;
+            el.lotList.querySelectorAll('.lot-item').forEach(li => li.onclick = () => {
+                el.lotList.querySelectorAll('.lot-item').forEach(x => x.classList.remove('selected'));
+                li.classList.add('selected');
+                state.selectedLot = lots[+li.dataset.idx];
+            });
+        }
+
+        async function editLotExpiry(oldExpiry, qty) {
+            const newExpiry = prompt('新しい使用期限を入力 (YYYY-MM-DD)', oldExpiry || new Date().toISOString().split('T')[0]);
+            if (newExpiry === null) return; // キャンセル
+            showLoading(true);
+            try {
+                await fsUpdateStockExpiry(state.deptId, state.itemId, oldExpiry || '', newExpiry || '');
+                state.stocks = await fsGetStocks();
+                const lots = getLots(state.deptId, state.itemId);
+                renderLotList(lots);
+                alert('使用期限を更新しました');
+            } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        async function saveTx() {
+            const qty = +el.txQty.value;
+            const remarks = el.txRemarks.value.trim();
+            const item = ITEMS.find(i => i.id === state.itemId);
+            if (isNaN(qty) || qty < 1) { alert('数量を入力してください'); return; }
+            let expiry = null;
+            if (state.txType === 'IN' && item.hasExpiry) expiry = el.txExpiry.value || null;
+            else if (state.txType === 'OUT' && item.hasExpiry) {
+                if (!state.selectedLot) { alert('ロットを選択してください'); return; }
+                if (state.selectedLot.quantity < qty) { alert('在庫不足'); return; }
+                expiry = state.selectedLot.expiryDate;
+            }
+
+            const isTransfer = $('is-transfer').checked;
+            const transferDeptId = isTransfer ? +$('transfer-dept').value : null;
+
+            el.saveBtn.disabled = true;
+            showLoading(true);
+            try {
+                const txDate = el.txDate.value || new Date().toISOString().split('T')[0];
+
+                if (isTransfer) {
+                    // 署所間移動の場合
+                    const fromDept = state.txType === 'OUT' ? state.deptId : transferDeptId;
+                    const toDept = state.txType === 'OUT' ? transferDeptId : state.deptId;
+                    const fromDeptName = DEPARTMENTS.find(d => d.id === fromDept)?.name;
+                    const toDeptName = DEPARTMENTS.find(d => d.id === toDept)?.name;
+
+                    // 移動元から出庫
+                    await fsStockOut(fromDept, state.itemId, expiry, qty, `${toDeptName}へわたす`, txDate);
+                    // 移動先へ入庫
+                    await fsStockIn(toDept, state.itemId, expiry, qty, `${fromDeptName}からもらう`, txDate);
+                } else {
+                    // 通常の入出庫
+                    if (state.txType === 'IN') {
+                        await fsStockIn(state.deptId, state.itemId, expiry, qty, remarks, txDate);
+                    } else {
+                        await fsStockOut(state.deptId, state.itemId, expiry, qty, remarks, txDate);
+                    }
+                }
+
+                state.stocks = await fsGetStocks();
+                closeModal('transaction');
+                showItemsModal();
+            } catch (e) { handleError(e); }
+            el.saveBtn.disabled = false;
+            showLoading(false);
+        }
+
+        async function renderAnalytics() {
+            showLoading(true);
+            // ヘッダーのタイトルを更新
+            const analyticsTitle = document.querySelector('#analytics .department-name');
+            if (state.deptId) {
+                const dept = DEPARTMENTS.find(d => d.id === state.deptId);
+                analyticsTitle.textContent = `${dept?.name || ''} 統計・分析`;
+            } else {
+                analyticsTitle.textContent = '全体統計・分析';
+            }
+            try { state.transactions = await fsGetTransactions(100); renderLog(); renderSummary(); initBudget(); renderBudget(); } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        function renderLog() {
+            // 部署フィルタ (state.deptIdがない場合は全部署)
+            const txs = state.deptId
+                ? state.transactions.filter(t => t.departmentId === state.deptId)
+                : state.transactions;
+
+            if (txs.length === 0) {
+                el.logList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>履歴がありません</p></div>';
+                return;
+            }
+            el.logList.innerHTML = txs.slice(0, 50).map(tx => {
+                const d = DEPARTMENTS.find(x => x.id === tx.departmentId);
+                const i = ITEMS.find(x => x.id === tx.itemId);
+                const dateLabel = tx.type === 'IN' ? '入庫日' : '出庫日';
+                const expStr = tx.expiryDate ? fmtDate(tx.expiryDate) : '';
+                return `<div class="log-item"><div class="log-type ${tx.type === 'IN' ? 'in' : 'out'}">${tx.type === 'IN' ? '入庫' : '出庫'}</div><div class="log-details"><div class="log-item-name">${i?.name || '?'}</div><div class="log-meta">${d?.name || '?'} / ${dateLabel}:${fmtDT(tx.timestamp)}${expStr ? ' / 期限:' + expStr : ''}${tx.remarks ? ' / ' + tx.remarks : ''}</div></div><div class="log-quantity">${tx.type === 'IN' ? '+' : '-'}${tx.quantity}</div></div>`;
+            }).join('');
+        }
+
+        function renderSummary() {
+            // 特定部署の場合：カテゴリ別在庫を表示
+            if (state.deptId) {
+                renderSummaryByCategory(state.deptId);
+            } else {
+                // 全体表示：署所別×カテゴリ別に表示
+                renderSummaryByDepartment();
+            }
+        }
+
+        // 署所別×カテゴリ別の在庫一覧を表示
+        function renderSummaryByDepartment() {
+            let html = '';
+            DEPARTMENTS.forEach(dept => {
+                const deptStocks = state.stocks.filter(s => s.departmentId === dept.id && s.quantity > 0);
+                if (deptStocks.length === 0) return;
+
+                // カテゴリごとにグループ化
+                const catData = {};
+                CATEGORIES.forEach(c => { catData[c.id] = { category: c, items: [] }; });
+
+                deptStocks.forEach(s => {
+                    const item = ITEMS.find(i => i.id === s.itemId);
+                    if (!item || !catData[item.categoryId]) return;
+                    const existing = catData[item.categoryId].items.find(x => x.item.id === item.id);
+                    if (existing) {
+                        existing.qty += s.quantity;
+                    } else {
+                        catData[item.categoryId].items.push({ item, qty: s.quantity });
+                    }
+                });
+
+                const catsWithItems = Object.values(catData).filter(c => c.items.length > 0);
+                if (catsWithItems.length === 0) return;
+
+                html += `<div class="summary-department">
+                    <div class="summary-dept-header">${dept.name}</div>`;
+
+                catsWithItems.forEach(c => {
+                    const catColor = ICON_COLORS[c.category.icon] || '#607D8B';
+                    html += `<div class="summary-category" style="border-left: 4px solid ${catColor}">
+                        <div class="summary-category-header">
+                            <span class="material-symbols-outlined" style="color:${catColor}">${c.category.icon}</span>
+                            <span>${c.category.name}</span>
+                        </div>`;
+                    c.items.forEach(s => {
+                        const lowClass = (s.item.minStock && s.qty < s.item.minStock) ? 'low-stock' : '';
+                        html += `<div class="summary-item ${lowClass}">
+                            <div class="summary-item-header">
+                                <span class="summary-item-name">${s.item.name}</span>
+                                <span class="summary-item-total">${s.qty}${s.item.unit}</span>
+                            </div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                });
+                html += '</div>';
+            });
+
+            if (!html) {
+                el.summaryList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>在庫がありません</p></div>';
+                return;
+            }
+            el.summaryList.innerHTML = html;
+        }
+
+        // 特定部署のカテゴリ別在庫を表示
+        function renderSummaryByCategory(deptId) {
+            const deptStocks = state.stocks.filter(s => s.departmentId === deptId && s.quantity > 0);
+
+            // カテゴリごとにグループ化
+            const catData = {};
+            CATEGORIES.forEach(c => { catData[c.id] = { category: c, items: [] }; });
+
+            deptStocks.forEach(s => {
+                const item = ITEMS.find(i => i.id === s.itemId);
+                if (!item || !catData[item.categoryId]) return;
+                const existing = catData[item.categoryId].items.find(x => x.item.id === item.id);
+                if (existing) {
+                    existing.qty += s.quantity;
+                } else {
+                    catData[item.categoryId].items.push({ item, qty: s.quantity, lowStock: false });
+                }
+            });
+
+            // 最低在庫チェック
+            Object.values(catData).forEach(c => {
+                c.items.forEach(s => {
+                    if (s.item.minStock && s.qty < s.item.minStock) {
+                        s.lowStock = true;
+                    }
+                });
+            });
+
+            const catsWithItems = Object.values(catData).filter(c => c.items.length > 0);
+            if (catsWithItems.length === 0) {
+                el.summaryList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>在庫がありません</p></div>';
+                return;
+            }
+
+            el.summaryList.innerHTML = catsWithItems.map(c => {
+                const catColor = ICON_COLORS[c.category.icon] || '#607D8B';
+                const itemsHtml = c.items.map(s => {
+                    const lowClass = s.lowStock ? 'low-stock' : '';
+                    const minLabel = s.item.minStock ? `<span class="min-stock-label">最低:${s.item.minStock}</span>` : '';
+                    return `<div class="summary-item ${lowClass}">
+                        <div class="summary-item-header">
+                            <span class="summary-item-name">${s.item.name} ${minLabel}</span>
+                            <span class="summary-item-total">${s.qty}${s.item.unit}</span>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                return `<div class="summary-category" style="border-left: 4px solid ${catColor}">
+                    <div class="summary-category-header">
+                        <span class="material-symbols-outlined" style="color:${catColor}">${c.category.icon}</span>
+                        <span>${c.category.name}</span>
+                    </div>
+                    ${itemsHtml}
+                </div>`;
+            }).join('');
+        }
+
+        function initBudget() {
+            const yrs = new Set();
+            state.transactions.forEach(t => {
+                const year = new Date(t.timestamp).getFullYear();
+                if (!isNaN(year) && year > 2000 && year < 2100) {
+                    yrs.add(year);
+                }
+            });
+            yrs.add(new Date().getFullYear());
+            el.budgetYear.innerHTML = [...yrs].sort((a, b) => b - a).map(y => `<option value="${y}">${y}年</option>`).join('');
+            el.budgetMonth.innerHTML = '<option value="all">全期間</option>' + [...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1}月</option>`).join('');
+        }
+
+        function renderBudget() {
+            const yr = +el.budgetYear.value, mo = el.budgetMonth.value;
+            // 部署フィルタ
+            let flt = state.transactions.filter(t => t.type === 'OUT' && new Date(t.timestamp).getFullYear() === yr && (mo === 'all' || new Date(t.timestamp).getMonth() + 1 === +mo));
+            if (state.deptId) {
+                flt = flt.filter(t => t.departmentId === state.deptId);
+            }
+
+            if (state.deptId) {
+                // 部署別表示: シンプルなリスト形式
+                const mx = {}; ITEMS.forEach(i => { mx[i.id] = 0; });
+                flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + t.quantity; });
+                const used = ITEMS.filter(i => mx[i.id] > 0);
+                if (used.length === 0) { el.budgetTable.innerHTML = '<tr><td colspan="2" style="padding:2rem;text-align:center">データなし</td></tr>'; return; }
+                let h = '<thead><tr><th>用品</th><th>使用数</th></tr></thead><tbody>';
+                used.forEach(i => { h += `<tr><td>${i.name}</td><td><b>${mx[i.id]}</b></td></tr>`; });
+                h += '</tbody>'; el.budgetTable.innerHTML = h;
+            } else {
+                // 全体表示: 部署別クロス集計
+                const mx = {}; DEPARTMENTS.forEach(d => { mx[d.id] = {}; ITEMS.forEach(i => { mx[d.id][i.id] = 0; }); });
+                flt.forEach(t => { if (mx[t.departmentId]) mx[t.departmentId][t.itemId] = (mx[t.departmentId][t.itemId] || 0) + t.quantity; });
+                const used = ITEMS.filter(i => flt.some(t => t.itemId === i.id));
+                if (used.length === 0) { el.budgetTable.innerHTML = '<tr><td colspan="12" style="padding:2rem;text-align:center">データなし</td></tr>'; return; }
+                let h = '<thead><tr><th>用品</th>' + DEPARTMENTS.map(d => `<th>${d.name}</th>`).join('') + '<th>計</th></tr></thead><tbody>';
+                used.forEach(i => { h += `<tr><td>${i.name}</td>`; let rt = 0; DEPARTMENTS.forEach(d => { const q = mx[d.id][i.id] || 0; rt += q; h += `<td>${q || '-'}</td>`; }); h += `<td><b>${rt}</b></td></tr>`; });
+                h += '</tbody>'; el.budgetTable.innerHTML = h;
+            }
+        }
+
+        function exportCSV() {
+            const yr = el.budgetYear.value, mo = el.budgetMonth.value;
+            let flt = state.transactions.filter(t => t.type === 'OUT' && new Date(t.timestamp).getFullYear() === +yr && (mo === 'all' || new Date(t.timestamp).getMonth() + 1 === +mo));
+            if (state.deptId) {
+                flt = flt.filter(t => t.departmentId === state.deptId);
+                const dept = DEPARTMENTS.find(d => d.id === state.deptId);
+                const mx = {}; ITEMS.forEach(i => { mx[i.id] = 0; });
+                flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + t.quantity; });
+                let csv = '\ufeff用品名,使用数\n';
+                ITEMS.forEach(i => { if (mx[i.id] > 0) csv += `"${i.name}",${mx[i.id]}\n`; });
+                const b = new Blob([csv], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(b), a = document.createElement('a');
+                a.href = u; a.download = `${dept?.name || '部署'}_使用量_${yr}年${mo === 'all' ? '' : mo + '月'}.csv`; a.click(); URL.revokeObjectURL(u);
+            } else {
+                const mx = {}; ITEMS.forEach(i => { mx[i.id] = {}; DEPARTMENTS.forEach(d => { mx[i.id][d.id] = 0; }); }); flt.forEach(t => { mx[t.itemId][t.departmentId] += t.quantity; });
+                let csv = '\ufeff用品名,' + DEPARTMENTS.map(d => d.name).join(',') + ',合計\n';
+                ITEMS.forEach(i => { const vs = DEPARTMENTS.map(d => mx[i.id][d.id]); const t = vs.reduce((a, b) => a + b, 0); if (t > 0) csv += `"${i.name}",${vs.join(',')},${t}\n`; });
+                const b = new Blob([csv], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = `EMS使用量_${yr}年${mo === 'all' ? '' : mo + '月'}.csv`; a.click(); URL.revokeObjectURL(u);
+            }
+        }
+
+        function switchTab(id) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + id)); }
+
+        function renderSettings() {
+            if (state.settingsCatId) {
+                renderSettingsItems(state.settingsCatId);
+            } else {
+                renderSettingsCategories();
+            }
+        }
+
+        function renderSettingsCategories() {
+            let h = '<div class="settings-section"><h3 class="section-title">カテゴリ一覧 <button class="settings-add-btn" onclick="openAddCategoryModal()">＋追加</button></h3><div class="settings-list">';
+            if (CATEGORIES.length === 0) h += '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
+            else {
+                h += CATEGORIES.map(c => `
+                    <div class="settings-item" onclick="state.settingsCatId=${c.id};renderSettings()">
+                        <span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name}</span>
+                        <div class="settings-actions">
+                            <button class="icon-btn" onclick="event.stopPropagation();editCategory(${c.id})"><span class="material-symbols-outlined">edit</span></button>
+                            <button class="delete-btn" onclick="event.stopPropagation();deleteCategory(${c.id})">×</button>
+                        </div>
+                    </div>`).join('');
+            }
+            h += '</div></div>';
+            el.settingsContainer.innerHTML = h;
+        }
+
+        function renderSettingsItems(catId) {
+            const cat = CATEGORIES.find(c => c.id === catId);
+            if (!cat) { state.settingsCatId = null; renderSettings(); return; }
+            const items = ITEMS.filter(i => i.categoryId === catId);
+            let h = `<div class="settings-section">
+                <div style="display:flex;align-items:center;margin-bottom:1rem;">
+                    <button class="back-btn" onclick="state.settingsCatId=null;renderSettings()" style="margin-right:1rem;font-size:1.2rem;">←</button>
+                    <h3 class="section-title" style="margin:0"><span class="material-symbols-outlined" style="color:${ICON_COLORS[cat.icon] || ''};vertical-align:bottom;">${cat.icon}</span> ${cat.name}</h3>
+                </div>
+                <div style="margin-bottom:1rem;text-align:right;"><button class="btn-sm" onclick="openAddItemModal(${catId})">＋このカテゴリに用品追加</button></div>
+                <div class="settings-list">`;
+
+            if (items.length === 0) h += '<p style="color:var(--color-text-muted)">用品がありません</p>';
+            else {
+                h += items.map(i => `
+                    <div class="settings-item" onclick="editItem(${i.id})">
+                        <span class="settings-item-name">${i.name}</span>
+                        <div class="settings-actions">
+                             <button class="delete-btn" onclick="event.stopPropagation();deleteItemSetting(${i.id})">×</button>
+                        </div>
+                    </div>`).join('');
+            }
+            h += '</div></div>';
+            el.settingsContainer.innerHTML = h;
+        }
+
+        function openAddCategoryModal() {
+            state.editingCategoryId = null;
+            el.addCategoryModalTitle.textContent = 'カテゴリ追加';
+            $('new-category-name').value = '';
+            $('new-category-icon').value = ICONS[0];
+            renderIconGrid();
+            openModal('addCategory');
+        }
+
+        function openAddItemModal(catId) {
+            state.editingItemId = null;
+            el.addItemModalTitle.textContent = '用品追加';
+            populateCatSelect();
+            if (catId) {
+                $('new-item-category').value = catId;
+                $('new-item-category').disabled = true;
+            } else {
+                $('new-item-category').disabled = false;
+            }
+            $('new-item-name').value = '';
+            $('new-item-unit').value = '個';
+            $('new-item-has-expiry').checked = false;
+            $('new-item-min-stock').value = 0;
+            openModal('addItem');
+        }
+
+        function editItem(id) {
+            const i = ITEMS.find(x => x.id === id);
+            if (!i) return;
+            state.editingItemId = id;
+            el.addItemModalTitle.textContent = '用品編集';
+            populateCatSelect();
+            $('new-item-category').value = i.categoryId;
+            $('new-item-category').disabled = false;
+            $('new-item-name').value = i.name;
+            $('new-item-unit').value = i.unit;
+            $('new-item-has-expiry').checked = i.hasExpiry;
+            $('new-item-min-stock').value = i.minStock || 0;
+            openModal('addItem');
+        }
+
+        function editCategory(id) {
+            const c = CATEGORIES.find(x => x.id === id);
+            if (!c) return;
+            state.editingCategoryId = id;
+            el.addCategoryModalTitle.textContent = 'カテゴリ編集';
+            $('new-category-name').value = c.name;
+            $('new-category-icon').value = c.icon;
+            renderIconGrid();
+            openModal('addCategory');
+        }
+
+        function renderIconGrid() {
+            el.newCategoryIconGrid.innerHTML = ICONS.map(icon => `<div class="icon-option ${icon === el.newCategoryIconInput.value ? 'selected' : ''}" style="color: ${ICON_COLORS[icon] || ''}"><span class="material-symbols-outlined">${icon}</span></div>`).join('');
+            el.newCategoryIconGrid.querySelectorAll('.icon-option').forEach(opt => opt.onclick = () => {
+                el.newCategoryIconGrid.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                el.newCategoryIconInput.value = opt.querySelector('span').textContent;
+            });
+        }
+
+        function populateCatSelect() { $('new-item-category').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
+
+        async function saveNewCategory() {
+            const n = $('new-category-name').value.trim();
+            const ic = $('new-category-icon').value || ICONS[0];
+            if (!n) { alert('カテゴリ名を入力'); return; }
+            showLoading(true);
+            try {
+                let c;
+                if (state.editingCategoryId) {
+                    c = await fsUpdateCategory(state.editingCategoryId, n, ic);
+                    const idx = CATEGORIES.findIndex(x => x.id === state.editingCategoryId);
+                    if (idx >= 0) CATEGORIES[idx] = c;
+                } else {
+                    c = await fsAddCategory(n, ic);
+                    CATEGORIES.push(c);
+                }
+                closeModal('addCategory');
+                renderSettings();
+                renderCatGrid();
+                $('new-category-name').value = '';
+            } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+
+        async function saveNewItem() {
+            const cid = +$('new-item-category').value;
+            const n = $('new-item-name').value.trim();
+            const u = $('new-item-unit').value.trim() || '個';
+            const he = $('new-item-has-expiry').checked;
+            const ms = +$('new-item-min-stock').value || 0;
+            if (!n) { alert('用品名を入力'); return; }
+            showLoading(true);
+            try {
+                let i;
+                if (state.editingItemId) {
+                    i = await fsUpdateItem(state.editingItemId, cid, n, u, he, ms);
+                    const idx = ITEMS.findIndex(x => x.id === state.editingItemId);
+                    if (idx >= 0) ITEMS[idx] = i;
+                } else {
+                    i = await fsAddItem(cid, n, u, he, ms);
+                    ITEMS.push(i);
+                }
+                closeModal('addItem');
+                renderSettings();
+                // 用品一覧画面が開いていた場合は即座に更新
+                if (state.catId === cid) {
+                    showItemsModal();
+                }
+                $('new-item-name').value = '';
+            } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('カテゴリと用品を削除しますか？')) return;
+            showLoading(true);
+            try { await fsDeleteCategory(id); CATEGORIES = CATEGORIES.filter(c => c.id !== id); ITEMS = ITEMS.filter(i => i.categoryId !== id); renderSettings(); renderCatGrid(); } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        async function deleteItemSetting(id) {
+            if (!confirm('用品を削除しますか？')) return;
+            showLoading(true);
+            try { await fsDeleteItem(id); ITEMS = ITEMS.filter(i => i.id !== id); renderSettings(); } catch (e) { handleError(e); }
+            showLoading(false);
+        }
+
+        function getLots(deptId, itemId) { return state.stocks.filter(s => s.departmentId === deptId && s.itemId === itemId && s.quantity > 0); }
+        function getExpStatus(d) { if (!d) return 'none'; const t = new Date(); t.setHours(0, 0, 0, 0); return Math.ceil((new Date(d) - t) / 864e5) < 0 ? 'expired' : 'ok'; }
+        function fmtDT(s) {
+            if (!s) return '-';
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return s;
+            return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+        function fmtDate(s) {
+            if (!s) return '';
+            // YYYY-MM-DD形式ならそのまま返す
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return s;
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        function handleError(e) { showLoading(false); console.error(e); alert('エラー: ' + (e.message || e)); }
+    </script>
 </body>
 
 </html>
