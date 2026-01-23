@@ -124,7 +124,7 @@ select {
 #department-select {
     justify-content: center;
     align-items: center;
-    gap: var(--spacing-xl);
+    gap: var(--spacing-lg);
     background: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
 }
 
@@ -149,6 +149,42 @@ select {
     margin-top: var(--spacing-sm);
     color: var(--color-text-secondary);
     font-size: 0.9rem;
+}
+
+/* グローバルアクションボタン */
+.global-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.global-action-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: var(--color-bg-card);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius-md);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    transition: all var(--transition-fast);
+}
+
+.global-action-btn:hover {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-accent-primary);
+    transform: translateY(-2px);
+}
+
+.global-action-btn .action-icon {
+    font-size: 1.25rem;
+}
+
+.global-action-btn .action-text {
+    font-weight: 600;
 }
 
 .department-grid {
@@ -216,6 +252,36 @@ select {
 .header-buttons {
     display: flex;
     gap: var(--spacing-xs);
+}
+
+/* ヘッダーアクションボタン（テキスト付き） */
+.header-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--color-bg-card);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+    min-width: 56px;
+}
+
+.header-action-btn:hover {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-accent-primary);
+}
+
+.header-action-btn .action-icon {
+    font-size: 1.1rem;
+}
+
+.header-action-btn .action-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
 }
 
 .header-spacer {

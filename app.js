@@ -74,6 +74,18 @@ function bindEvents() {
     });
     document.getElementById('back-to-dashboard').addEventListener('click', () => showScreen('dashboard'));
 
+    // グローバルアクションボタン（部署選択画面から）
+    document.getElementById('open-global-inventory').addEventListener('click', () => {
+        showScreen('analytics');
+        switchTab('summary');
+        renderAnalytics();
+    });
+    document.getElementById('open-global-usage').addEventListener('click', () => {
+        showScreen('analytics');
+        switchTab('budget');
+        renderAnalytics();
+    });
+
     // 署所別在庫画面
     document.getElementById('open-dept-inventory').addEventListener('click', () => {
         showScreen('deptInventory');
