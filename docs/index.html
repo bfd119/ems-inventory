@@ -1500,8 +1500,9 @@
             <button class="back-btn" id="back-to-home">←</button>
             <h2 class="department-name" id="current-department-name">部署名</h2>
             <div class="header-actions">
-                <button class="icon-btn search-toggle" id="toggle-search"><span
-                        class="material-symbols-outlined">search</span></button>
+                <!-- 検索バー常時表示化に伴い削除 -->
+                <!-- <button class="icon-btn search-toggle" id="toggle-search">... -->
+
                 <button class="header-action-btn" id="open-dept-inventory">
                     <span class="material-symbols-outlined">inventory</span>
                     <span class="action-label">自署在庫</span>
@@ -1512,7 +1513,7 @@
                 </button>
             </div>
         </header>
-        <div class="search-bar" id="search-bar" style="display: none;">
+        <div class="search-bar" id="search-bar">
             <div class="search-input-wrapper">
                 <span class="material-symbols-outlined search-icon">search</span>
                 <input type="text" id="item-search" placeholder="用品名を検索..." autocomplete="off">
@@ -1843,7 +1844,7 @@
             $('save-new-item').onclick = saveNewItem;
 
             // 検索機能
-            $('toggle-search').onclick = toggleSearchBar;
+            // $('toggle-search').onclick = toggleSearchBar; // 常時表示のため削除
             $('item-search').oninput = handleSearchInput;
             $('search-clear').onclick = clearSearch;
         }
@@ -2085,21 +2086,18 @@
             el.deptName.textContent = d.name + ' 在庫管理';
             renderCatGrid();
             showScreen('dashboard');
-            // 検索バーを閉じる
-            $('search-bar').style.display = 'none';
+            renderCatGrid();
+            showScreen('dashboard');
+            // 検索バーは常時表示のため非表示リセットしない
+            // $('search-bar').style.display = 'none';
             $('item-search').value = '';
             $('search-suggestions').innerHTML = '';
         }
 
         // 検索機能
-        function toggleSearchBar() {
-            const bar = $('search-bar');
-            const isVisible = bar.style.display !== 'none';
-            bar.style.display = isVisible ? 'none' : 'block';
-            if (!isVisible) {
-                $('item-search').focus();
-            }
-        }
+        // 検索機能
+        // function toggleSearchBar() { ... } // 常時表示のため廃止
+
 
         function handleSearchInput(e) {
             const query = e.target.value.trim().toLowerCase();

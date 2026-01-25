@@ -15,6 +15,12 @@
 const SUPABASE_URL = 'https://aacntdoacjjssspoctul.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhY250ZG9hY2pqc3NzcG9jdHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MDA5OTcsImV4cCI6MjA4MzQ3Njk5N30.oBliHP_Jd9NOSSK1XFcO9egQWPzVhxn_KM0OTgaR8TQ';
 
+// ==========================================
+// 機能設定
+// ==========================================
+const ENABLE_EXPIRY_REMINDER = true;   // 期限切れ通知を送るか (推奨: 毎月1日, 25日)
+const ENABLE_SHORTAGE_REMINDER = true; // 在庫不足通知を送るか (min_stock使用)
+
 // 送信元メールアドレス (Gmailのエイリアス機能などを確認してください)
 // ※ GASでは実行アカウントのGmailアドレスが送信元になります。
 
@@ -67,55 +73,89 @@ function sendReminderEmails() {
         const deptStocks = {};
 
         stocks.forEach(stock => {
-            // 期限日がない、または '9999-12-31' の場合はスキップ
-            if (!stock.expiry_date || stock.expiry_date === '9999-12-31') return;
-
-            // 期限日の月を取得 (YYYY-MM)
-            const expiryMonth = stock.expiry_date.substring(0, 7);
-
-            // 当月期限切れ、または既に過ぎているが在庫がある場合も対象とするか？
-            // 要望は「期限当月の用品」なので、expiryMonth === currentMonthStr とする
-            if (expiryMonth === currentMonthStr) {
-                const deptId = stock.department_id;
-                if (!deptStocks[deptId]) deptStocks[deptId] = [];
-
-                const item = itemMap[stock.item_id];
-                deptStocks[deptId].push({
-                    itemName: item ? item.name : '不明な用品',
-                    quantity: stock.quantity,
-                    expiryDate: stock.expiry_date,
-                    unit: item ? item.unit : '個'
-                });
-            }
+            // 全データを署所ごとに振り分け (フィルタリングは後で行う)
+            const deptId = stock.department_id;
+            if (!deptStocks[deptId]) deptStocks[deptId] = [];
+            deptStocks[deptId].push(stock);
         });
 
         // 3. 各署所へのメール送信
         Object.keys(deptStocks).forEach(deptId => {
-            const targetStocks = deptStocks[deptId];
-            if (targetStocks.length === 0) return;
+            const stocks = deptStocks[deptId];
+            if (!stocks) return;
+
+            // 期限切れと在庫不足をフィルタリング
+            const expiryItems = ENABLE_EXPIRY_REMINDER ? stocks.filter(s => {
+                if (!s.expiry_date || s.expiry_date === '9999-12-31') return false;
+                const expiryMonth = s.expiry_date.substring(0, 7);
+                return expiryMonth === currentMonthStr;
+            }) : [];
+
+            // 在庫不足アイテムの抽出 (min_stock > 0 かつ quantity < min_stock)
+            // ※ items配列からmin_stock情報を取得する必要があるため、stockオブジェクト構築ロジックを見直すか、ここで結合する
+            // 効率のため、先にdeptStocks構築時に情報を含めておくのが良いが、既存ロジックを大きく変えないようここで処理
+            // ただし、stock単位ではなく「アイテム単位」で集計しないとmin_stockと比較できない。
+            // 既存の deptStocks は stockレコード単位（期限日別）になっている。
+
+            // 署所ごとのアイテム集計
+            const itemTotals = {}; // itemId -> { quantity, minStock, name, unit }
+            stocks.forEach(s => {
+                const item = itemMap[s.item_id];
+                if (!item) return;
+                if (!itemTotals[s.item_id]) {
+                    itemTotals[s.item_id] = {
+                        quantity: 0,
+                        minStock: item.min_stock || 0,
+                        name: item.name,
+                        unit: item.unit
+                    };
+                }
+                itemTotals[s.item_id].quantity += s.quantity;
+            });
+
+            const shortageItems = ENABLE_SHORTAGE_REMINDER ? Object.values(itemTotals).filter(i => {
+                return i.minStock > 0 && i.quantity < i.minStock;
+            }) : [];
+
+
+            if (expiryItems.length === 0 && shortageItems.length === 0) return;
 
             const email = EMAIL_LIST[deptId];
             const deptName = DEPT_NAMES[deptId];
 
             if (email) {
-                const subject = `【在庫管理】期限切れ間近の用品があります（${currentMonthStr}）`;
+                const subject = `【在庫管理】在庫確認のお知らせ（${currentMonthStr}）`;
                 let body = `${deptName} 担当者様\n\n`;
                 body += `お疲れ様です。\n救急用品在庫管理システムからの自動通知です。\n\n`;
-                body += `今月（${currentMonthStr}）に使用期限を迎える在庫があります。\n`;
-                body += `確認の上、交換・使用・廃棄等の対応をお願いします。\n\n`;
-                body += `--------------------------------------------------\n`;
 
-                targetStocks.forEach(stock => {
-                    body += `・${stock.itemName}: ${stock.quantity}${stock.unit} （期限: ${stock.expiryDate}）\n`;
-                });
+                if (expiryItems.length > 0) {
+                    body += `■ 今月（${currentMonthStr}）に使用期限を迎える在庫\n`;
+                    body += `期限を確認し、交換・廃棄等の対応をお願いします。\n`;
+                    body += `--------------------------------------------------\n`;
+                    expiryItems.sort((a, b) => a.expiry_date.localeCompare(b.expiry_date)).forEach(s => {
+                        const item = itemMap[s.item_id];
+                        const name = item ? item.name : '不明';
+                        body += `・${name}: ${s.quantity}${item ? item.unit : ''} （期限: ${s.expiry_date}）\n`;
+                    });
+                    body += `--------------------------------------------------\n\n`;
+                }
 
-                body += `--------------------------------------------------\n\n`;
+                if (shortageItems.length > 0) {
+                    body += `■ 在庫不足の用品（基準数割れ）\n`;
+                    body += `補充等の対応をお願いします。\n`;
+                    body += `--------------------------------------------------\n`;
+                    shortageItems.forEach(i => {
+                        body += `・${i.name}: 現在 ${i.quantity}${i.unit} （基準 ${i.minStock}）\n`;
+                    });
+                    body += `--------------------------------------------------\n\n`;
+                }
+
                 body += `本メールは自動送信されています。\n`;
-                body += `アプリURL: https://bfd119.github.io/ems-inventory/`; // デプロイ後のURL（予定）
+                body += `アプリURL: https://bfd119.github.io/ems-inventory/`;
 
                 // Gmailで送信
                 GmailApp.sendEmail(email, subject, body);
-                console.log(`送信完了: ${deptName} (${email}) - ${targetStocks.length}件`);
+                console.log(`送信完了: ${deptName} (${email}) - 期限:${expiryItems.length}件, 不足:${shortageItems.length}件`);
             }
         });
 
