@@ -167,6 +167,27 @@ function sendReminderEmails() {
     }
 }
 
+/**
+ * Web Appとしてアクセスされた場合の処理 (doGet)
+ */
+function doGet(e) {
+    console.log('Web App経由での実行開始');
+
+    // メール送信実行
+    sendReminderEmails();
+
+    // ブラウザへのレスポンス
+    return HtmlService.createHtmlOutput(`
+        <html>
+            <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
+                <h1 style="color: #4CAF50;">✅ メール送信完了</h1>
+                <p>各署所へのリマインドメール送信処理を実行しました。</p>
+                <p style="color: #666; font-size: 0.9em;">(ログはGASエディタで確認できます)</p>
+            </body>
+        </html>
+    `);
+}
+
 // ==========================================
 // ヘルパー関数
 // ==========================================
