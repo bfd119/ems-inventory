@@ -2296,11 +2296,30 @@
                     // 在庫不足判定
                     const isShortage = item.minStock > 0 && total < item.minStock;
 
-                    return `<li class="item-row ${isShortage ? 'low-stock-alert' : ''}" data-id="${item.id}">
+                    // 期限切れ・期限間近判定（60日以内）
+                    let hasNearExpiry = false;
+                    if (item.hasExpiry && lots.length > 0) {
+                        const now = new Date();
+                        const threshold = new Date();
+                        threshold.setDate(threshold.getDate() + 60); // 60日以内
+
+                        hasNearExpiry = lots.some(l => {
+                            if (!l.expiryDate) return false;
+                            const d = new Date(l.expiryDate);
+                            return d < threshold; // 期限切れまたは60日以内
+                        });
+                    }
+
+                    // アラート発動（在庫不足 または 期限警告）
+                    const isAlert = isShortage || hasNearExpiry;
+
+                    return `<li class="item-row ${isAlert ? 'low-stock-alert' : ''}" data-id="${item.id}">
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
                             ${lotInfoHtml}
-                            <div class="item-expiry-info ${hasExpired ? 'has-expired' : ''}">${hasExpired ? '⚠️期限切れあり' : ''}</div>
+                            <div class="item-expiry-info ${(hasExpired || hasNearExpiry) ? 'has-expired' : ''}">
+                                ${hasExpired ? '⚠️期限切れあり' : (hasNearExpiry ? '⚠️期限間近' : '')}
+                            </div>
                         </div>
                         <div class="item-stock" style="${isShortage ? 'color:var(--color-danger)' : ''}">${total}${item.unit}</div>
                     </li>`;
