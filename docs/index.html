@@ -2181,31 +2181,87 @@
             if (existingList) existingList.remove();
 
             if (state.deptId) {
+                // 在庫不足数割れ
                 const shortageItems = ITEMS.filter(item => {
                     const lots = getLots(state.deptId, item.id);
                     const total = lots.reduce((a, l) => a + l.quantity, 0);
                     return item.minStock > 0 && total < item.minStock;
                 });
 
-                if (shortageItems.length > 0) {
+                // 期限切れ・期限間近（60日以内）
+                const now = new Date();
+                const threshold = new Date();
+                threshold.setDate(threshold.getDate() + 60);
+
+                const nearExpiryItems = ITEMS.filter(item => {
+                    if (!item.hasExpiry) return false;
+                    const lots = getLots(state.deptId, item.id);
+                    if (lots.length === 0) return false;
+                    // 在庫不足リストに既に含まれている場合は重複表示しない？→いや、理由は別なので表示してもよいが、今回は分ける
+                    // 期限に関する警告があるか
+                    return lots.some(l => {
+                        if (!l.expiryDate) return false;
+                        const d = new Date(l.expiryDate);
+                        return d < threshold;
+                    });
+                });
+
+                if (shortageItems.length > 0 || nearExpiryItems.length > 0) {
                     const section = document.createElement('div');
                     section.className = 'shortage-list-section';
-                    section.innerHTML = `
+
+                    let html = '';
+
+                    // 1. 在庫不足リスト
+                    if (shortageItems.length > 0) {
+                        html += `
                         <div class="shortage-list-header">
                             <span class="material-symbols-outlined">warning</span>
                             <span>在庫不足の用品があります（基準数割れ）</span>
                         </div>
-                        <div class="shortage-items">
+                        <div class="shortage-items" style="margin-bottom: 1rem;">
                             ${shortageItems.map(item => {
-                        const lots = getLots(state.deptId, item.id);
-                        const total = lots.reduce((a, l) => a + l.quantity, 0);
-                        return `<div class="shortage-item-row" onclick="state.catId=${item.categoryId};state.itemId=${item.id};showTxModal()">
+                            const lots = getLots(state.deptId, item.id);
+                            const total = lots.reduce((a, l) => a + l.quantity, 0);
+                            return `<div class="shortage-item-row" onclick="state.catId=${item.categoryId};state.itemId=${item.id};showTxModal()">
                                     <span style="font-weight:500">${item.name}</span>
                                     <span style="color:var(--color-danger);font-weight:700">現在: ${total}${item.unit} (基準: ${item.minStock})</span>
                                 </div>`;
-                    }).join('')}
+                        }).join('')}
+                        </div>`;
+                    }
+
+                    // 2. 期限切れ・間近リスト
+                    if (nearExpiryItems.length > 0) {
+                        html += `
+                        <div class="shortage-list-header" style="${shortageItems.length > 0 ? 'margin-top:0.5rem;border-top:1px dashed #fecaca;padding-top:0.5rem;' : ''}">
+                            <span class="material-symbols-outlined">event_busy</span>
+                            <span>期限切れ・期限間近の用品があります</span>
                         </div>
-                    `;
+                        <div class="shortage-items">
+                            ${nearExpiryItems.map(item => {
+                            const lots = getLots(state.deptId, item.id);
+                            // 期限が近いロットのみ詳細表示するか、単にアイテム名を表示するか
+                            // ここではアラート対象のロット情報を表示する
+                            const alertLots = lots.filter(l => {
+                                if (!l.expiryDate) return false;
+                                return new Date(l.expiryDate) < threshold;
+                            }).sort((a, b) => (a.expiryDate || '').localeCompare(b.expiryDate || ''));
+
+                            const lotText = alertLots.map(l => {
+                                const isExp = getExpStatus(l.expiryDate) === 'expired';
+                                return `<span style="${isExp ? 'color:red;font-weight:bold;' : ''}">${l.expiryDate}(${l.quantity})</span>`;
+                            }).join(', ');
+
+                            return `<div class="shortage-item-row" onclick="state.catId=${item.categoryId};state.itemId=${item.id};showTxModal()">
+                                    <span style="font-weight:500">${item.name}</span>
+                                    <span style="font-size:0.85rem; color:var(--color-text-secondary)">${lotText}</span>
+                                </div>`;
+                        }).join('')}
+                        </div>`;
+                    }
+
+                    section.innerHTML = html;
                     catGrid.insertAdjacentElement('afterend', section);
                 }
             }
