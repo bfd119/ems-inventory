@@ -1437,6 +1437,71 @@
             background: #ffebee;
         }
 
+        /* 在庫不足アラート（蛍のような発光） */
+        @keyframes glow-red {
+            0% {
+                box-shadow: 0 0 5px rgba(239, 68, 68, 0.2);
+                border-color: rgba(239, 68, 68, 0.4);
+                background-color: rgba(254, 242, 242, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+                border-color: rgba(239, 68, 68, 1);
+                background-color: rgba(254, 226, 226, 0.8);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(239, 68, 68, 0.2);
+                border-color: rgba(239, 68, 68, 0.4);
+                background-color: rgba(254, 242, 242, 0.5);
+            }
+        }
+
+        .low-stock-alert {
+            animation: glow-red 2.5s infinite ease-in-out;
+            border-color: var(--color-danger) !important;
+        }
+
+        /* 在庫不足リスト（ダッシュボード） */
+        .shortage-list-section {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: var(--border-radius-md);
+        }
+
+        .shortage-list-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: #c53030;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .shortage-items {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .shortage-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.9rem;
+        }
+
+        .shortage-item-row:hover {
+            background: rgba(255, 255, 255, 1);
+            cursor: pointer;
+        }
+
         /* PC向けレスポンシブ設定（末尾に配置して優先適用） */
         @media (min-width: 768px) {
             .screen {
@@ -2092,6 +2157,42 @@
             // $('search-bar').style.display = 'none';
             $('item-search').value = '';
             $('search-suggestions').innerHTML = '';
+
+            // 在庫不足リストの表示（自署の場合のみ）
+            const catGrid = $('category-grid');
+            // 既存のリストがあれば削除
+            const existingList = document.querySelector('.shortage-list-section');
+            if (existingList) existingList.remove();
+
+            if (state.deptId) {
+                const shortageItems = ITEMS.filter(item => {
+                    const lots = getLots(state.deptId, item.id);
+                    const total = lots.reduce((a, l) => a + l.quantity, 0);
+                    return item.minStock > 0 && total < item.minStock;
+                });
+
+                if (shortageItems.length > 0) {
+                    const section = document.createElement('div');
+                    section.className = 'shortage-list-section';
+                    section.innerHTML = `
+                        <div class="shortage-list-header">
+                            <span class="material-symbols-outlined">warning</span>
+                            <span>在庫不足の用品があります（基準数割れ）</span>
+                        </div>
+                        <div class="shortage-items">
+                            ${shortageItems.map(item => {
+                        const lots = getLots(state.deptId, item.id);
+                        const total = lots.reduce((a, l) => a + l.quantity, 0);
+                        return `<div class="shortage-item-row" onclick="state.catId=${item.categoryId};state.itemId=${item.id};showTxModal()">
+                                    <span style="font-weight:500">${item.name}</span>
+                                    <span style="color:var(--color-danger);font-weight:700">現在: ${total}${item.unit} (基準: ${item.minStock})</span>
+                                </div>`;
+                    }).join('')}
+                        </div>
+                    `;
+                    catGrid.insertAdjacentElement('afterend', section);
+                }
+            }
         }
 
         // 検索機能
@@ -2192,18 +2293,22 @@
                             }).join('') + `</div>`;
                     }
 
-                    return `<li class="item-row" data-id="${item.id}">
+                    // 在庫不足判定
+                    const isShortage = item.minStock > 0 && total < item.minStock;
+
+                    return `<li class="item-row ${isShortage ? 'low-stock-alert' : ''}" data-id="${item.id}">
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
                             ${lotInfoHtml}
                             <div class="item-expiry-info ${hasExpired ? 'has-expired' : ''}">${hasExpired ? '⚠️期限切れあり' : ''}</div>
                         </div>
-                        <div class="item-stock">${total}${item.unit}</div>
+                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger)' : ''}">${total}${item.unit}</div>
                     </li>`;
                 }).join('');
             }
             // 追加ボタン
             html += `<li class="item-row add-item-row" onclick="openAddItemModal(${state.catId})"><div class="add-item-icon">+</div><div class="add-item-text">用品を追加</div></li>`;
+
             el.itemsList.innerHTML = html;
             el.itemsList.querySelectorAll('.item-row:not(.add-item-row)').forEach(r => r.onclick = () => { state.itemId = +r.dataset.id; showTxModal(); });
             openModal('items');
@@ -2938,6 +3043,11 @@
                     if (idx >= 0) ITEMS[idx] = i;
                 } else {
                     i = await fsAddItem(cid, n, u, he, ms);
+                    // 型変換を確実に行う
+                    i.id = +i.id;
+                    i.categoryId = +i.categoryId;
+                    i.minStock = +i.minStock;
+                    i.hasExpiry = !!i.hasExpiry;
                     ITEMS.push(i);
                 }
                 closeModal('addItem');
