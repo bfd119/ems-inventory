@@ -1458,9 +1458,25 @@
             }
         }
 
-        .low-stock-alert {
-            animation: glow-red 2.5s infinite ease-in-out;
-            border-color: var(--color-danger) !important;
+        /* .low-stock-alert は廃止されました */
+
+        .alert-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 18px;
+            height: 18px;
+            background-color: var(--color-danger);
+            border-radius: 4px;
+            /* 小さいカード形状 */
+            animation: glow-red 1.5s infinite alternate;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+        }
+
+        /* item-rowにrelativeを追加してバッジの基準位置にする */
+        .item-row {
+            position: relative;
+            /* 既存スタイルはJS生成側でclass指定されているため、ここで上書き追加 */
         }
 
         /* 在庫不足リスト（ダッシュボード） */
@@ -2312,8 +2328,10 @@
 
                     // アラート発動（在庫不足 または 期限警告）
                     const isAlert = isShortage || hasNearExpiry;
+                    const alertHtml = isAlert ? '<div class="alert-badge" title="確認が必要な用品です"></div>' : '';
 
-                    return `<li class="item-row ${isAlert ? 'low-stock-alert' : ''}" data-id="${item.id}">
+                    return `<li class="item-row" data-id="${item.id}">
+                        ${alertHtml}
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
                             ${lotInfoHtml}
