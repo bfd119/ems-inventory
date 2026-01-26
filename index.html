@@ -1945,8 +1945,8 @@
             if (error) throw error;
             // カラム名をキャメルケースに変換
             return data.map(r => ({
-                id: r.id, categoryId: r.category_id, name: r.name, unit: r.unit,
-                hasExpiry: r.has_expiry, minStock: r.min_stock
+                id: +r.id, categoryId: +r.category_id, name: r.name, unit: r.unit,
+                hasExpiry: r.has_expiry, minStock: +r.min_stock
             }));
         }
 
@@ -1954,8 +1954,8 @@
             const { data, error } = await db.from('stocks').select('*');
             if (error) throw error;
             return data.map(r => ({
-                departmentId: r.department_id, itemId: r.item_id,
-                expiryDate: r.expiry_date, quantity: r.quantity, id: r.id
+                departmentId: +r.department_id, itemId: +r.item_id,
+                expiryDate: r.expiry_date, quantity: +r.quantity, id: r.id
             }));
         }
 
@@ -1964,8 +1964,8 @@
                 .select('*').order('timestamp', { ascending: false }).limit(limit);
             if (error) throw error;
             return data.map(r => ({
-                id: r.id, departmentId: r.department_id, itemId: r.item_id,
-                type: r.type, quantity: r.quantity, expiryDate: r.expiry_date,
+                id: r.id, departmentId: +r.department_id, itemId: +r.item_id,
+                type: r.type, quantity: +r.quantity, expiryDate: r.expiry_date,
                 remarks: r.remarks, timestamp: r.timestamp
             }));
         }
@@ -2038,7 +2038,8 @@
                 .eq('department_id', deptId)
                 .eq('item_id', itemId)
                 .eq('expiry_date', expiryDate || null)
-                .single();
+                .limit(1)
+                .maybeSingle();
 
             if (existing) {
                 await db.from('stocks')
@@ -2057,7 +2058,8 @@
                 .eq('department_id', deptId)
                 .eq('item_id', itemId)
                 .eq('expiry_date', expiryDate || null)
-                .single();
+                .limit(1) // 重複リスク回避
+                .maybeSingle();
 
             if (error || !existing || existing.quantity < quantity) {
                 throw new Error('在庫不足');
@@ -2078,7 +2080,7 @@
                 .insert({ department_id: deptId, item_id: itemId, type, quantity, expiry_date: expiryDate || null, remarks: remarks || '', timestamp: ts.toISOString() })
                 .select().single();
             if (error) throw error;
-            return { id: data.id, departmentId: data.department_id, itemId: data.item_id, type: data.type, quantity: data.quantity, expiryDate: data.expiry_date, remarks: data.remarks, timestamp: data.timestamp };
+            return { id: data.id, departmentId: +data.department_id, itemId: +data.item_id, type: data.type, quantity: +data.quantity, expiryDate: data.expiry_date, remarks: data.remarks, timestamp: data.timestamp };
         }
 
         async function fsUpdateStockExpiry(deptId, itemId, oldExpiry, newExpiry) {
@@ -2087,7 +2089,8 @@
                 .eq('department_id', deptId)
                 .eq('item_id', itemId)
                 .eq('expiry_date', oldExpiry || null)
-                .single();
+                .limit(1)
+                .maybeSingle();
 
             if (error || !existing) {
                 throw new Error('該当する在庫ロットが見つかりません');
