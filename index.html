@@ -2226,11 +2226,13 @@
                     });
                 });
 
-                if (shortageItems.length > 0 || nearExpiryItems.length > 0) {
-                    const section = document.createElement('div');
-                    section.className = 'shortage-list-section';
+                // リストセクションの作成（アラートがない場合も「異常なし」を表示）
+                const section = document.createElement('div');
+                section.className = 'shortage-list-section';
+                let html = '';
 
-                    let html = '';
+                if (shortageItems.length > 0 || nearExpiryItems.length > 0) {
+                    // アラートがある場合
 
                     // 1. 在庫不足リスト
                     if (shortageItems.length > 0) {
@@ -2261,8 +2263,7 @@
                         <div class="shortage-items">
                             ${nearExpiryItems.map(item => {
                             const lots = getLots(state.deptId, item.id);
-                            // 期限が近いロットのみ詳細表示するか、単にアイテム名を表示するか
-                            // ここではアラート対象のロット情報を表示する
+                            // フィルタ済みだが念のため再取得
                             const alertLots = lots.filter(l => {
                                 if (!l.expiryDate) return false;
                                 return new Date(l.expiryDate) < threshold;
@@ -2280,10 +2281,19 @@
                         }).join('')}
                         </div>`;
                     }
-
-                    section.innerHTML = html;
-                    catGrid.insertAdjacentElement('afterend', section);
+                } else {
+                    // 異常なし（Good状態）
+                    section.style.background = '#f0fff4'; // 薄い緑背景
+                    section.style.borderColor = '#9ae6b4'; // 緑ボーダー
+                    html = `
+                        <div class="shortage-list-header" style="color: #276749; margin-bottom: 0;">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            <span>在庫状況は良好です（不足・期限切れ間近なし）</span>
+                        </div>`;
                 }
+
+                section.innerHTML = html;
+                catGrid.insertAdjacentElement('afterend', section);
             }
         }
 
