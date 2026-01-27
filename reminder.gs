@@ -51,12 +51,14 @@ function sendExpiryReminder() {
   const subject = `${CONFIG.EMAIL_SUBJECT_PREFIX}期限切れ間近の用品があります（${currentYear}年${currentMonth}月）`;
   const body = createEmailBody(expiringItems, currentYear, currentMonth);
   
-  // メール送信
+  // メール送信（無効化中）
+  /*
   MailApp.sendEmail({
     to: CONFIG.RECIPIENT_EMAILS,
     subject: subject,
     body: body
   });
+  */
   
   console.log(`リマインドメールを送信しました: ${expiringItems.length}件`);
 }
