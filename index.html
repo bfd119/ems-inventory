@@ -1461,7 +1461,8 @@
         /* .alert-badge は廃止されました */
 
         /* 期限アラートの発光アニメーション */
-        .item-expiry-info.has-expired {
+        .item-expiry-info.has-expired,
+        .item-stock.shortage {
             display: inline-block;
             padding: 2px 6px;
             border-radius: 4px;
@@ -1470,6 +1471,12 @@
             font-weight: bold;
             color: #c62828;
             border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        /* item-stock用の調整 */
+        .item-stock.shortage {
+            margin-top: 0;
+            /* item-stockはflex itemなのでmargin-top不要かもだが念のため */
         }
 
         /* item-rowにrelativeを追加してバッジの基準位置にする */
@@ -2423,7 +2430,7 @@
                                 ${hasExpired ? '⚠️期限切れあり' : (hasNearExpiry ? '⚠️期限間近' : '')}
                             </div>
                         </div>
-                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger)' : ''}">${total}${item.unit}</div>
+                        <div class="item-stock ${isShortage ? 'shortage' : ''}">${total}${item.unit}</div>
                     </li>`;
                 }).join('');
             }
