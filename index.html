@@ -1461,8 +1461,7 @@
         /* .alert-badge は廃止されました */
 
         /* 期限アラートの発光アニメーション */
-        .item-expiry-info.has-expired,
-        .item-stock.shortage {
+        .item-expiry-info.has-expired {
             display: inline-block;
             padding: 2px 6px;
             border-radius: 4px;
@@ -1471,12 +1470,6 @@
             font-weight: bold;
             color: #c62828;
             border: 1px solid rgba(239, 68, 68, 0.4);
-        }
-
-        /* item-stock用の調整 */
-        .item-stock.shortage {
-            margin-top: 0;
-            /* item-stockはflex itemなのでmargin-top不要かもだが念のため */
         }
 
         /* item-rowにrelativeを追加してバッジの基準位置にする */
@@ -2420,17 +2413,23 @@
 
                     // アラート発動（在庫不足 または 期限警告）
                     const isAlert = isShortage || hasNearExpiry;
-                    // const alertHtml = isAlert ? '<div class="alert-badge" title="確認が必要な用品です"></div>' : ''; // 廃止
+                    // アラートメッセージの作成
+                    const alerts = [];
+                    if (hasExpired) alerts.push('⚠️期限切れあり');
+                    else if (hasNearExpiry) alerts.push('⚠️期限間近');
+
+                    if (isShortage) alerts.push('⚠️在庫不足');
+
+                    const alertText = alerts.join(' / ');
+                    const hasAnyAlert = alerts.length > 0;
 
                     return `<li class="item-row" data-id="${item.id}">
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
                             ${lotInfoHtml}
-                            <div class="item-expiry-info ${(hasExpired || hasNearExpiry) ? 'has-expired' : ''}">
-                                ${hasExpired ? '⚠️期限切れあり' : (hasNearExpiry ? '⚠️期限間近' : '')}
-                            </div>
+                            ${hasAnyAlert ? `<div class="item-expiry-info has-expired">${alertText}</div>` : ''}
                         </div>
-                        <div class="item-stock ${isShortage ? 'shortage' : ''}">${total}${item.unit}</div>
+                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger)' : ''}">${total}${item.unit}</div>
                     </li>`;
                 }).join('');
             }
