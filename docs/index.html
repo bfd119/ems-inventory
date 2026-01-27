@@ -2062,6 +2062,17 @@
                 .maybeSingle();
 
             if (error || !existing || existing.quantity < quantity) {
+                const debugInfo = `
+在庫不足エラー詳細:
+Req Dept: ${deptId} (Type: ${typeof deptId})
+Req Item: ${itemId} (Type: ${typeof itemId})
+Req Expiry: ${expiryDate} (Type: ${typeof expiryDate})
+Req Qty: ${quantity}
+Found Record: ${existing ? JSON.stringify(existing) : 'None'}
+DB Error: ${error ? JSON.stringify(error) : 'None'}
+`;
+                console.error(debugInfo);
+                alert(debugInfo); // ユーザーに詳細を見せる
                 throw new Error('在庫不足');
             }
 
