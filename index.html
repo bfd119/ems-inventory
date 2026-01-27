@@ -1458,7 +1458,10 @@
             }
         }
 
-        /* .alert-badge は廃止されました */
+        /* .alert-badge は廃止されましたが、キャッシュ対策で強制非表示 */
+        .alert-badge {
+            display: none !important;
+        }
 
         /* 期限アラートの発光アニメーション */
         /* 期限・在庫アラートの発光アニメーション */
@@ -2430,7 +2433,7 @@
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
                             ${lotInfoHtml}
-                            ${hasAnyAlert ? `<div class="item-alert-label">${alertText}</div>` : ''}
+                            ${hasAnyAlert ? `<div style="margin-top:4px;"><span class="item-alert-label">${alertText}</span></div>` : ''}
                         </div>
                         <div class="item-stock" style="${isShortage ? 'color:var(--color-danger); font-weight:bold;' : ''}">${total}${item.unit}</div>
                     </li>`;
