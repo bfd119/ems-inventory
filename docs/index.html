@@ -1458,19 +1458,24 @@
             }
         }
 
-        /* .low-stock-alert は廃止されました */
-
+        /* .alert-badge は廃止されましたが、キャッシュ対策で強制非表示 */
         .alert-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 18px;
-            height: 18px;
-            background-color: var(--color-danger);
+            display: none !important;
+        }
+
+        /* 期限アラートの発光アニメーション */
+        /* 期限・在庫アラートの発光アニメーション */
+        .item-alert-label {
+            display: inline-block;
+            padding: 2px 8px;
             border-radius: 4px;
-            /* 小さいカード形状 */
+            margin-top: 4px;
             animation: glow-red 1.5s infinite alternate;
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+            font-weight: bold;
+            color: #c62828;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            font-size: 0.85rem;
+            background-color: #fff5f5;
         }
 
         /* item-rowにrelativeを追加してバッジの基準位置にする */
@@ -2226,11 +2231,13 @@
                     });
                 });
 
-                if (shortageItems.length > 0 || nearExpiryItems.length > 0) {
-                    const section = document.createElement('div');
-                    section.className = 'shortage-list-section';
+                // リストセクションの作成（アラートがない場合も「異常なし」を表示）
+                const section = document.createElement('div');
+                section.className = 'shortage-list-section';
+                let html = '';
 
-                    let html = '';
+                if (shortageItems.length > 0 || nearExpiryItems.length > 0) {
+                    // アラートがある場合
 
                     // 1. 在庫不足リスト
                     if (shortageItems.length > 0) {
@@ -2261,8 +2268,7 @@
                         <div class="shortage-items">
                             ${nearExpiryItems.map(item => {
                             const lots = getLots(state.deptId, item.id);
-                            // 期限が近いロットのみ詳細表示するか、単にアイテム名を表示するか
-                            // ここではアラート対象のロット情報を表示する
+                            // フィルタ済みだが念のため再取得
                             const alertLots = lots.filter(l => {
                                 if (!l.expiryDate) return false;
                                 return new Date(l.expiryDate) < threshold;
@@ -2280,10 +2286,19 @@
                         }).join('')}
                         </div>`;
                     }
-
-                    section.innerHTML = html;
-                    catGrid.insertAdjacentElement('afterend', section);
+                } else {
+                    // 異常なし（Good状態）
+                    section.style.background = '#f0fff4'; // 薄い緑背景
+                    section.style.borderColor = '#9ae6b4'; // 緑ボーダー
+                    html = `
+                        <div class="shortage-list-header" style="color: #276749; margin-bottom: 0;">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            <span>在庫状況は良好です（不足・期限切れ間近なし）</span>
+                        </div>`;
                 }
+
+                section.innerHTML = html;
+                catGrid.insertAdjacentElement('afterend', section);
             }
         }
 
@@ -2404,18 +2419,23 @@
 
                     // アラート発動（在庫不足 または 期限警告）
                     const isAlert = isShortage || hasNearExpiry;
-                    const alertHtml = isAlert ? '<div class="alert-badge" title="確認が必要な用品です"></div>' : '';
+                    // アラートメッセージの作成
+                    const alerts = [];
+                    if (hasExpired) alerts.push('⚠️期限切れあり');
+                    else if (hasNearExpiry) alerts.push('⚠️期限間近');
+
+                    if (isShortage) alerts.push('⚠️在庫不足');
+
+                    const alertText = alerts.join(' / ');
+                    const hasAnyAlert = alerts.length > 0;
 
                     return `<li class="item-row" data-id="${item.id}">
-                        ${alertHtml}
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
                             ${lotInfoHtml}
-                            <div class="item-expiry-info ${(hasExpired || hasNearExpiry) ? 'has-expired' : ''}">
-                                ${hasExpired ? '⚠️期限切れあり' : (hasNearExpiry ? '⚠️期限間近' : '')}
-                            </div>
+                            ${hasAnyAlert ? `<div style="margin-top:4px;"><span class="item-alert-label">${alertText}</span></div>` : ''}
                         </div>
-                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger)' : ''}">${total}${item.unit}</div>
+                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger); font-weight:bold;' : ''}">${total}${item.unit}</div>
                     </li>`;
                 }).join('');
             }
