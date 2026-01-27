@@ -1461,15 +1461,18 @@
         /* .alert-badge は廃止されました */
 
         /* 期限アラートの発光アニメーション */
-        .item-expiry-info.has-expired {
+        /* 期限・在庫アラートの発光アニメーション */
+        .item-alert-label {
             display: inline-block;
-            padding: 2px 6px;
+            padding: 2px 8px;
             border-radius: 4px;
             margin-top: 4px;
             animation: glow-red 1.5s infinite alternate;
             font-weight: bold;
             color: #c62828;
             border: 1px solid rgba(239, 68, 68, 0.4);
+            font-size: 0.85rem;
+            background-color: #fff5f5;
         }
 
         /* item-rowにrelativeを追加してバッジの基準位置にする */
@@ -2427,9 +2430,9 @@
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
                             ${lotInfoHtml}
-                            ${hasAnyAlert ? `<div class="item-expiry-info has-expired">${alertText}</div>` : ''}
+                            ${hasAnyAlert ? `<div class="item-alert-label">${alertText}</div>` : ''}
                         </div>
-                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger)' : ''}">${total}${item.unit}</div>
+                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger); font-weight:bold;' : ''}">${total}${item.unit}</div>
                     </li>`;
                 }).join('');
             }
