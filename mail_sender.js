@@ -19,7 +19,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // 機能設定
 // ==========================================
 const ENABLE_EXPIRY_REMINDER = true;   // 期限切れ通知を送るか (推奨: 毎月1日, 25日)
-const ENABLE_SHORTAGE_REMINDER = true; // 在庫不足通知を送るか (min_stock使用)
+const ENABLE_SHORTAGE_REMINDER = false; // 在庫不足通知を送るか (min_stock使用)
 
 // 送信元メールアドレス (Gmailのエイリアス機能などを確認してください)
 // ※ GASでは実行アカウントのGmailアドレスが送信元になります。

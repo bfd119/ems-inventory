@@ -380,6 +380,30 @@
             color: var(--color-text-secondary);
         }
 
+        .dashboard-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            padding-bottom: var(--spacing-xs);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .section-description {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
         .analytics-tabs {
             display: flex;
             gap: var(--spacing-xs);
@@ -2043,9 +2067,9 @@
             }));
         }
 
-        async function fsAddCategory(name, icon) {
+        async function fsAddCategory(name, icon, type = 'system') {
             const { data, error } = await db.from('categories')
-                .insert({ name, icon: icon || 'inventory_2' }).select().single();
+                .insert({ name, icon: icon || 'inventory_2', type }).select().single();
             if (error) throw error;
             return data;
         }
@@ -2505,15 +2529,82 @@
         }
 
         function renderCatGrid() {
-            if (CATEGORIES.length === 0) {
-                el.catGrid.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><span class="material-symbols-outlined" style="font-size: 3rem;">inventory_2</span></div><p>カテゴリがありません</p></div><button class="category-tile add-tile" onclick="openAddCategoryModal()"><span class="add-icon">+</span><span class="category-name">カテゴリ追加</span></button>';
-                return;
+            const systemCats = CATEGORIES.filter(c => c.type !== 'user');
+            const userSets = CATEGORIES.filter(c => c.type === 'user');
+
+            let html = '';
+
+            // 1. 基本カテゴリ (System)
+            html += `
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3 class="section-title">基本カテゴリ</h3>
+                    </div>
+                    <div class="category-grid">
+            `;
+
+            if (systemCats.length === 0) {
+                html += '<p style="color:var(--color-text-muted); padding:1rem;">カテゴリがありません</p>';
+            } else {
+                html += systemCats.map(c => `
+                    <button class="category-tile" data-id="${c.id}">
+                        <span class="category-icon">
+                            <span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span>
+                        </span>
+                        <span class="category-name">${c.name}</span>
+                    </button>`).join('');
             }
-            let html = CATEGORIES.map(c => `<button class="category-tile" data-id="${c.id}"><span class="category-icon"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span></span><span class="category-name">${c.name}</span></button>`).join('');
-            // 追加ボタン
-            html += '<button class="category-tile add-tile" onclick="openAddCategoryModal()"><span class="add-icon">+</span><span class="category-name">追加</span></button>';
+            // システムカテゴリ追加ボタン（必要に応じて隠すことも可）
+            html += `<button class="category-tile add-tile" onclick="openAddCategoryModal()"><span class="add-icon">+</span><span class="category-name">追加</span></button>`;
+
+            html += `</div></div>`; // End Basic Categories
+
+            // 2. オリジナルセット (User)
+            html += `
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3 class="section-title">オリジナルセット</h3>
+                        <span class="section-description">※既存の用品を自由に組み合わせて、業務に合わせたセットを作れます</span>
+                    </div>
+                    <div class="category-grid">
+            `;
+
+            if (userSets.length > 0) {
+                html += userSets.map(c => `
+                    <button class="category-tile" data-id="${c.id}" style="border-color:var(--color-accent-primary); background:#fffaf0;">
+                        <span class="category-icon">
+                            <span class="material-symbols-outlined" style="color: var(--color-accent-primary)">${c.icon}</span>
+                        </span>
+                        <span class="category-name">${c.name}</span>
+                    </button>`).join('');
+            }
+
+            // セット作成ボタン
+            html += `<button class="category-tile add-tile" onclick="openAddSetModal()" style="border-style:dashed; border-color:var(--color-accent-primary);">
+                        <span class="add-icon" style="color:var(--color-accent-primary)">+</span>
+                        <span class="category-name" style="color:var(--color-accent-primary)">セットを作成</span>
+                    </button>`;
+
+            html += `</div></div>`; // End Original Sets
+
             el.catGrid.innerHTML = html;
+
+            // イベントリスナー設定
             el.catGrid.querySelectorAll('.category-tile:not(.add-tile)').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
+        }
+
+        function openAddCategoryModal() {
+            state.addingCategoryType = 'system';
+            el.addCategoryModalTitle.textContent = 'カテゴリ追加';
+            $('new-category-name').placeholder = '例: 輸液';
+            openModal('addCategory');
+        }
+
+        function openAddSetModal() {
+            state.addingCategoryType = 'user';
+            el.addCategoryModalTitle.textContent = '新しいセットを作成';
+            $('new-category-name').placeholder = '例: 救急セットA';
+            openModal('addCategory');
         }
 
         function showItemsModal() {
@@ -3355,8 +3446,8 @@
 
         async function saveNewCategory() {
             const n = $('new-category-name').value.trim();
-            const ic = $('new-category-icon').value || ICONS[0];
-            if (!n) { alert('カテゴリ名を入力'); return; }
+            const ic = $('new-category-icon').value || (state.addingCategoryType === 'user' ? 'star' : 'inventory_2'); // Default icons
+            if (!n) { alert('名称を入力してください'); return; }
             showLoading(true);
             try {
                 let c;
@@ -3365,7 +3456,8 @@
                     const idx = CATEGORIES.findIndex(x => x.id === state.editingCategoryId);
                     if (idx >= 0) CATEGORIES[idx] = c;
                 } else {
-                    c = await fsAddCategory(n, ic);
+                    const type = state.addingCategoryType || 'system';
+                    c = await fsAddCategory(n, ic, type);
                     CATEGORIES.push(c);
                 }
                 closeModal('addCategory');
