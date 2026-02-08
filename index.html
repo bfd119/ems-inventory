@@ -7,6 +7,8 @@
     <title>救急用品在庫管理</title>
     <meta name="description" content="消防救急資器材の在庫管理システム">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png"
+        href="data:image/png;base64,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">
     <style>
         :root {
             --color-bg-primary: #faf9f7;
@@ -1744,20 +1746,45 @@
             </div>
             <div class="modal-body">
                 <div class="form-group"><label>カテゴリ</label><select id="new-item-category"></select></div>
-                <div class="form-group"><label>用品名</label><input type="text" id="new-item-name"
-                        placeholder="例: 生理食塩水 500ml"></div>
-                <div class="form-group"><label>単位</label><input type="text" id="new-item-unit" placeholder="例: 本"
-                        value="個"></div>
-                <div class="form-group toggle-group">
-                    <label class="toggle-label">使用期限あり</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="new-item-has-expiry">
-                        <span class="toggle-slider"></span>
-                    </label>
+
+                <div class="form-group">
+                    <label>用品名（検索または新規入力）</label>
+                    <div class="search-input-wrapper" style="border:1px solid var(--color-border); margin-bottom:0;">
+                        <input type="text" id="new-item-name" placeholder="用品名を入力..." autocomplete="off">
+                        <input type="hidden" id="new-item-existing-id">
+                    </div>
+                    <div id="new-item-suggestions" class="search-suggestions"
+                        style="position:relative; margin-top:0; border:1px solid var(--color-border); border-top:none; display:none;">
+                    </div>
+                    <small style="color:var(--color-text-muted); display:block; margin-top:4px;"
+                        id="new-item-helper-text">新しい用品名を入力するか、既存の用品を選択してください</small>
                 </div>
-                <div class="form-group"><label>最低在庫数 <small style="color:var(--color-text-muted)">(任意)</small></label>
-                    <input type="number" id="new-item-min-stock" placeholder="0" min="0" value="0">
+
+                <div id="new-item-details">
+                    <div class="form-group"><label>単位</label><input type="text" id="new-item-unit" placeholder="例: 本"
+                            value="個"></div>
+                    <div class="form-group toggle-group">
+                        <label class="toggle-label">使用期限あり</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="new-item-has-expiry">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group"><label>最低在庫数 <small
+                                style="color:var(--color-text-muted)">(任意)</small></label>
+                        <input type="number" id="new-item-min-stock" placeholder="0" min="0" value="0">
+                    </div>
                 </div>
+                <!-- 既存用品選択時の表示 -->
+                <div id="existing-item-info"
+                    style="display:none; padding:12px; background:var(--color-bg-secondary); border-radius:8px; margin-bottom:16px;">
+                    <p style="font-weight:bold; color:var(--color-accent-primary);">既存の用品をこのカテゴリに追加します</p>
+                    <p style="font-size:0.9rem; margin-top:4px;">単位: <span id="existing-item-unit"></span></p>
+                    <p style="font-size:0.9rem;">使用期限: <span id="existing-item-expiry"></span></p>
+                    <button class="settings-link" id="reset-item-selection"
+                        style="margin-top:8px; padding:4px 0;">新規作成に戻る</button>
+                </div>
+
                 <button class="save-btn" id="save-new-item">追加</button>
             </div>
         </div>
@@ -1933,6 +1960,10 @@
             // $('toggle-search').onclick = toggleSearchBar; // 常時表示のため削除
             $('item-search').oninput = handleSearchInput;
             $('search-clear').onclick = clearSearch;
+
+            // Add Item Modal Search
+            $('new-item-name').oninput = handleNewItemSearch;
+            if ($('reset-item-selection')) $('reset-item-selection').onclick = resetItemSelection;
         }
 
         // ============================================
@@ -1946,13 +1977,48 @@
         }
 
         async function fsGetItems() {
-            const { data, error } = await db.from('items').select('*').order('id');
-            if (error) throw error;
-            // カラム名をキャメルケースに変換
-            return data.map(r => ({
-                id: +r.id, categoryId: +r.category_id, name: r.name, unit: r.unit,
-                hasExpiry: r.has_expiry, minStock: +r.min_stock
-            }));
+            const { data: items, error: itemsError } = await db.from('items').select('*').order('id');
+            if (itemsError) throw itemsError;
+
+            // M2M対応: item_categoriesテーブルを取得してみる
+            let links = [];
+            try {
+                const { data, error } = await db.from('item_categories').select('*');
+                if (!error && data) links = data;
+            } catch (e) {
+                console.warn('item_categories read error (migration might be needed):', e);
+            }
+
+            // リンク情報がない場合は後方互換モード（移行前）
+            if (links.length === 0) {
+                return items.map(r => ({
+                    id: +r.id, categoryId: +r.category_id, name: r.name, unit: r.unit,
+                    hasExpiry: r.has_expiry, minStock: +r.min_stock
+                }));
+            }
+
+            // M2Mモード: リンク情報に基づいてアイテムを展開
+            const itemMap = new Map(items.map(i => [i.id, i]));
+            const result = [];
+
+            links.forEach(l => {
+                const item = itemMap.get(l.item_id);
+                if (item) {
+                    result.push({
+                        id: +item.id,
+                        categoryId: +l.category_id, // リンク情報のカテゴリIDを使用
+                        name: item.name,
+                        unit: item.unit,
+                        hasExpiry: item.has_expiry,
+                        minStock: +item.min_stock
+                    });
+                }
+            });
+
+            // リンクがない孤立アイテムも念のため(category_idカラムがあれば)救済する場合はここにロジック追加可
+            // 今回は移行スクリプトで全itemがitem_categoriesに入っている前提とする
+
+            return result;
         }
 
         async function fsGetStocks() {
@@ -1990,18 +2056,38 @@
         }
 
         async function fsDeleteCategory(id) {
-            // 関連用品のIDを取得
-            const { data: items } = await db.from('items').select('id').eq('category_id', id);
-            const itemIds = items ? items.map(i => i.id) : [];
+            // item_categoriesから該当カテゴリの紐づけを削除
+            // 注意: 用品自体(items)は削除しない方針（他カテゴリで使われている可能性があるため）
 
-            // 関連する取引履歴を削除
-            if (itemIds.length > 0) {
-                await db.from('transactions').delete().in('item_id', itemIds);
-                await db.from('stocks').delete().in('item_id', itemIds);
+            // 1. 紐づけがある用品IDを取得（在庫削除用）
+            // テーブルがあれば item_categories から、なければ items から
+            let itemIds = [];
+
+            const { data: links, error: linkError } = await db.from('item_categories').select('item_id').eq('category_id', id);
+
+            if (!linkError && links) {
+                itemIds = links.map(l => l.item_id);
+                // リンク削除
+                await db.from('item_categories').delete().eq('category_id', id);
+            } else {
+                // 旧仕様: itemsテーブルのcategory_idで判断
+                const { data: items } = await db.from('items').select('id').eq('category_id', id);
+                itemIds = items ? items.map(i => i.id) : [];
+                // 用品削除（旧仕様ではカテゴリ消去＝用品消去だったが、移行後はリンクだけ消すのが安全。
+                // ただし移行期間中は不整合避けるため itemsのcategory_id=... も消すべきか？
+                // 安全策: 旧仕様なら items 自体を消す（従前通り）
+                if (itemIds.length > 0) {
+                    await db.from('items').delete().eq('category_id', id);
+                }
             }
 
-            // 関連用品を削除
-            await db.from('items').delete().eq('category_id', id);
+            // 関連データ削除（在庫・履歴）- 特定カテゴリでの在庫は消えるべき
+            // しかし items自体が残るなら、在庫(stocks)は department_id + item_id でユニーク。
+            // item_categoriesのリンクが消えても、在庫データ自体はitem_idに紐づいている。
+            // カテゴリごとの表示から消えればOK。
+            // ただし、「このカテゴリにあった用品の在庫」はどう扱う？
+            // 用品が「共有」なので、在庫も「共有」。カテゴリリンクを消しても在庫は残るべき。
+            // なので削除処理は不要になった。（用品が消えない限り在庫は消えない）
 
             // カテゴリを削除
             const { error } = await db.from('categories').delete().eq('id', id);
@@ -2009,20 +2095,71 @@
             return { success: true };
         }
 
-        async function fsAddItem(categoryId, name, unit, hasExpiry, minStock) {
-            const { data, error } = await db.from('items')
-                .insert({ category_id: categoryId, name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
-                .select().single();
-            if (error) throw error;
-            return { id: data.id, categoryId: data.category_id, name: data.name, unit: data.unit, hasExpiry: data.has_expiry, minStock: data.min_stock };
+        async function fsAddItem(categoryId, name, unit, hasExpiry, minStock, existingItemId = null) {
+            let itemId = existingItemId;
+
+            if (!itemId) {
+                // 新規用品作成
+                // category_idカラムは後方互換あるいはNOT NULL制約回避のため一応指定するが、
+                // 将来的にはNULL許容または廃止。とりあえず指定しておく。
+                const { data, error } = await db.from('items')
+                    .insert({ category_id: categoryId, name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
+                    .select().single();
+                if (error) throw error;
+                itemId = data.id;
+            } else {
+                // 既存用品の場合、プロパティ更新（任意）
+                // ここでは名前などを更新せず、リンクだけ作る方針
+            }
+
+            // リンク作成 (item_categories)
+            // 重複エラー回避 (ON CONFLICT DO NOTHINGがあればいいが、insertでエラーになるかもなので)
+            const { error: linkError } = await db.from('item_categories')
+                .insert({ item_id: itemId, category_id: categoryId });
+
+            // すでに存在する場合のエラーは無視してよいが、握りつぶしすぎも危険。
+            // 23505 (unique_violation) ならOK
+            if (linkError && linkError.code !== '23505') {
+                // テーブルがない場合(42P01)は、旧仕様として無視するかエラーにするか。
+                // ここではエラーログ出して続行（itemsには入ってるので）
+                console.warn('Failed to insert into item_categories', linkError);
+            }
+
+            return { id: itemId, categoryId: categoryId, name, unit, hasExpiry, minStock };
         }
 
-        async function fsUpdateItem(id, categoryId, name, unit, hasExpiry, minStock) {
+        async function fsUpdateItem(id, oldCategoryId, newCategoryId, name, unit, hasExpiry, minStock) {
+            // 用品自体の更新
             const { data, error } = await db.from('items')
-                .update({ category_id: categoryId, name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
+                .update({ name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
                 .eq('id', id).select().single();
             if (error) throw error;
-            return { id: data.id, categoryId: data.category_id, name: data.name, unit: data.unit, hasExpiry: data.has_expiry, minStock: data.min_stock };
+
+            // カテゴリ変更があった場合、リンクを更新
+            if (oldCategoryId && newCategoryId && oldCategoryId !== newCategoryId) {
+                // 既存のリンクを更新 (旧カテゴリ -> 新カテゴリ)
+                // 重複チェック: 新カテゴリに既にリンクがある場合は、旧リンクを削除するだけでよい（統合）
+                // しかし「移動」なので、統合されると元のコンテキストが消える。
+                // まぁ「移動先に既にある」なら「移動」＝「そっちに合流」でOK。
+
+                const { data: existing } = await db.from('item_categories')
+                    .select('id').match({ item_id: id, category_id: newCategoryId }).maybeSingle();
+
+                if (existing) {
+                    // 移動先にもうある -> 旧リンクを削除
+                    await db.from('item_categories').delete().match({ item_id: id, category_id: oldCategoryId });
+                } else {
+                    // 移動先にない -> リンクのカテゴリIDを更新
+                    await db.from('item_categories')
+                        .update({ category_id: newCategoryId })
+                        .match({ item_id: id, category_id: oldCategoryId });
+                }
+
+                // Legacy column update (optional, keeps last used category)
+                await db.from('items').update({ category_id: newCategoryId }).eq('id', id);
+            }
+
+            return { id: data.id, categoryId: newCategoryId || oldCategoryId, name: data.name, unit: data.unit, hasExpiry: data.has_expiry, minStock: data.min_stock };
         }
 
         async function fsDeleteItem(id) {
@@ -3062,7 +3199,7 @@
             if (items.length === 0) h += '<p style="color:var(--color-text-muted)">用品がありません</p>';
             else {
                 h += items.map(i => `
-                    <div class="settings-item" onclick="editItem(${i.id})">
+                    <div class="settings-item" onclick="editItem(${i.id}, ${catId})">
                         <span class="settings-item-name">${i.name}</span>
                         <div class="settings-actions">
                              <button class="delete-btn" onclick="event.stopPropagation();deleteItemSetting(${i.id})">×</button>
@@ -3092,20 +3229,31 @@
             } else {
                 $('new-item-category').disabled = false;
             }
+            // リセット
             $('new-item-name').value = '';
+            $('new-item-existing-id').value = '';
+            $('new-item-suggestions').innerHTML = '';
+            $('new-item-suggestions').style.display = 'none';
+            $('new-item-details').style.display = 'block';
+            $('existing-item-info').style.display = 'none';
+            $('new-item-helper-text').style.display = 'block';
+
             $('new-item-unit').value = '個';
             $('new-item-has-expiry').checked = false;
             $('new-item-min-stock').value = 0;
             openModal('addItem');
         }
 
-        function editItem(id) {
-            const i = ITEMS.find(x => x.id === id);
+        function editItem(id, catId) {
+            // Find item in the specific category context (though id is unique, we want to know current context)
+            const i = ITEMS.find(x => x.id === id && x.categoryId === catId) || ITEMS.find(x => x.id === id); // fallback
             if (!i) return;
             state.editingItemId = id;
+            state.editingOldCatId = catId || i.categoryId;
+
             el.addItemModalTitle.textContent = '用品編集';
             populateCatSelect();
-            $('new-item-category').value = i.categoryId;
+            $('new-item-category').value = state.editingOldCatId;
             $('new-item-category').disabled = false;
             $('new-item-name').value = i.name;
             $('new-item-unit').value = i.unit;
@@ -3132,6 +3280,73 @@
                 opt.classList.add('selected');
                 el.newCategoryIconInput.value = opt.querySelector('span').textContent;
             });
+        }
+
+        // ============================================
+        // Add Item Search Logic
+        // ============================================
+        function handleNewItemSearch(e) {
+            const query = e.target.value.trim().toLowerCase();
+            const container = $('new-item-suggestions');
+
+            if (query.length < 1) {
+                container.style.display = 'none';
+                return;
+            }
+
+            // ユニークな用品名のみ抽出（名前で重複排除）
+            const uniqueItems = [];
+            const seenNames = new Set();
+            ITEMS.forEach(i => {
+                if (i.name.toLowerCase().includes(query) && !seenNames.has(i.name)) {
+                    seenNames.add(i.name);
+                    uniqueItems.push(i);
+                }
+            });
+
+            if (uniqueItems.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.innerHTML = uniqueItems.slice(0, 5).map(item => `
+                <div class="suggestion-item" onclick="selectExistingItem(${item.id})">
+                    <div>
+                        <div class="suggestion-item-name">${item.name}</div>
+                        <div class="suggestion-item-category" style="font-size:0.75rem;">単位: ${item.unit} / 期限管理: ${item.hasExpiry ? 'あり' : 'なし'}</div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--color-accent-primary);">選択</div>
+                </div>
+            `).join('');
+            container.style.display = 'block';
+        }
+
+        function selectExistingItem(itemId) {
+            // ITEMS配列はフラット化されているため、同じIDを持つアイテムが複数ある可能性があるが
+            // findで最初に見つかったもののプロパティを使用（基本プロパティは同じはず）
+            const item = ITEMS.find(i => i.id === itemId);
+            if (!item) return;
+
+            $('new-item-name').value = item.name;
+            $('new-item-existing-id').value = item.id;
+
+            // UI更新
+            $('new-item-suggestions').style.display = 'none';
+            $('new-item-details').style.display = 'none'; // 詳細入力隠す
+            $('existing-item-info').style.display = 'block';
+            $('new-item-helper-text').style.display = 'none';
+
+            $('existing-item-unit').textContent = item.unit;
+            $('existing-item-expiry').textContent = item.hasExpiry ? 'あり' : 'なし';
+        }
+
+        function resetItemSelection() {
+            $('new-item-name').value = '';
+            $('new-item-existing-id').value = ''; // IDクリア
+            $('new-item-details').style.display = 'block';
+            $('existing-item-info').style.display = 'none';
+            $('new-item-helper-text').style.display = 'block';
+            $('new-item-name').focus();
         }
 
         function populateCatSelect() { $('new-item-category').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
@@ -3166,21 +3381,57 @@
             const u = $('new-item-unit').value.trim() || '個';
             const he = $('new-item-has-expiry').checked;
             const ms = +$('new-item-min-stock').value || 0;
-            if (!n) { alert('用品名を入力'); return; }
+            const existingId = +$('new-item-existing-id').value || null;
+
+            if (!n) { alert('用品名を入力してください'); return; }
             showLoading(true);
             try {
                 let i;
                 if (state.editingItemId) {
-                    i = await fsUpdateItem(state.editingItemId, cid, n, u, he, ms);
-                    const idx = ITEMS.findIndex(x => x.id === state.editingItemId);
-                    if (idx >= 0) ITEMS[idx] = i;
+                    i = await fsUpdateItem(state.editingItemId, state.editingOldCatId, cid, n, u, he, ms);
+
+                    // グローバルリスト更新: ここは少し複雑（フラットリストなので全置換が必要かも）
+                    // 簡易的にリロードするか、あるいは配列操作
+                    // 移動した場合、古いエントリを削除して新しいエントリを入れる必要あり
+
+                    // 既存のこのIDのエントリを一度すべて消す（プロパティ更新のため）のは乱暴。
+                    // categoryIdが一致するものを探して更新？
+
+                    // リロードの方が確実だが、遅い。
+                    // 手動パッチ:
+                    // 1. プロパティ更新
+                    ITEMS.forEach(item => {
+                        if (item.id === state.editingItemId) {
+                            item.name = n; item.unit = u; item.hasExpiry = he; item.minStock = ms;
+                        }
+                    });
+
+                    // 2. カテゴリ移動の反映
+                    if (state.editingOldCatId !== cid) {
+                        // 古いエントリを削除
+                        const oldIdx = ITEMS.findIndex(x => x.id === state.editingItemId && x.categoryId === state.editingOldCatId);
+                        if (oldIdx >= 0) ITEMS.splice(oldIdx, 1);
+
+                        // 新しいエントリを追加（もし既に存在しなければ）
+                        const exists = ITEMS.some(x => x.id === state.editingItemId && x.categoryId === cid);
+                        if (!exists) {
+                            ITEMS.push({ id: state.editingItemId, categoryId: cid, name: n, unit: u, hasExpiry: he, minStock: ms });
+                        }
+                    } else {
+                        // カテゴリ変更なし
+                        // 上記forEachでプロパティは更新済み
+                    }
+
                 } else {
-                    i = await fsAddItem(cid, n, u, he, ms);
-                    // 型変換を確実に行う
+                    // 新規追加 or 既存アイテムリンク
+                    i = await fsAddItem(cid, n, u, he, ms, existingId);
+
+                    // 戻り値の型変換
                     i.id = +i.id;
                     i.categoryId = +i.categoryId;
                     i.minStock = +i.minStock;
                     i.hasExpiry = !!i.hasExpiry;
+
                     ITEMS.push(i);
                 }
                 closeModal('addItem');
