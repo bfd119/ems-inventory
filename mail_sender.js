@@ -18,9 +18,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // ==========================================
 // 機能設定
 // ==========================================
-// ==========================================
-// 機能設定
-// ==========================================
+
 // 定数は廃止し、DB (system_settings) から取得するように変更します。
 // const ENABLE_EXPIRY_REMINDER = true;
 // const ENABLE_SHORTAGE_REMINDER = false;

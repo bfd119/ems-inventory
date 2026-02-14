@@ -1422,11 +1422,29 @@
         }
 
         /* 署所名ヘッダー */
-        .dept-header-cell {
-            writing-mode: horizontal-tb;
-            /* 署所名は横書き */
-            min-width: 50px;
+        .custom-date-input {
+            position: relative;
+            cursor: pointer;
         }
+
+        .custom-date-input input {
+            padding-right: 40px !important;
+            /* Icon space */
+            background: var(--color-bg-card);
+            /* Ensure clickable even if input is readonly */
+            cursor: pointer;
+        }
+
+        .custom-date-input .icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-muted);
+            pointer-events: none;
+            /* Let clicks pass to wrapper/input */
+        }
+
 
         /* 左端の列（用品名）を固定 */
         .inventory-matrix-table tbody td:first-child,
@@ -3665,85 +3683,7 @@
             if (error) throw error;
         }
 
-        function renderSettings() {
-            const container = document.getElementById('settings-container');
-            if (!container) return;
 
-            container.innerHTML = `
-                <div class="settings-section" style="padding: 1rem; background: var(--color-bg-card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">通知設定</h3>
-                    <div class="form-group toggle-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                        <label class="toggle-label" style="margin-bottom: 0;">リマインドメール通知</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="setting-reminder-enabled">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="form-group" id="reminder-schedule-group" style="display:none; padding-left: 1rem; border-left: 2px solid var(--color-bg-secondary);">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">送信タイミング</label>
-                        <div class="checkbox-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="checkbox" class="reminder-schedule" value="1"> 毎月1日 <small style="color: var(--color-text-muted);">(当月の期限切れ一覧)</small>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="checkbox" class="reminder-schedule" value="25"> 毎月25日 <small style="color: var(--color-text-muted);">(翌月の期限切れ予告)</small>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="checkbox" class="reminder-schedule" value="99"> 月末 <small style="color: var(--color-text-muted);">(最終確認)</small>
-                            </label>
-                        </div>
-                    </div>
-                    <button class="save-btn" id="save-settings" style="margin-top:1.5rem; width: 100%;">設定を保存</button>
-                </div>
-                
-                <div class="settings-section" style="margin-top: 2rem; padding: 1rem; background: var(--color-bg-card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                     <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">カテゴリ・用品設定</h3>
-                     <p style="color: var(--color-text-muted); margin-bottom: 1rem;">カテゴリや用品の追加・編集は、トップ画面の「カテゴリ・用品設定」ボタンからも行えます。</p>
-                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <button class="settings-link" onclick="openAddCategoryModal()" style="flex: 1;">カテゴリ追加</button>
-                        <!-- 用品追加はカテゴリ選択が必要なためここではボタン非表示か、誘導のみ -->
-                     </div>
-                </div>
-            `;
-
-            // Load current settings
-            fsGetSettings().then(config => {
-                if (!config) config = { enabled: true, schedule_days: [1, 25] }; // Default
-
-                const enabledParams = config.enabled;
-                const schedule = config.schedule_days || [];
-
-                const enabledInput = document.getElementById('setting-reminder-enabled');
-                if (enabledInput) {
-                    enabledInput.checked = enabledParams;
-                    document.getElementById('reminder-schedule-group').style.display = enabledParams ? 'block' : 'none';
-
-                    enabledInput.onchange = () => {
-                        document.getElementById('reminder-schedule-group').style.display = enabledInput.checked ? 'block' : 'none';
-                    };
-                }
-
-                document.querySelectorAll('.reminder-schedule').forEach(cb => {
-                    cb.checked = schedule.includes(parseInt(cb.value));
-                });
-            });
-
-            document.getElementById('save-settings').onclick = async () => {
-                const enabled = document.getElementById('setting-reminder-enabled').checked;
-                const schedule = Array.from(document.querySelectorAll('.reminder-schedule:checked')).map(cb => parseInt(cb.value));
-
-                try {
-                    showLoading(true);
-                    await fsUpdateSettings({ enabled, schedule_days: schedule });
-                    alert('設定を保存しました');
-                } catch (e) {
-                    console.error(e);
-                    alert('保存に失敗しました');
-                } finally {
-                    showLoading(false);
-                }
-            };
-        }
 
         // グローバルスコープに関数追加（onclick属性のため）
         window.toggleMatrixAccordion = toggleMatrixAccordion;
@@ -3898,8 +3838,40 @@
             }
         }
 
-        function renderSettingsCategories() {
-            let h = '<div class="settings-section"><h3 class="section-title">カテゴリ一覧 <button class="settings-add-btn" onclick="openAddCategoryModal()">＋追加</button></h3><div class="settings-list">';
+        async function renderSettingsCategories() {
+            // 1. 通知設定セクション
+            let h = `
+                <div class="settings-section" style="margin-bottom: 2rem; padding: 1rem; background: var(--color-bg-card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">通知設定</h3>
+                    <div class="form-group toggle-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                        <label class="toggle-label" style="margin-bottom: 0;">リマインドメール通知</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setting-reminder-enabled">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" id="reminder-schedule-group" style="display:none; padding-left: 1rem; border-left: 2px solid var(--color-bg-secondary);">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">送信タイミング</label>
+                        <div class="checkbox-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" class="reminder-schedule" value="1"> 毎月1日 <small style="color: var(--color-text-muted);">(当月の期限切れ一覧)</small>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" class="reminder-schedule" value="25"> 毎月25日 <small style="color: var(--color-text-muted);">(翌月の期限切れ予告)</small>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" class="reminder-schedule" value="99"> 月末 <small style="color: var(--color-text-muted);">(最終確認)</small>
+                            </label>
+                        </div>
+                    </div>
+                    <button class="save-btn" id="save-settings" style="margin-top:1.5rem; width: 100%;">設定を保存</button>
+                    <!-- Loading state for settings -->
+                    <div id="settings-loading-overlay" style="display:none; position:absolute; inset:0; background:rgba(255,255,255,0.7); align-items:center; justify-content:center;">Reading...</div>
+                </div>
+            `;
+
+            // 2. カテゴリ一覧セクション
+            h += '<div class="settings-section"><h3 class="section-title">カテゴリ一覧 <button class="settings-add-btn" onclick="openAddCategoryModal()">＋追加</button></h3><div class="settings-list">';
             if (CATEGORIES.length === 0) h += '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
             else {
                 h += CATEGORIES.map(c => `
@@ -3913,6 +3885,51 @@
             }
             h += '</div></div>';
             el.settingsContainer.innerHTML = h;
+
+            // 3. 設定値の読み込みとバインド
+            try {
+                // showLoading(true); // Don't block whole UI, just this section ideally, but use fsGetSettings async
+                const config = await fsGetSettings() || { enabled: true, schedule_days: [1, 25] };
+
+                const enabledParams = config.enabled;
+                const schedule = config.schedule_days || [];
+
+                const enabledInput = document.getElementById('setting-reminder-enabled');
+                if (enabledInput) {
+                    enabledInput.checked = enabledParams;
+                    document.getElementById('reminder-schedule-group').style.display = enabledParams ? 'block' : 'none';
+
+                    enabledInput.onchange = () => {
+                        document.getElementById('reminder-schedule-group').style.display = enabledInput.checked ? 'block' : 'none';
+                    };
+                }
+
+                document.querySelectorAll('.reminder-schedule').forEach(cb => {
+                    cb.checked = schedule.includes(parseInt(cb.value));
+                });
+
+                const saveBtn = document.getElementById('save-settings');
+                if (saveBtn) {
+                    saveBtn.onclick = async () => {
+                        const enabled = document.getElementById('setting-reminder-enabled').checked;
+                        const schedule = Array.from(document.querySelectorAll('.reminder-schedule:checked')).map(cb => parseInt(cb.value));
+
+                        try {
+                            showLoading(true);
+                            await fsUpdateSettings({ enabled, schedule_days: schedule });
+                            alert('設定を保存しました');
+                        } catch (e) {
+                            console.error(e);
+                            alert('保存に失敗しました');
+                        } finally {
+                            showLoading(false);
+                        }
+                    };
+                }
+
+            } catch (e) {
+                console.warn('Settings load failed', e);
+            }
         }
 
         function renderSettingsItems(catId) {
