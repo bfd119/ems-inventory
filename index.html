@@ -2108,7 +2108,7 @@
         // ============================================
         // Date Picker Logic
         // ============================================
-        const DatePicker = {
+        var DatePicker = {
             state: {
                 currentDate: new Date(), // for navigation
                 selectedDate: null,
@@ -2116,21 +2116,23 @@
                 onSelect: null,
                 targetInput: null
             },
-            elements: {
-                modal: document.getElementById('datepicker-modal'),
-                titleWrapper: document.getElementById('dp-title-wrapper'),
-                currentYearMonth: document.getElementById('dp-current-year-month'),
-                grid: document.getElementById('dp-grid'),
-                dayView: document.getElementById('dp-day-view'),
-                monthYearView: document.getElementById('dp-month-year-view'),
-                selectingYear: document.getElementById('dp-selecting-year'),
-                monthsGrid: document.getElementById('dp-months-grid')
-            },
+            elements: {}, // Will be populated in init()
+
 
             open(targetInputId) {
+                console.log('DatePicker.open called for:', targetInputId);
                 const target = document.getElementById(targetInputId);
-                if (!target) return;
+                if (!target) {
+                    console.error('Target input not found:', targetInputId);
+                    return;
+                }
                 this.state.targetInput = target;
+
+                if (!this.elements.modal) {
+                    console.error('DatePicker modal element not found!');
+                    return;
+                }
+
 
                 // Parse existing value or use today
                 let initDate = new Date();
@@ -2271,6 +2273,18 @@
             },
 
             init() {
+                // Cache elements
+                this.elements = {
+                    modal: document.getElementById('datepicker-modal'),
+                    titleWrapper: document.getElementById('dp-title-wrapper'),
+                    currentYearMonth: document.getElementById('dp-current-year-month'),
+                    grid: document.getElementById('dp-grid'),
+                    dayView: document.getElementById('dp-day-view'),
+                    monthYearView: document.getElementById('dp-month-year-view'),
+                    selectingYear: document.getElementById('dp-selecting-year'),
+                    monthsGrid: document.getElementById('dp-months-grid')
+                };
+
                 // Bind navigations
                 document.getElementById('dp-prev-month').onclick = () => this.prevMonth();
                 document.getElementById('dp-next-month').onclick = () => this.nextMonth();
@@ -2333,7 +2347,7 @@
             cacheElements();
             bindEvents();
             loadData();
-            if (window.DatePicker) window.DatePicker.init();
+            if (typeof DatePicker !== 'undefined') DatePicker.init();
         }
 
         // Bootstrapping
