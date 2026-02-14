@@ -598,13 +598,180 @@
         }
 
         .budget-select {
-            flex: 1;
             padding: var(--spacing-sm);
-            background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            background: var(--color-bg-card);
             color: var(--color-text-primary);
         }
+
+        /* Custom Date Picker Styles */
+        .custom-date-input {
+            position: relative;
+            cursor: pointer;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            background: var(--color-bg-tertiary);
+            display: flex;
+            align-items: center;
+        }
+
+        .custom-date-input input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            pointer-events: none;
+            /* Prevent manual typing */
+            cursor: pointer;
+            height: 48px;
+            padding: 0 12px;
+        }
+
+        .custom-date-input .icon {
+            position: absolute;
+            right: 12px;
+            color: var(--color-text-muted);
+            pointer-events: none;
+        }
+
+        /* Date Picker Component */
+        .dp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--color-bg-secondary);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .dp-nav-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--color-text-primary);
+            font-family: 'Material Symbols Outlined';
+            font-size: 1.5rem;
+            padding: 4px;
+            border-radius: 50%;
+        }
+
+        .dp-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .dp-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .dp-title-wrapper:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .dp-body {
+            padding: 1rem;
+        }
+
+        .dp-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            margin-bottom: 8px;
+        }
+
+        .dp-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            row-gap: 8px;
+        }
+
+        .dp-day {
+            text-align: center;
+            padding: 10px 0;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 1rem;
+        }
+
+        .dp-day:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .dp-day.selected {
+            background: var(--color-accent-primary);
+            color: white;
+        }
+
+        .dp-day.today {
+            border: 1px solid var(--color-accent-primary);
+            color: var(--color-accent-primary);
+        }
+
+        .dp-day.selected.today {
+            color: white;
+            border: none;
+        }
+
+        .dp-day.disabled {
+            color: var(--color-border);
+            pointer-events: none;
+        }
+
+        /* Month/Year View */
+        .dp-year-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .dp-months-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .dp-month-item {
+            text-align: center;
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .dp-month-item.selected {
+            background: var(--color-accent-primary);
+            color: white;
+            border-color: var(--color-accent-primary);
+        }
+
+        .dp-actions {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .dp-cancel-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+
 
         .budget-table-wrapper {
             flex: 1;
@@ -1720,10 +1887,20 @@
                 <div class="form-group" id="lot-select-group" style="display:none;"><label>出庫ロット選択:</label>
                     <div class="lot-list" id="lot-list"></div>
                 </div>
-                <div class="form-group" id="expiry-input-group" style="display:none;"><label
-                        for="transaction-expiry">使用期限</label><input type="date" id="transaction-expiry"></div>
-                <div class="form-group"><label id="transaction-date-label">入庫日</label><input type="date"
-                        id="transaction-date"></div>
+                <div class="form-group" id="expiry-input-group" style="display:none;">
+                    <label for="transaction-expiry">使用期限</label>
+                    <div class="custom-date-input" id="transaction-expiry-wrapper">
+                        <input type="text" id="transaction-expiry" readonly placeholder="タップして選択">
+                        <span class="material-symbols-outlined icon">calendar_month</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label id="transaction-date-label">入庫日</label>
+                    <div class="custom-date-input" id="transaction-date-wrapper">
+                        <input type="text" id="transaction-date" readonly placeholder="タップして選択">
+                        <span class="material-symbols-outlined icon">calendar_month</span>
+                    </div>
+                </div>
                 <div class="form-group"><label>数量</label>
                     <div class="quantity-input"><button class="qty-btn" id="qty-minus">−</button><input type="number"
                             id="transaction-quantity" value="1" min="1"><button class="qty-btn" id="qty-plus">+</button>
@@ -1857,7 +2034,10 @@
                 </p>
                 <div class="form-group">
                     <label>新しい使用期限</label>
-                    <input type="date" id="new-expiry-date">
+                    <div class="custom-date-input" id="edit-expiry-input-wrapper">
+                        <input type="text" id="new-expiry-date" readonly placeholder="タップして選択">
+                        <span class="material-symbols-outlined icon">calendar_month</span>
+                    </div>
                 </div>
                 <div style="display:flex; gap:12px; margin-top:24px;">
                     <button class="save-btn" id="cancel-edit-expiry"
@@ -1868,7 +2048,236 @@
         </div>
     </div>
 
+    <!-- Custom Date Picker Modal -->
+    <div class="modal" id="datepicker-modal" style="z-index: 2000;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width: 350px; padding: 0;">
+            <div class="dp-header">
+                <button class="dp-nav-btn" id="dp-prev-month">chevron_left</button>
+                <div class="dp-title-wrapper" id="dp-title-wrapper">
+                    <span id="dp-current-year-month">2026年 2月</span>
+                    <span class="material-symbols-outlined dp-expand-icon">arrow_drop_down</span>
+                </div>
+                <button class="dp-nav-btn" id="dp-next-month">chevron_right</button>
+            </div>
+            <div class="dp-body">
+                <!-- Day View -->
+                <div id="dp-day-view">
+                    <div class="dp-weekdays">
+                        <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+                    </div>
+                    <div class="dp-grid" id="dp-grid"></div>
+                </div>
+                <!-- Month/Year Selection View -->
+                <div id="dp-month-year-view" style="display: none;">
+                    <div class="dp-year-selector">
+                        <button class="dp-nav-btn" id="dp-prev-year">chevron_left</button>
+                        <span id="dp-selecting-year">2026</span>
+                        <button class="dp-nav-btn" id="dp-next-year">chevron_right</button>
+                    </div>
+                    <div class="dp-months-grid" id="dp-months-grid">
+                        <!-- Generated by JS -->
+                    </div>
+                    <div class="dp-actions">
+                        <button class="dp-cancel-btn" id="dp-cancel-selection">キャンセル</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ============================================
+        // Date Picker Logic
+        // ============================================
+        const DatePicker = {
+            state: {
+                currentDate: new Date(), // for navigation
+                selectedDate: null,
+                view: 'day', // 'day' or 'month-year'
+                onSelect: null,
+                targetInput: null
+            },
+            elements: {
+                modal: document.getElementById('datepicker-modal'),
+                titleWrapper: document.getElementById('dp-title-wrapper'),
+                currentYearMonth: document.getElementById('dp-current-year-month'),
+                grid: document.getElementById('dp-grid'),
+                dayView: document.getElementById('dp-day-view'),
+                monthYearView: document.getElementById('dp-month-year-view'),
+                selectingYear: document.getElementById('dp-selecting-year'),
+                monthsGrid: document.getElementById('dp-months-grid')
+            },
+
+            open(targetInputId) {
+                const target = document.getElementById(targetInputId);
+                if (!target) return;
+                this.state.targetInput = target;
+
+                // Parse existing value or use today
+                let initDate = new Date();
+                if (target.value) {
+                    const parts = target.value.split('-');
+                    if (parts.length === 3) {
+                        initDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                    }
+                }
+                this.state.selectedDate = new Date(initDate);
+                this.state.currentDate = new Date(initDate);
+                this.state.view = 'day';
+
+                this.render();
+                this.elements.modal.classList.add('active');
+            },
+
+            close() {
+                this.elements.modal.classList.remove('active');
+            },
+
+            setView(view) {
+                this.state.view = view;
+                this.render();
+            },
+
+            prevMonth() {
+                this.state.currentDate.setMonth(this.state.currentDate.getMonth() - 1);
+                this.render();
+            },
+
+            nextMonth() {
+                this.state.currentDate.setMonth(this.state.currentDate.getMonth() + 1);
+                this.render();
+            },
+
+            prevYear() {
+                this.state.currentDate.setFullYear(this.state.currentDate.getFullYear() - 1);
+                this.render();
+            },
+
+            nextYear() {
+                this.state.currentDate.setFullYear(this.state.currentDate.getFullYear() + 1);
+                this.render();
+            },
+
+            selectMonth(monthIndex) {
+                this.state.currentDate.setMonth(monthIndex);
+                this.setView('day');
+            },
+
+            selectDate(year, month, day) {
+                const date = new Date(year, month, day);
+                // Adjust to local date string YYYY-MM-DD
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                const val = `${y}-${m}-${d}`;
+
+                if (this.state.targetInput) {
+                    this.state.targetInput.value = val;
+                    // Trigger change event if needed
+                    this.state.targetInput.dispatchEvent(new Event('change'));
+                    this.state.targetInput.dispatchEvent(new Event('input'));
+                }
+                this.close();
+            },
+
+            render() {
+                const { currentDate, selectedDate, view } = this.state;
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+
+                // Header
+                this.elements.currentYearMonth.textContent = `${year}年 ${month + 1}月`;
+                this.elements.selectingYear.textContent = `${year}年`;
+
+                // View Toggling
+                if (view === 'day') {
+                    this.elements.dayView.style.display = 'block';
+                    this.elements.monthYearView.style.display = 'none';
+                    this.renderDayGrid(year, month);
+                } else {
+                    this.elements.dayView.style.display = 'none';
+                    this.elements.monthYearView.style.display = 'block';
+                    this.renderMonthsGrid(month);
+                }
+            },
+
+            renderDayGrid(year, month) {
+                const grid = this.elements.grid;
+                grid.innerHTML = '';
+
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startDayOfWeek = firstDay.getDay(); // 0(Sun) - 6(Sat)
+
+                // Empty cells for prev month
+                for (let i = 0; i < startDayOfWeek; i++) {
+                    grid.appendChild(document.createElement('div'));
+                }
+
+                const today = new Date();
+                const isTodayMonth = today.getFullYear() === year && today.getMonth() === month;
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const el = document.createElement('div');
+                    el.className = 'dp-day';
+                    el.textContent = d;
+
+                    if (isTodayMonth && today.getDate() === d) el.classList.add('today');
+
+                    // Check selected
+                    if (this.state.selectedDate &&
+                        this.state.selectedDate.getFullYear() === year &&
+                        this.state.selectedDate.getMonth() === month &&
+                        this.state.selectedDate.getDate() === d) {
+                        el.classList.add('selected');
+                    }
+
+                    el.onclick = () => this.selectDate(year, month, d);
+                    grid.appendChild(el);
+                }
+            },
+
+            renderMonthsGrid(currentMonth) {
+                const grid = this.elements.monthsGrid;
+                grid.innerHTML = '';
+                for (let m = 0; m < 12; m++) {
+                    const el = document.createElement('div');
+                    el.className = 'dp-month-item';
+                    el.textContent = `${m + 1}月`;
+                    if (m === currentMonth) el.classList.add('selected');
+                    el.onclick = () => this.selectMonth(m);
+                    grid.appendChild(el);
+                }
+            },
+
+            init() {
+                // Bind navigations
+                document.getElementById('dp-prev-month').onclick = () => this.prevMonth();
+                document.getElementById('dp-next-month').onclick = () => this.nextMonth();
+                document.getElementById('dp-prev-year').onclick = () => this.prevYear();
+                document.getElementById('dp-next-year').onclick = () => this.nextYear();
+                document.getElementById('dp-title-wrapper').onclick = () => this.setView('month-year');
+                document.getElementById('dp-cancel-selection').onclick = () => this.setView('day');
+
+                // Bind modal overlay
+                document.querySelector('#datepicker-modal .modal-overlay').onclick = () => this.close();
+
+                // Bind inputs
+                const bindInput = (id) => {
+                    const wrapper = document.getElementById(id + '-wrapper');
+                    if (wrapper) {
+                        wrapper.onclick = () => this.open(id);
+                    }
+                };
+
+                bindInput('transaction-expiry');
+                bindInput('transaction-date');
+                bindInput('new-expiry-date');
+            }
+        };
+
         // ============================================
         // Supabase 設定
         // ============================================
@@ -1906,6 +2315,7 @@
             cacheElements();
             bindEvents();
             loadData();
+            if (window.DatePicker) window.DatePicker.init();
         }
 
         // Bootstrapping
@@ -3234,6 +3644,106 @@
         }
 
 
+
+
+        // ============================================
+        // Settings & Reminder Logic
+        // ============================================
+        async function fsGetSettings() {
+            try {
+                const { data, error } = await db.from('system_settings').select('*').eq('key', 'reminder_config').single();
+                if (error && error.code !== 'PGRST116') throw error;
+                return data ? data.value : null;
+            } catch (e) {
+                console.warn('Settings read error:', e);
+                return null;
+            }
+        }
+
+        async function fsUpdateSettings(config) {
+            const { error } = await db.from('system_settings').upsert({ key: 'reminder_config', value: config });
+            if (error) throw error;
+        }
+
+        function renderSettings() {
+            const container = document.getElementById('settings-container');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="settings-section" style="padding: 1rem; background: var(--color-bg-card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">通知設定</h3>
+                    <div class="form-group toggle-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                        <label class="toggle-label" style="margin-bottom: 0;">リマインドメール通知</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setting-reminder-enabled">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" id="reminder-schedule-group" style="display:none; padding-left: 1rem; border-left: 2px solid var(--color-bg-secondary);">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">送信タイミング</label>
+                        <div class="checkbox-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" class="reminder-schedule" value="1"> 毎月1日 <small style="color: var(--color-text-muted);">(当月の期限切れ一覧)</small>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" class="reminder-schedule" value="25"> 毎月25日 <small style="color: var(--color-text-muted);">(翌月の期限切れ予告)</small>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" class="reminder-schedule" value="99"> 月末 <small style="color: var(--color-text-muted);">(最終確認)</small>
+                            </label>
+                        </div>
+                    </div>
+                    <button class="save-btn" id="save-settings" style="margin-top:1.5rem; width: 100%;">設定を保存</button>
+                </div>
+                
+                <div class="settings-section" style="margin-top: 2rem; padding: 1rem; background: var(--color-bg-card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                     <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">カテゴリ・用品設定</h3>
+                     <p style="color: var(--color-text-muted); margin-bottom: 1rem;">カテゴリや用品の追加・編集は、トップ画面の「カテゴリ・用品設定」ボタンからも行えます。</p>
+                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="settings-link" onclick="openAddCategoryModal()" style="flex: 1;">カテゴリ追加</button>
+                        <!-- 用品追加はカテゴリ選択が必要なためここではボタン非表示か、誘導のみ -->
+                     </div>
+                </div>
+            `;
+
+            // Load current settings
+            fsGetSettings().then(config => {
+                if (!config) config = { enabled: true, schedule_days: [1, 25] }; // Default
+
+                const enabledParams = config.enabled;
+                const schedule = config.schedule_days || [];
+
+                const enabledInput = document.getElementById('setting-reminder-enabled');
+                if (enabledInput) {
+                    enabledInput.checked = enabledParams;
+                    document.getElementById('reminder-schedule-group').style.display = enabledParams ? 'block' : 'none';
+
+                    enabledInput.onchange = () => {
+                        document.getElementById('reminder-schedule-group').style.display = enabledInput.checked ? 'block' : 'none';
+                    };
+                }
+
+                document.querySelectorAll('.reminder-schedule').forEach(cb => {
+                    cb.checked = schedule.includes(parseInt(cb.value));
+                });
+            });
+
+            document.getElementById('save-settings').onclick = async () => {
+                const enabled = document.getElementById('setting-reminder-enabled').checked;
+                const schedule = Array.from(document.querySelectorAll('.reminder-schedule:checked')).map(cb => parseInt(cb.value));
+
+                try {
+                    showLoading(true);
+                    await fsUpdateSettings({ enabled, schedule_days: schedule });
+                    alert('設定を保存しました');
+                } catch (e) {
+                    console.error(e);
+                    alert('保存に失敗しました');
+                } finally {
+                    showLoading(false);
+                }
+            };
+        }
 
         // グローバルスコープに関数追加（onclick属性のため）
         window.toggleMatrixAccordion = toggleMatrixAccordion;

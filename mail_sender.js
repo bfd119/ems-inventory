@@ -18,8 +18,12 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // ==========================================
 // 機能設定
 // ==========================================
-const ENABLE_EXPIRY_REMINDER = true;   // 期限切れ通知を送るか (推奨: 毎月1日, 25日)
-const ENABLE_SHORTAGE_REMINDER = false; // 在庫不足通知を送るか (min_stock使用)
+// ==========================================
+// 機能設定
+// ==========================================
+// 定数は廃止し、DB (system_settings) から取得するように変更します。
+// const ENABLE_EXPIRY_REMINDER = true;
+// const ENABLE_SHORTAGE_REMINDER = false;
 
 // 送信元メールアドレス (Gmailのエイリアス機能などを確認してください)
 // ※ GASでは実行アカウントのGmailアドレスが送信元になります。
@@ -57,6 +61,47 @@ function sendReminderEmails() {
     console.log(`処理開始: ${currentMonthStr}`);
 
     try {
+        // ==========================================
+        // 0. 設定とスケジュールの確認
+        // ==========================================
+        let config = { enabled: true, schedule_days: [1, 25] }; // デフォルト
+        try {
+            const settings = fetchSupabase('system_settings');
+            // settingsは配列で返ってくる想定
+            if (Array.isArray(settings)) {
+                const row = settings.find(r => r.key === 'reminder_config');
+                if (row && row.value) {
+                    config = row.value;
+                }
+            }
+        } catch (e) {
+            console.warn('設定取得失敗。デフォルトを使用します。', e);
+        }
+
+        // 機能が無効なら終了
+        if (!config.enabled) {
+            console.log('リマインド通知機能は無効に設定されています。');
+            return;
+        }
+
+        // スケジュールチェック
+        // WebApp(doGet)からの手動実行の場合は、引数等で強制送信判定を入れることも可能だが、
+        // 現状はスケジュール通りかチェックする。
+        const day = today.getDate();
+        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+        const isEndOfMonth = day === lastDayOfMonth;
+        const isScheduled = (config.schedule_days || []).includes(day) || ((config.schedule_days || []).includes(99) && isEndOfMonth);
+
+        // ※デバッグ実行時などはここをコメントアウトして強制実行すると良い
+        if (!isScheduled) {
+            console.log(`送信予定日ではないためスキップします。今日: ${day}日 (設定: ${config.schedule_days.join(', ')}${config.schedule_days.includes(99) ? ', 月末' : ''})`);
+            return;
+        }
+
+        // 設定定数（旧グローバル定数）
+        const ENABLE_EXPIRY_REMINDER = true;
+        const ENABLE_SHORTAGE_REMINDER = false;
+
         // 1. データの取得
         const stocks = fetchSupabase('stocks');
         const items = fetchSupabase('items');
