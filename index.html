@@ -1844,6 +1844,30 @@
         </div>
     </div>
 
+    <div class="modal" id="edit-expiry-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>使用期限の編集</h3><button class="modal-close" id="close-edit-expiry-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:1rem; color:var(--color-text-muted);">
+                    現在の期限: <span id="current-expiry-display"
+                        style="font-weight:bold; color:var(--color-text-primary);"></span>
+                </p>
+                <div class="form-group">
+                    <label>新しい使用期限</label>
+                    <input type="date" id="new-expiry-date">
+                </div>
+                <div style="display:flex; gap:12px; margin-top:24px;">
+                    <button class="save-btn" id="cancel-edit-expiry"
+                        style="background:var(--color-bg-secondary); color:var(--color-text-primary);">キャンセル</button>
+                    <button class="save-btn" id="save-edit-expiry">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ============================================
         // Supabase 設定
@@ -1927,6 +1951,9 @@
             el.newCategoryIconInput = $('new-category-icon');
             el.addCategoryModalTitle = $('add-category-modal-title');
             el.addItemModalTitle = $('add-item-modal-title');
+            el.editExpiryModal = $('edit-expiry-modal');
+            el.newExpiryDate = $('new-expiry-date');
+            el.currentExpiryDisplay = $('current-expiry-display');
 
             // Log & Summary & Budget elements
             el.logList = $('log-list');
@@ -1940,7 +1967,8 @@
                 items: el.itemsModal,
                 transaction: el.txModal,
                 addCategory: $('add-category-modal'),
-                addItem: $('add-item-modal')
+                addItem: $('add-item-modal'),
+                editExpiry: el.editExpiryModal
             };
 
             // エイリアス（showTxModal互換性のため）
@@ -1992,6 +2020,11 @@
 
             // 用品追加モーダル
             $('close-add-item-modal').onclick = () => $('add-item-modal').classList.remove('active');
+
+            // 期限編集モーダル
+            $('close-edit-expiry-modal').onclick = () => el.editExpiryModal.classList.remove('active');
+            $('cancel-edit-expiry').onclick = () => el.editExpiryModal.classList.remove('active');
+            $('save-edit-expiry').onclick = saveLotExpiry;
 
             // Generic modal overlay close (for all modals)
             document.querySelectorAll('.modal-overlay').forEach(o => o.onclick = (e) => {
@@ -2817,16 +2850,34 @@
             });
         }
 
-        async function editLotExpiry(oldExpiry, qty) {
-            const newExpiry = prompt('新しい使用期限を入力 (YYYY-MM-DD)', oldExpiry || new Date().toISOString().split('T')[0]);
-            if (newExpiry === null) return; // キャンセル
+        function editLotExpiry(oldExpiry, qty) {
+            state.editingLot = { oldExpiry, qty };
+            el.currentExpiryDisplay.textContent = oldExpiry || '期限なし';
+            el.newExpiryDate.value = oldExpiry || '';
+            el.editExpiryModal.classList.add('active');
+        }
+
+        async function saveLotExpiry() {
+            const newExpiry = el.newExpiryDate.value;
+            // 変更がない、またはキャンセル相当の場合は閉じる
+            if (newExpiry === state.editingLot.oldExpiry) {
+                el.editExpiryModal.classList.remove('active');
+                return;
+            }
+            if (!newExpiry) {
+                if (!confirm('期限を「なし」にしますか？')) return;
+            }
+
+            const { oldExpiry, qty } = state.editingLot;
+
             showLoading(true);
             try {
                 await fsUpdateStockExpiry(state.deptId, state.itemId, oldExpiry || '', newExpiry || '');
                 state.stocks = await fsGetStocks();
                 const lots = getLots(state.deptId, state.itemId);
                 renderLotList(lots);
-                alert('使用期限を更新しました');
+                // alert('使用期限を更新しました'); // 邪魔なので削除またはトースト通知へ
+                el.editExpiryModal.classList.remove('active');
             } catch (e) { handleError(e); }
             showLoading(false);
         }
