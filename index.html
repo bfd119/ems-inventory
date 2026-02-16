@@ -2004,47 +2004,61 @@
             <div class="modal-body">
                 <div class="form-group"><label>カテゴリ</label><select id="new-item-category"></select></div>
 
-                <div class="form-group">
-                    <label>用品名（検索または新規入力）</label>
-                    <div class="search-input-wrapper" style="border:1px solid var(--color-border); margin-bottom:0;">
-                        <input type="text" id="new-item-name" placeholder="用品名を入力..." autocomplete="off">
-                        <input type="hidden" id="new-item-existing-id">
+                <!-- お気に入りセット専用UI -->
+                <div id="fav-set-add-ui" style="display:none; margin-bottom:16px;">
+                    <div class="form-group">
+                        <label>カテゴリ（検索元）</label>
+                        <select id="fav-set-source-category" onchange="updateFavSetSourceItems()"></select>
                     </div>
-                    <div id="new-item-suggestions" class="search-suggestions"
-                        style="position:relative; margin-top:0; border:1px solid var(--color-border); border-top:none; display:none;">
+                    <div class="form-group">
+                        <label>追加する用品</label>
+                        <select id="fav-set-source-item"></select>
                     </div>
-                    <small style="color:var(--color-text-muted); display:block; margin-top:4px;"
-                        id="new-item-helper-text">新しい用品名を入力するか、既存の用品を選択してください</small>
                 </div>
 
-                <div id="fav-set-restriction-msg"
-                    style="display:none; padding:12px; background:#fff5f5; border:1px solid #fed7d7; color:#c53030; border-radius:8px; margin-bottom:16px; font-weight:bold;">
-                    お気に入りセットでは既存用品のみ追加できます。
-                </div>
+                <!-- 通常の追加UI -->
+                <div id="standard-add-ui">
+                    <div class="form-group">
+                        <label>用品名（新規追加）</label>
+                        <div class="search-input-wrapper"
+                            style="border:1px solid var(--color-border); margin-bottom:0;">
+                            <input type="text" id="new-item-name" placeholder="用品名を入力..." autocomplete="off">
+                            <input type="hidden" id="new-item-existing-id">
+                        </div>
+                        <div id="new-item-suggestions" class="search-suggestions"
+                            style="position:relative; margin-top:0; border:1px solid var(--color-border); border-top:none; display:none;">
+                        </div>
+                    </div>
 
-                <div id="new-item-details">
-                    <div class="form-group"><label>単位</label><input type="text" id="new-item-unit" placeholder="例: 本"
-                            value="個"></div>
-                    <div class="form-group toggle-group">
-                        <label class="toggle-label">使用期限あり</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="new-item-has-expiry">
-                            <span class="toggle-slider"></span>
-                        </label>
+                    <div id="fav-set-restriction-msg"
+                        style="display:none; padding:12px; background:#fff5f5; border:1px solid #fed7d7; color:#c53030; border-radius:8px; margin-bottom:16px; font-weight:bold;">
+                        お気に入りセットでは既存用品のみ追加できます。
                     </div>
-                    <div class="form-group"><label>最低在庫数 <small
-                                style="color:var(--color-text-muted)">(任意)</small></label>
-                        <input type="number" id="new-item-min-stock" placeholder="0" min="0" value="0">
+
+                    <div id="new-item-details">
+                        <div class="form-group"><label>単位</label><input type="text" id="new-item-unit"
+                                placeholder="例: 本" value="個"></div>
+                        <div class="form-group toggle-group">
+                            <label class="toggle-label">使用期限あり</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="new-item-has-expiry">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group"><label>最低在庫数 <small
+                                    style="color:var(--color-text-muted)">(任意)</small></label>
+                            <input type="number" id="new-item-min-stock" placeholder="0" min="0" value="0">
+                        </div>
                     </div>
-                </div>
-                <!-- 既存用品選択時の表示 -->
-                <div id="existing-item-info"
-                    style="display:none; padding:12px; background:var(--color-bg-secondary); border-radius:8px; margin-bottom:16px;">
-                    <p style="font-weight:bold; color:var(--color-accent-primary);">既存の用品をこのカテゴリに追加します</p>
-                    <p style="font-size:0.9rem; margin-top:4px;">単位: <span id="existing-item-unit"></span></p>
-                    <p style="font-size:0.9rem;">使用期限: <span id="existing-item-expiry"></span></p>
-                    <button class="settings-link" id="reset-item-selection"
-                        style="margin-top:8px; padding:4px 0;">新規作成に戻る</button>
+                    <!-- 既存用品選択時の表示 -->
+                    <div id="existing-item-info"
+                        style="display:none; padding:12px; background:var(--color-bg-secondary); border-radius:8px; margin-bottom:16px;">
+                        <p style="font-weight:bold; color:var(--color-accent-primary);">既存の用品をこのカテゴリに追加します</p>
+                        <p style="font-size:0.9rem; margin-top:4px;">単位: <span id="existing-item-unit"></span></p>
+                        <p style="font-size:0.9rem;">使用期限: <span id="existing-item-expiry"></span></p>
+                        <button class="settings-link" id="reset-item-selection"
+                            style="margin-top:8px; padding:4px 0;">新規作成に戻る</button>
+                    </div>
                 </div>
 
                 <button class="save-btn" id="save-new-item">追加</button>
@@ -2121,6 +2135,8 @@
         // ============================================
         // Date Picker Logic
         // ============================================
+
+
         var DatePicker = {
             state: {
                 currentDate: new Date(), // for navigation
@@ -2514,9 +2530,10 @@
             $('item-search').oninput = handleSearchInput;
             $('search-clear').onclick = clearSearch;
 
-            // Add Item Modal Search
+            // Add Item Modal Search - 復活
             $('new-item-name').oninput = handleNewItemSearch;
-            if ($('reset-item-selection')) $('reset-item-selection').onclick = resetItemSelection;
+            // $('reset-item-selection')は削除されたのでイベントバインドも不要
+            // if ($('reset-item-selection')) $('reset-item-selection').onclick = resetItemSelection;
 
             // ログフィルタのイベントリスナー
             document.querySelectorAll('input[name="log-filter"]').forEach(r => r.onchange = renderLog);
@@ -2997,7 +3014,7 @@
 
 
         function handleSearchInput(e) {
-            const query = e.target.value.trim().toLowerCase();
+            const query = normalizeForCheck(e.target.value.trim());
             const clearBtn = $('search-clear');
             clearBtn.classList.toggle('visible', query.length > 0);
 
@@ -3007,9 +3024,10 @@
             }
 
             // 用品を検索
-            const matches = ITEMS.filter(item =>
-                item.name.toLowerCase().includes(query)
-            ).slice(0, 10); // 最大10件
+            const matches = ITEMS.filter(item => {
+                const iName = normalizeForCheck(item.name);
+                return iName.includes(query);
+            }).slice(0, 10); // 最大10件
 
             renderSearchSuggestions(matches);
         }
@@ -3089,18 +3107,18 @@
                     }).join('');
                 }
             }
-        }
 
-        // 統一された追加ボタン
-        html += `<button class="category-tile add-tile" onclick="openAddCategoryModal()">
+
+            // 統一された追加ボタン
+            html += `<button class="category-tile add-tile" onclick="openAddCategoryModal()">
                         <span class="add-icon">+</span>
                         <span class="category-name">追加</span>
                     </button>`;
 
-        el.catGrid.innerHTML = html;
+            el.catGrid.innerHTML = html;
 
-        // イベントリスナー設定
-        el.catGrid.querySelectorAll('.category-tile:not(.add-tile)').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
+            // イベントリスナー設定
+            el.catGrid.querySelectorAll('.category-tile:not(.add-tile)').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
         }
 
         function openAddItemModal(categoryId) {
@@ -3130,18 +3148,18 @@
             // Layout based on Type
             const detailsDiv = $('new-item-details');
             const restrictionMsg = $('fav-set-restriction-msg');
-            const helperText = $('new-item-helper-text');
+            // const helperText = $('new-item-helper-text'); // Removed
 
             if (isFavSet) {
                 // Restrictions for Favorite Set
                 detailsDiv.style.display = 'none'; // Hide new item creation fields
                 restrictionMsg.style.display = 'block';
-                helperText.textContent = '追加したい既存の用品名を検索して選択してください';
+                // helperText.textContent = '追加したい既存の用品名を検索して選択してください'; // Removed
             } else {
                 // Normal behavior
                 detailsDiv.style.display = 'block';
                 restrictionMsg.style.display = 'none';
-                helperText.textContent = '新しい用品名を入力するか、既存の用品を選択してください';
+                // helperText.textContent = '新しい用品名を入力するか、既存の用品を選択してください'; // Removed
             }
 
             $('existing-item-info').style.display = 'none';
@@ -4074,17 +4092,53 @@
             openModal('addCategory');
         }
 
+        function toggleCategoryTypeHelp() {
+            const isUser = document.querySelector('input[name="cat-type"][value="user"]').checked;
+            const help = document.getElementById('set-help-text');
+            if (help) help.style.display = isUser ? 'block' : 'none';
+        }
+
         function openAddItemModal(catId) {
             state.editingItemId = null;
             el.addItemModalTitle.textContent = '用品追加';
             $('save-new-item').textContent = '追加'; // ボタンキャプションを「追加」に
             populateCatSelect();
+
+            // カテゴリIDが指定されている場合、お気に入りセットかどうか判定
+            let isFavSet = false;
+
+            // 設定: カテゴリ選択
             if (catId) {
                 $('new-item-category').value = catId;
-                $('new-item-category').disabled = true;
+                const cat = CATEGORIES.find(c => c.id === catId);
+                if (cat && cat.type === 'user') {
+                    isFavSet = true;
+                }
             } else {
-                $('new-item-category').disabled = false;
+                // デフォルト: 最初のカテゴリ
+                if (CATEGORIES.length > 0) $('new-item-category').value = CATEGORIES[0].id;
             }
+            $('new-item-category').disabled = false; // 常に変更可能にする
+
+            if (isFavSet) {
+                // お気に入りセット用UI表示
+                $('fav-set-add-ui').style.display = 'block';
+                $('standard-add-ui').style.display = 'none';
+
+                // ソースカテゴリ（Systemのみ）の生成と初期化
+                const sysCats = CATEGORIES.filter(c => c.type === 'system');
+                $('fav-set-source-category').innerHTML = sysCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                updateFavSetSourceItems();
+
+                // お気に入りセットの場合、追加先のカテゴリ（親画面のコンテキスト）は変更不可
+                $('new-item-category').disabled = true;
+
+            } else {
+                // 通常UI表示
+                $('fav-set-add-ui').style.display = 'none';
+                $('standard-add-ui').style.display = 'block';
+            }
+
             // リセット
             $('new-item-name').value = '';
             $('new-item-existing-id').value = '';
@@ -4092,12 +4146,29 @@
             $('new-item-suggestions').style.display = 'none';
             $('new-item-details').style.display = 'block';
             $('existing-item-info').style.display = 'none';
-            $('new-item-helper-text').style.display = 'block';
+            // $('new-item-helper-text').style.display = 'block'; // Removed
 
             $('new-item-unit').value = '個';
             $('new-item-has-expiry').checked = false;
             $('new-item-min-stock').value = 0;
             openModal('addItem');
+        }
+
+        function updateFavSetSourceItems() {
+            const sourceCatId = +$('fav-set-source-category').value;
+            const container = $('fav-set-source-item');
+            if (!sourceCatId) { container.innerHTML = ''; return; }
+
+            // その設定カテゴリに属するアイテムを取得
+            // 重複排除: 既にアイテムが登録されているかどうかはBackend checkに任せるか、ここで除外するか
+            // シンプルに全アイテム表示
+            const items = ITEMS.filter(i => i.categoryId === sourceCatId);
+
+            if (items.length === 0) {
+                container.innerHTML = '<option value="">(用品なし)</option>';
+            } else {
+                container.innerHTML = items.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+            }
         }
 
         function editItem(id, catId) {
@@ -4142,10 +4213,15 @@
         // ============================================
         // Add Item Search Logic
         // ============================================
+        // ============================================
+        // Add Item Search Logic
+        // ============================================
+        // handleNewItemSearch function restored for warnings
+
         function handleNewItemSearch(e) {
-            const query = e.target.value.trim().toLowerCase();
+            const query = normalizeForCheck(e.target.value.trim());
             const container = $('new-item-suggestions');
-            const currentCatId = +$('new-item-category').value;
+            // const currentCatId = +$('new-item-category').value; // Not needed for global search
 
             if (query.length < 1) {
                 container.style.display = 'none';
@@ -4153,21 +4229,16 @@
             }
 
             // ユニークな用品名のみ抽出（名前で重複排除）
-            // かつ、現在選択中のカテゴリに既に存在しないもの
             const uniqueItems = [];
             const seenNames = new Set();
 
             // 全アイテムから検索
             ITEMS.forEach(i => {
+                const iName = normalizeForCheck(i.name);
                 // 名前が一致し、まだリストに出ていない
-                if (i.name.toLowerCase().includes(query) && !seenNames.has(i.name)) {
-                    // 現在のカテゴリに既に存在するかチェック
-                    const alreadyInCat = ITEMS.some(existing => existing.id === i.id && existing.categoryId === currentCatId);
-
-                    if (!alreadyInCat) {
-                        seenNames.add(i.name);
-                        uniqueItems.push(i);
-                    }
+                if (iName.includes(query) && !seenNames.has(iName)) {
+                    seenNames.add(iName);
+                    uniqueItems.push(i);
                 }
             });
 
@@ -4177,44 +4248,28 @@
             }
 
             container.innerHTML = uniqueItems.slice(0, 5).map(item => `
-                <div class="suggestion-item" onclick="selectExistingItem(${item.id})">
+                <div class="suggestion-item" onclick="alertExistingItem('${item.name}')" style="background:#fff0f0; border-color:#feb2b2;">
                     <div>
-                        <div class="suggestion-item-name">${item.name}</div>
-                        <div class="suggestion-item-category" style="font-size:0.75rem;">単位: ${item.unit} / 期限管理: ${item.hasExpiry ? 'あり' : 'なし'}</div>
+                        <div class="suggestion-item-name" style="color:#c53030;">${item.name}</div>
+                        <div class="suggestion-item-category" style="font-size:0.75rem;">単位: ${item.unit}</div>
                     </div>
-                    <div style="font-size:0.8rem; color:var(--color-accent-primary);">選択</div>
+                    <div style="font-size:0.8rem; color:#c53030; font-weight:bold;">× 登録不可（既存）</div>
                 </div>
             `).join('');
             container.style.display = 'block';
         }
 
-        function selectExistingItem(itemId) {
-            // ITEMS配列はフラット化されているため、同じIDを持つアイテムが複数ある可能性があるが
-            // findで最初に見つかったもののプロパティを使用（基本プロパティは同じはず）
-            const item = ITEMS.find(i => i.id === itemId);
-            if (!item) return;
-
-            $('new-item-name').value = item.name;
-            $('new-item-existing-id').value = item.id;
-
-            // UI更新
+        function alertExistingItem(name) {
+            alert(`「${name}」は既に登録されています。\n新規登録する場合は別の名前を入力してください。\n\n※既存の用品をお気に入りセットに追加したい場合は、お気に入りセットのメニューから行ってください。`);
+            $('new-item-name').value = ''; // 入力をクリア
             $('new-item-suggestions').style.display = 'none';
-            $('new-item-details').style.display = 'none'; // 詳細入力隠す
-            $('existing-item-info').style.display = 'block';
-            $('new-item-helper-text').style.display = 'none';
-
-            $('existing-item-unit').textContent = item.unit;
-            $('existing-item-expiry').textContent = item.hasExpiry ? 'あり' : 'なし';
         }
 
-        function resetItemSelection() {
-            $('new-item-name').value = '';
-            $('new-item-existing-id').value = ''; // IDクリア
-            $('new-item-details').style.display = 'block';
-            $('existing-item-info').style.display = 'none';
-            $('new-item-helper-text').style.display = 'block';
-            $('new-item-name').focus();
-        }
+        /*
+        // selectExistingItem and resetItemSelection are kept commented out as we don't allow linking here anymore.
+        function selectExistingItem(itemId) { ... }
+        function resetItemSelection() { ... }
+        */
 
         function populateCatSelect() { $('new-item-category').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
 
@@ -4256,37 +4311,85 @@
         }
 
 
+        function normalizeForCheck(s) {
+            if (!s) return '';
+            // 1. 全角英数字を半角に
+            let ret = s.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); });
+            // 2. スペース削除
+            ret = ret.replace(/\s+/g, '');
+            // 3. 小文字化
+            ret = ret.toLowerCase();
+            // 4. カタカナをひらがなに変換
+            ret = ret.replace(/[\u30a1-\u30f6]/g, function (match) {
+                var chr = match.charCodeAt(0) - 0x60;
+                return String.fromCharCode(chr);
+            });
+            return ret;
+        }
+
         async function saveNewItem() {
             const cid = +$('new-item-category').value;
+
+            // モード判定: お気に入りセット追加UIが表示されているか
+            const isFavSetMode = $('fav-set-add-ui').style.display !== 'none';
+
+            if (isFavSetMode) {
+                // お気に入りセットへの既存用品追加モード
+                const sourceItemId = +$('fav-set-source-item').value;
+                if (!sourceItemId) { alert('用品を選択してください'); return; }
+
+                showLoading(true);
+                try {
+                    const item = ITEMS.find(i => i.id === sourceItemId);
+                    if (!item) throw new Error('Item not found');
+
+                    const result = await fsAddItem(cid, item.name, item.unit, item.hasExpiry, item.minStock, sourceItemId);
+
+                    const exists = ITEMS.some(i => i.id === result.id && i.categoryId === result.categoryId);
+                    if (!exists) ITEMS.push(result);
+
+                    closeModal('addItem');
+                    renderSettings();
+                    if (state.catId === cid) showItemsModal();
+                } catch (e) { handleError(e); }
+                showLoading(false);
+                return;
+            }
+
+            // --- 以下、通常モード ---
             const n = $('new-item-name').value.trim();
             const u = $('new-item-unit').value.trim() || '個';
             const he = $('new-item-has-expiry').checked;
             const ms = +$('new-item-min-stock').value || 0;
-            const existingId = +$('new-item-existing-id').value || null;
+            // 既存ステータスは使用しない（新規追加のみ）
+            // const existingId = +$('new-item-existing-id').value || null; 
 
             if (!n) { alert('用品名を入力してください'); return; }
 
-            // お気に入りセットへの新規用品追加制限
-            const targetCat = CATEGORIES.find(c => c.id === cid);
-            if (targetCat && targetCat.type === 'user' && !existingId) {
-                alert('お気に入りセットには既存の用品のみ追加できます。\n検索ボックスから既存の用品を選択してください。');
-                return;
-            }
+            // 類似用品チェック
+            const normName = normalizeForCheck(n);
+            const similarItems = ITEMS.filter(item => {
+                // 自分自身は除外（編集時用だが、今は新規追加ダイアログ）
+                if (state.editingItemId && item.id === state.editingItemId) return false;
 
-            // 重複チェック (新規追加、または名称変更時)
-            // 既存リスト内で名前が完全に一致し、かつ自分自身でないものを探す
-            // ここではグローバルにユニークであるべきか、カテゴリ内か？
-            // ユーザー指示: 「新規用品追加するときには，既存用品と同じような名前のものが絶対に登録されない仕組み」
-            // -> グローバルチェック推奨
-            const isDuplicate = ITEMS.some(item =>
-                item.name === n &&
-                (!state.editingItemId || item.id !== state.editingItemId)
-            );
+                const iName = normalizeForCheck(item.name);
+                return iName === normName;
+            });
 
-            if (isDuplicate) {
-                alert('既に同じ名前の用品が登録されています。\n同じ名前の用品は登録できません。');
-                showLoading(false);
-                return;
+            // 重複判定（完全に一致するものだけでなく、正規化して一致するもの）
+            if (similarItems.length > 0) {
+                // カテゴリ名を取得して表示
+                const msgList = similarItems.map(i => {
+                    const c = CATEGORIES.find(cat => cat.id === i.categoryId);
+                    const cName = c ? c.name : '不明なカテゴリ';
+                    return `・${cName}: ${i.name}`;
+                }).join('\n');
+
+                const confirmMsg = `類似の用品が見つかりました。\n以下の用品が既に登録されています：\n\n${msgList}\n\n本当に登録しますか？`;
+                if (!confirm(confirmMsg)) {
+                    showLoading(false);
+                    return;
+                }
             }
 
             showLoading(true);
@@ -4295,53 +4398,37 @@
                 if (state.editingItemId) {
                     i = await fsUpdateItem(state.editingItemId, state.editingOldCatId, cid, n, u, he, ms);
 
-                    // グローバルリスト更新: ここは少し複雑（フラットリストなので全置換が必要かも）
-                    // 簡易的にリロードするか、あるいは配列操作
-                    // 移動した場合、古いエントリを削除して新しいエントリを入れる必要あり
-
-                    // 既存のこのIDのエントリを一度すべて消す（プロパティ更新のため）のは乱暴。
-                    // categoryIdが一致するものを探して更新？
-
-                    // リロードの方が確実だが、遅い。
-                    // 手動パッチ:
-                    // 1. プロパティ更新
                     ITEMS.forEach(item => {
                         if (item.id === state.editingItemId) {
                             item.name = n; item.unit = u; item.hasExpiry = he; item.minStock = ms;
                         }
                     });
 
-                    // 2. カテゴリ移動の反映
                     if (state.editingOldCatId !== cid) {
-                        // 古いエントリを削除
                         const oldIdx = ITEMS.findIndex(x => x.id === state.editingItemId && x.categoryId === state.editingOldCatId);
                         if (oldIdx >= 0) ITEMS.splice(oldIdx, 1);
 
-                        // 新しいエントリを追加（もし既に存在しなければ）
                         const exists = ITEMS.some(x => x.id === state.editingItemId && x.categoryId === cid);
                         if (!exists) {
                             ITEMS.push({ id: state.editingItemId, categoryId: cid, name: n, unit: u, hasExpiry: he, minStock: ms });
                         }
-                    } else {
-                        // カテゴリ変更なし
-                        // 上記forEachでプロパティは更新済み
                     }
 
                 } else {
-                    // 新規追加 or 既存アイテムリンク
-                    i = await fsAddItem(cid, n, u, he, ms, existingId);
+                    // 常に新規作成として扱う
+                    i = await fsAddItem(cid, n, u, he, ms, null);
 
-                    // 戻り値の型変換
                     i.id = +i.id;
                     i.categoryId = +i.categoryId;
                     i.minStock = +i.minStock;
                     i.hasExpiry = !!i.hasExpiry;
 
+                    // 重複チェックは上記で行ったので、ここでは単純追加
+                    // ただしIDが重複しないことは保証される（DB採番）
                     ITEMS.push(i);
                 }
                 closeModal('addItem');
                 renderSettings();
-                // 用品一覧画面が開いていた場合は即座に更新
                 if (state.catId === cid) {
                     showItemsModal();
                 }
