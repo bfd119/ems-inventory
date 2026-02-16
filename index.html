@@ -637,8 +637,9 @@
 
         /* Date Picker Component */
         .dp-header {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 44px 1fr 44px;
+            /* Fixed width for start/end buttons */
             align-items: center;
             padding: 1rem;
             background: var(--color-bg-secondary);
@@ -663,12 +664,16 @@
         .dp-title-wrapper {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
             cursor: pointer;
             font-weight: bold;
             font-size: 1.1rem;
             padding: 4px 8px;
             border-radius: 4px;
+            /* Flex properties removed in favor of Grid parent */
+            text-align: center;
+            white-space: nowrap;
         }
 
         .dp-title-wrapper:hover {
@@ -692,6 +697,10 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             row-gap: 8px;
+            /* 6行分の高さを常に確保し、月による高さ変動を防止 */
+            min-height: 252px;
+            /* (10px padding*2 + 8px gap) * 6 rows = approx */
+            align-content: start;
         }
 
         .dp-day {
@@ -1776,6 +1785,21 @@
                 align-items: center;
                 padding: var(--spacing-lg);
             }
+        }
+
+        /* DatePicker: 上端固定表示 + 矢印位置安定化 */
+        #datepicker-modal.active {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 100px;
+            justify-content: center;
+        }
+
+        /* カレンダー本体の高さを固定し、月による上端のズレを防止 */
+        #datepicker-modal .modal-content {
+            height: 480px;
+            min-height: 480px;
+            max-height: 480px;
         }
     </style>
     <link rel="stylesheet"
@@ -4122,6 +4146,8 @@
 
             if (isFavSet) {
                 // お気に入りセット用UI表示
+                el.addItemModalTitle.textContent = 'お気に入り登録';
+                $('save-new-item').textContent = 'お気に入り登録';
                 $('fav-set-add-ui').style.display = 'block';
                 $('standard-add-ui').style.display = 'none';
 
@@ -4135,6 +4161,8 @@
 
             } else {
                 // 通常UI表示
+                el.addItemModalTitle.textContent = '用品追加';
+                $('save-new-item').textContent = '追加';
                 $('fav-set-add-ui').style.display = 'none';
                 $('standard-add-ui').style.display = 'block';
             }
