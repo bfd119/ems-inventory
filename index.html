@@ -4006,8 +4006,8 @@
             if (visibleCategories.length === 0) h += '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
             else {
                 h += visibleCategories.map(c => `
-                    <div class="settings-item" onclick="state.settingsCatId=${c.id};renderSettings()">
-                        <span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name} ${c.departmentId ? '<small>(自署所用)</small>' : ''}</span>
+                    <div class="settings-item" onclick="state.settingsCatId=${c.id};renderSettings()" style="${c.type === 'user' ? 'border: 2px solid var(--color-accent-primary); background: #fffaf0;' : ''}">
+                        <span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name} ${c.departmentId ? '<small>(自署所用)</small>' : ''}${c.type === 'user' ? '<span style="font-size:0.7rem; color:var(--color-accent-primary); opacity:0.7; margin-left:8px;">お気に入りセット</span>' : ''}</span>
                         <div class="settings-actions">
                             <button class="icon-btn" onclick="event.stopPropagation();editCategory(${c.id})"><span class="material-symbols-outlined">edit</span></button>
                             <button class="delete-btn" onclick="event.stopPropagation();deleteCategory(${c.id})">×</button>
