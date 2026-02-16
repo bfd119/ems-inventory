@@ -4053,6 +4053,23 @@
             el.addCategoryModalTitle.textContent = 'カテゴリ追加';
             $('new-category-name').value = '';
             $('new-category-icon').value = ICONS[0];
+
+            // 権限チェック: 警防課(id=1)以外はSystemカテゴリ作成不可
+            const isKeibouka = state.deptId === 1;
+            const systemRadio = document.querySelector('input[name="cat-type"][value="system"]');
+            const userRadio = document.querySelector('input[name="cat-type"][value="user"]');
+
+            if (isKeibouka) {
+                systemRadio.disabled = false;
+                systemRadio.parentElement.style.opacity = '1';
+                systemRadio.checked = true; // Default
+            } else {
+                systemRadio.disabled = true;
+                systemRadio.parentElement.style.opacity = '0.5';
+                userRadio.checked = true; // Force User type
+            }
+            toggleCategoryTypeHelp(); // Update help text visibility
+
             renderIconGrid();
             openModal('addCategory');
         }
@@ -4248,6 +4265,13 @@
             const existingId = +$('new-item-existing-id').value || null;
 
             if (!n) { alert('用品名を入力してください'); return; }
+
+            // お気に入りセットへの新規用品追加制限
+            const targetCat = CATEGORIES.find(c => c.id === cid);
+            if (targetCat && targetCat.type === 'user' && !existingId) {
+                alert('お気に入りセットには既存の用品のみ追加できます。\n検索ボックスから既存の用品を選択してください。');
+                return;
+            }
 
             // 重複チェック (新規追加、または名称変更時)
             // 既存リスト内で名前が完全に一致し、かつ自分自身でないものを探す
