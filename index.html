@@ -2529,7 +2529,8 @@
         async function fsGetCategories() {
             const { data, error } = await db.from('categories').select('*').order('id');
             if (error) throw error;
-            return data;
+            // データ整形: department_id は数値化
+            return data.map(c => ({ ...c, departmentId: c.department_id ? +c.department_id : null }));
         }
 
         async function fsGetItems() {
@@ -2597,11 +2598,11 @@
             }));
         }
 
-        async function fsAddCategory(name, icon, type = 'system') {
+        async function fsAddCategory(name, icon, type = 'system', departmentId = null) {
             const { data, error } = await db.from('categories')
-                .insert({ name, icon: icon || 'inventory_2', type }).select().single();
+                .insert({ name, icon: icon || 'inventory_2', type, department_id: departmentId }).select().single();
             if (error) throw error;
-            return data;
+            return { ...data, departmentId: data.department_id ? +data.department_id : null };
         }
 
         async function fsUpdateCategory(id, name, icon) {
@@ -3060,35 +3061,46 @@
             if (CATEGORIES.length === 0) {
                 html += '<p style="color:var(--color-text-muted); padding:1rem;">カテゴリがありません</p>';
             } else {
-                html += CATEGORIES.map(c => {
-                    const isUser = c.type === 'user';
-                    // UserSetの場合はスタイルを変更: 白背景、枠維持、アイコンオレンジ
-                    // 背景色は card (white) に変更、ボーダーは accent (orange)
-                    const style = isUser ? 'border-color:var(--color-accent-primary); background:#ffffff;' : '';
-                    const iconColor = isUser ? 'var(--color-accent-primary)' : (ICON_COLORS[c.icon] || '');
-                    const labelHtml = isUser ? '<span class="fav-set-label">お気に入りセット</span>' : '';
+                // フィルタリング: 共通(departmentId==null) または 現在の署所(departmentId==state.deptId)
+                const visibleCategories = CATEGORIES.filter(c => {
+                    if (!c.departmentId) return true; // 共通
+                    return c.departmentId === state.deptId; // 自署所のみ
+                });
 
-                    return `
-                    <button class="category-tile" data-id="${c.id}" style="${style}">
-                        <span class="category-icon">
-                            <span class="material-symbols-outlined" style="color: ${iconColor}">${c.icon}</span>
-                        </span>
-                        <span class="category-name">${c.name}</span>
-                        ${labelHtml}
-                    </button>`;
-                }).join('');
+                if (visibleCategories.length === 0) {
+                    html += '<p style="color:var(--color-text-muted); padding:1rem;">カテゴリがありません</p>';
+                } else {
+                    html += visibleCategories.map(c => {
+                        const isUser = c.type === 'user';
+                        // UserSetの場合はスタイルを変更: 白背景、枠維持、アイコンオレンジ
+                        // 背景色は card (white) に変更、ボーダーは accent (orange)
+                        const style = isUser ? 'border-color:var(--color-accent-primary); background:#ffffff;' : '';
+                        const iconColor = isUser ? 'var(--color-accent-primary)' : (ICON_COLORS[c.icon] || '');
+                        const labelHtml = isUser ? '<span class="fav-set-label">お気に入りセット</span>' : '';
+
+                        return `
+                        <button class="category-tile" data-id="${c.id}" style="${style}">
+                            <span class="category-icon">
+                                <span class="material-symbols-outlined" style="color: ${iconColor}">${c.icon}</span>
+                            </span>
+                            <span class="category-name">${c.name}</span>
+                            ${labelHtml}
+                        </button>`;
+                    }).join('');
+                }
             }
+        }
 
-            // 統一された追加ボタン
-            html += `<button class="category-tile add-tile" onclick="openAddCategoryModal()">
+        // 統一された追加ボタン
+        html += `<button class="category-tile add-tile" onclick="openAddCategoryModal()">
                         <span class="add-icon">+</span>
                         <span class="category-name">追加</span>
                     </button>`;
 
-            el.catGrid.innerHTML = html;
+        el.catGrid.innerHTML = html;
 
-            // イベントリスナー設定
-            el.catGrid.querySelectorAll('.category-tile:not(.add-tile)').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
+        // イベントリスナー設定
+        el.catGrid.querySelectorAll('.category-tile:not(.add-tile)').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
         }
 
         function openAddItemModal(categoryId) {
@@ -3939,13 +3951,21 @@
                 </div>
             `;
 
-            // 2. カテゴリ一覧セクション
+            // 2. カテゴリ一覧セクション (フィルタリング適用)
+            const visibleCategories = CATEGORIES.filter(c => {
+                // 設定画面でも、自署所で操作可能なもののみ表示すべきか？
+                // Systemカテゴリ(共通)は全員編集可能とするか、管理者のみか？
+                // 現状: 共通カテゴリ + 自署所カテゴリを表示し、編集可能とする
+                if (!c.departmentId) return true;
+                return c.departmentId === state.deptId;
+            });
+
             h += '<div class="settings-section"><h3 class="section-title">カテゴリ一覧 <button class="settings-add-btn" onclick="openAddCategoryModal()">＋追加</button></h3><div class="settings-list">';
-            if (CATEGORIES.length === 0) h += '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
+            if (visibleCategories.length === 0) h += '<p style="color:var(--color-text-muted)">カテゴリがありません</p>';
             else {
-                h += CATEGORIES.map(c => `
+                h += visibleCategories.map(c => `
                     <div class="settings-item" onclick="state.settingsCatId=${c.id};renderSettings()">
-                        <span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name}</span>
+                        <span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name} ${c.departmentId ? '<small>(自署所用)</small>' : ''}</span>
                         <div class="settings-actions">
                             <button class="icon-btn" onclick="event.stopPropagation();editCategory(${c.id})"><span class="material-symbols-outlined">edit</span></button>
                             <button class="delete-btn" onclick="event.stopPropagation();deleteCategory(${c.id})">×</button>
@@ -4194,12 +4214,20 @@
             try {
                 let c;
                 if (state.editingCategoryId) {
-                    // 編集時はタイプ変更不可とする（複雑になるため）
+                    // 編集時はタイプ変更不可
                     c = await fsUpdateCategory(state.editingCategoryId, n, ic);
+                    // レスポンスに departmentId が含まれていない場合があるので補完（変更されないため）
+                    const old = CATEGORIES.find(x => x.id === state.editingCategoryId);
+                    c.departmentId = old ? old.departmentId : null;
+
                     const idx = CATEGORIES.findIndex(x => x.id === state.editingCategoryId);
                     if (idx >= 0) CATEGORIES[idx] = c;
                 } else {
-                    c = await fsAddCategory(n, ic, type);
+                    // 新規作成
+                    // お気に入りセット(user)なら、現在の署所IDをセットする
+                    // システムカテゴリなら共通(null)とする
+                    const deptId = (type === 'user' && state.deptId) ? state.deptId : null;
+                    c = await fsAddCategory(n, ic, type, deptId);
                     CATEGORIES.push(c);
                 }
                 closeModal('addCategory');
