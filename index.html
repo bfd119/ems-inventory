@@ -1376,6 +1376,14 @@
             font-size: 1.4rem;
         }
 
+        .fav-set-label {
+            font-size: 0.65rem;
+            color: #9ca3af;
+            /* 薄灰色 */
+            margin-top: 2px;
+            display: block;
+        }
+
         .accordion-toggle-icon {
             transition: transform var(--transition-fast);
         }
@@ -1966,12 +1974,12 @@
                         </label>
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                             <input type="radio" name="cat-type" value="user" onchange="toggleCategoryTypeHelp()">
-                            <span>オリジナルセット</span>
+                            <span>お気に入りセット</span>
                         </label>
                     </div>
                     <div id="set-help-text"
                         style="display:none; font-size:0.85rem; color:var(--color-text-secondary); background:#f0f9ff; padding:8px; border-radius:4px; margin-bottom:12px; border:1px solid #bae6fd;">
-                        <strong>オリジナルセットとは？</strong><br>
+                        <strong>お気に入りセットとは？</strong><br>
                         既存の用品を自由に組み合わせて、業務（例：救急セットA）に合わせたリストを作成できます。<br>
                         <small>※用品は元のカテゴリに残ったまま、ここにも表示されます。</small>
                     </div>
@@ -2007,6 +2015,11 @@
                     </div>
                     <small style="color:var(--color-text-muted); display:block; margin-top:4px;"
                         id="new-item-helper-text">新しい用品名を入力するか、既存の用品を選択してください</small>
+                </div>
+
+                <div id="fav-set-restriction-msg"
+                    style="display:none; padding:12px; background:#fff5f5; border:1px solid #fed7d7; color:#c53030; border-radius:8px; margin-bottom:16px; font-weight:bold;">
+                    お気に入りセットでは既存用品のみ追加できます。
                 </div>
 
                 <div id="new-item-details">
@@ -2602,26 +2615,21 @@
             // item_categoriesから該当カテゴリの紐づけを削除
             // 注意: 用品自体(items)は削除しない方針（他カテゴリで使われている可能性があるため）
 
-            // 1. 紐づけがある用品IDを取得（在庫削除用）
-            // テーブルがあれば item_categories から、なければ items から
-            let itemIds = [];
+            // 1. 紐づけがある用品IDを取得
+            // 用品が存在する場合は削除禁止（ユーザー指示）
 
+            // item_categories チェック
             const { data: links, error: linkError } = await db.from('item_categories').select('item_id').eq('category_id', id);
 
-            if (!linkError && links) {
-                itemIds = links.map(l => l.item_id);
-                // リンク削除
-                await db.from('item_categories').delete().eq('category_id', id);
-            } else {
-                // 旧仕様: itemsテーブルのcategory_idで判断
-                const { data: items } = await db.from('items').select('id').eq('category_id', id);
-                itemIds = items ? items.map(i => i.id) : [];
-                // 用品削除（旧仕様ではカテゴリ消去＝用品消去だったが、移行後はリンクだけ消すのが安全。
-                // ただし移行期間中は不整合避けるため itemsのcategory_id=... も消すべきか？
-                // 安全策: 旧仕様なら items 自体を消す（従前通り）
-                if (itemIds.length > 0) {
-                    await db.from('items').delete().eq('category_id', id);
-                }
+            // 旧仕様: itemsテーブルのcategory_idで判断
+            const { data: items } = await db.from('items').select('id').eq('category_id', id);
+
+            const hasLinks = !linkError && links && links.length > 0;
+            const hasItems = items && items.length > 0;
+
+            if (hasLinks || hasItems) {
+                // 用品が存在するため削除不可
+                throw new Error('ITEMS_EXIST');
             }
 
             // 関連データ削除（在庫・履歴）- 特定カテゴリでの在庫は消えるべき
@@ -3054,9 +3062,11 @@
             } else {
                 html += CATEGORIES.map(c => {
                     const isUser = c.type === 'user';
-                    // UserSetの場合はスタイルを変更
-                    const style = isUser ? 'border-color:var(--color-accent-primary); background:#fffaf0;' : '';
+                    // UserSetの場合はスタイルを変更: 白背景、枠維持、アイコンオレンジ
+                    // 背景色は card (white) に変更、ボーダーは accent (orange)
+                    const style = isUser ? 'border-color:var(--color-accent-primary); background:#ffffff;' : '';
                     const iconColor = isUser ? 'var(--color-accent-primary)' : (ICON_COLORS[c.icon] || '');
+                    const labelHtml = isUser ? '<span class="fav-set-label">お気に入りセット</span>' : '';
 
                     return `
                     <button class="category-tile" data-id="${c.id}" style="${style}">
@@ -3064,6 +3074,7 @@
                             <span class="material-symbols-outlined" style="color: ${iconColor}">${c.icon}</span>
                         </span>
                         <span class="category-name">${c.name}</span>
+                        ${labelHtml}
                     </button>`;
                 }).join('');
             }
@@ -3080,21 +3091,51 @@
             el.catGrid.querySelectorAll('.category-tile:not(.add-tile)').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
         }
 
-        function openAddCategoryModal() {
-            // Reset to default
-            state.editingCategoryId = null;
-            $('new-category-name').value = '';
-            state.addingCategoryType = 'system';
-            el.addCategoryModalTitle.textContent = '新規作成';
+        function openAddItemModal(categoryId) {
+            // Check if this is a "user" category (Favorite Set)
+            const cat = CATEGORIES.find(c => c.id === categoryId);
+            const isFavSet = cat && cat.type === 'user';
 
-            // Radio reset
-            const radios = document.getElementsByName('cat-type');
-            if (radios.length > 0) {
-                radios[0].checked = true; // System default
-                toggleCategoryTypeHelp(); // Ensure correct help state
+            // Reset UI
+            $('new-item-category').innerHTML = CATEGORIES.map(c =>
+                `<option value="${c.id}" ${c.id === categoryId ? 'selected' : ''}>${c.name}</option>`
+            ).join('');
+
+            // If it's a fav set, lock the category selection to current
+            if (isFavSet) {
+                $('new-item-category').innerHTML = `<option value="${cat.id}" selected>${cat.name}</option>`;
+                $('new-item-category').disabled = true;
+            } else {
+                $('new-item-category').disabled = false;
             }
 
-            openModal('addCategory');
+            $('new-item-name').value = '';
+            $('new-item-unit').value = '個';
+            $('new-item-has-expiry').checked = false;
+            $('new-item-min-stock').value = 0;
+            $('new-item-existing-id').value = '';
+
+            // Layout based on Type
+            const detailsDiv = $('new-item-details');
+            const restrictionMsg = $('fav-set-restriction-msg');
+            const helperText = $('new-item-helper-text');
+
+            if (isFavSet) {
+                // Restrictions for Favorite Set
+                detailsDiv.style.display = 'none'; // Hide new item creation fields
+                restrictionMsg.style.display = 'block';
+                helperText.textContent = '追加したい既存の用品名を検索して選択してください';
+            } else {
+                // Normal behavior
+                detailsDiv.style.display = 'block';
+                restrictionMsg.style.display = 'none';
+                helperText.textContent = '新しい用品名を入力するか、既存の用品を選択してください';
+            }
+
+            $('existing-item-info').style.display = 'none';
+            $('new-item-suggestions').style.display = 'none';
+
+            openModal('addItem');
         }
 
         function toggleCategoryTypeHelp() {
@@ -3979,6 +4020,7 @@
                         <span class="settings-item-name">${i.name}</span>
                         <div class="settings-actions">
                              <button class="delete-btn" onclick="event.stopPropagation();deleteItemSetting(${i.id})">×</button>
+                             <button class="btn-sm" style="margin-left:8px;" onclick="event.stopPropagation();editItem(${i.id}, ${catId})">移動</button>
                         </div>
                     </div>`).join('');
             }
@@ -4178,6 +4220,23 @@
             const existingId = +$('new-item-existing-id').value || null;
 
             if (!n) { alert('用品名を入力してください'); return; }
+
+            // 重複チェック (新規追加、または名称変更時)
+            // 既存リスト内で名前が完全に一致し、かつ自分自身でないものを探す
+            // ここではグローバルにユニークであるべきか、カテゴリ内か？
+            // ユーザー指示: 「新規用品追加するときには，既存用品と同じような名前のものが絶対に登録されない仕組み」
+            // -> グローバルチェック推奨
+            const isDuplicate = ITEMS.some(item =>
+                item.name === n &&
+                (!state.editingItemId || item.id !== state.editingItemId)
+            );
+
+            if (isDuplicate) {
+                alert('既に同じ名前の用品が登録されています。\n同じ名前の用品は登録できません。');
+                showLoading(false);
+                return;
+            }
+
             showLoading(true);
             try {
                 let i;
@@ -4240,14 +4299,35 @@
         }
 
         async function deleteCategory(id) {
-            if (!confirm('カテゴリと用品を削除しますか？')) return;
+            if (!confirm('カテゴリを削除しますか？')) return;
             showLoading(true);
-            try { await fsDeleteCategory(id); CATEGORIES = CATEGORIES.filter(c => c.id !== id); ITEMS = ITEMS.filter(i => i.categoryId !== id); renderSettings(); renderCatGrid(); } catch (e) { handleError(e); }
+            try {
+                await fsDeleteCategory(id);
+                CATEGORIES = CATEGORIES.filter(c => c.id !== id);
+                ITEMS = ITEMS.filter(i => i.categoryId !== id);
+                renderSettings();
+                renderCatGrid();
+            } catch (e) {
+                if (e.message === 'ITEMS_EXIST' || e.message.includes('foreign key constraint')) {
+                    alert('カテゴリに用品登録があります。用品をすべて削除した後にカテゴリ削除できます。');
+                } else {
+                    handleError(e);
+                }
+            }
             showLoading(false);
         }
 
         async function deleteItemSetting(id) {
-            if (!confirm('用品を削除しますか？')) return;
+            // 在庫チェック
+            const lots = getLots(null, id); // 全署所の在庫合計
+            const totalStock = lots.reduce((a, l) => a + l.quantity, 0);
+
+            if (totalStock > 0) {
+                if (!confirm(`現在 ${totalStock} 個の在庫があります。\n本当に削除しますか？\n（在庫データもすべて削除されます）`)) return;
+            } else {
+                if (!confirm('用品を削除しますか？')) return;
+            }
+
             showLoading(true);
             try { await fsDeleteItem(id); ITEMS = ITEMS.filter(i => i.id !== id); renderSettings(); } catch (e) { handleError(e); }
             showLoading(false);
