@@ -1036,27 +1036,63 @@
 
         .transaction-type-toggle {
             display: flex;
-            gap: var(--spacing-sm);
+            gap: var(--spacing-md);
             margin-bottom: var(--spacing-md);
         }
 
-        .type-btn {
+        .tx-group-wrapper {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            border: 2px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            transition: border-color var(--transition-fast), background-color var(--transition-fast);
+        }
+
+        .tx-group-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--color-text-secondary);
+        }
+
+        .tx-group-wrapper.active-out {
+            border-color: rgba(220, 38, 38, 0.5);
+            background-color: rgba(220, 38, 38, 0.05);
+        }
+
+        .tx-group-wrapper.active-out .tx-group-title {
+            color: var(--color-out);
+        }
+
+        .tx-group-wrapper.active-in {
+            border-color: rgba(22, 163, 74, 0.5);
+            background-color: rgba(22, 163, 74, 0.05);
+        }
+
+        .tx-group-wrapper.active-in .tx-group-title {
+            color: var(--color-in);
+        }
+
+        .type-btn {
+            width: 100%;
             padding: var(--spacing-md);
-            background: var(--color-bg-secondary);
+            background: var(--color-bg-card);
             border: 2px solid transparent;
             border-radius: var(--border-radius-sm);
             font-size: 0.9rem;
             font-weight: 600;
         }
 
-        .type-btn[data-type="IN"].active {
+        .type-btn[data-type^="IN"].active {
             background: rgba(22, 163, 74, 0.1);
             border-color: var(--color-in);
             color: var(--color-in);
         }
 
-        .type-btn[data-type="OUT"].active {
+        .type-btn[data-type^="OUT"].active {
             background: rgba(220, 38, 38, 0.1);
             border-color: var(--color-out);
             color: var(--color-out);
@@ -1930,12 +1966,22 @@
             <div class="modal-body">
                 <div class="current-stock"><span class="stock-label">いまの数:</span><span class="stock-value"
                         id="current-stock-value">0</span><span id="current-stock-unit">個</span></div>
-                <div class="transaction-type-toggle" style="flex-wrap: wrap; gap: 8px;">
-                    <button class="type-btn active" data-type="OUT_USE" id="btn-type-out-use">使った<br><small
-                            style="font-size:0.75em; font-weight:normal;">（廃棄した）</small></button>
-                    <button class="type-btn" data-type="OUT_GIVE" id="btn-type-out-give">あげた</button>
-                    <button class="type-btn" data-type="IN_BUY" id="btn-type-in-buy">購入した</button>
-                    <button class="type-btn" data-type="IN_GET" id="btn-type-in-get">もらった</button>
+                <div class="transaction-type-toggle" id="tx-type-toggle-container">
+                    <div class="tx-group-wrapper" id="tx-group-out">
+                        <div class="tx-group-title">出庫（減る）</div>
+                        <button class="type-btn active" data-type="OUT_USE" id="btn-type-out-use">使った<br><small
+                                style="font-size:0.75em; font-weight:normal;">（廃棄した）</small></button>
+                        <button class="type-btn" data-type="OUT_GIVE" id="btn-type-out-give">あげた</button>
+                    </div>
+                    <div class="tx-group-wrapper" id="tx-group-in">
+                        <div class="tx-group-title">入庫（増える）</div>
+                        <button class="type-btn" data-type="IN_BUY" id="btn-type-in-buy">購入した</button>
+                        <button class="type-btn" data-type="IN_GET" id="btn-type-in-get">もらった</button>
+                    </div>
+                </div>
+                <div class="form-group" id="partner-dept-group" style="display:none; margin-top: -8px;">
+                    <label id="partner-dept-label">どこに？</label>
+                    <select id="partner-dept"></select>
                 </div>
                 <div class="form-group" id="lot-select-group" style="display:none;"><label>どれを使う？（期限えらび）:</label>
                     <div class="lot-list" id="lot-list"></div>
@@ -1968,10 +2014,6 @@
                         <option value="他署から受領">
                         <option value="他署へ譲渡">
                     </datalist></div>
-                <div class="form-group" id="partner-dept-group" style="display:none;">
-                    <label id="partner-dept-label">どこに？</label>
-                    <select id="partner-dept"></select>
-                </div>
                 <button class="save-btn" id="save-transaction">保存</button>
             </div>
         </div>
@@ -3308,6 +3350,9 @@
             const isInbound = (t === 'IN_BUY' || t === 'IN_GET');
             const isOutbound = (t === 'OUT_USE' || t === 'OUT_GIVE');
 
+            if ($('tx-group-out')) $('tx-group-out').classList.toggle('active-out', isOutbound);
+            if ($('tx-group-in')) $('tx-group-in').classList.toggle('active-in', isInbound);
+
             el.txDateLabel.textContent = isInbound ? 'いつ手に入れたか，いつもらったか' : 'いつ買ったか，いつあげたか';
 
             const item = ITEMS.find(i => i.id === state.itemId);
@@ -3339,7 +3384,7 @@
 
             if (t === 'OUT_GIVE' || t === 'IN_GET') {
                 $('partner-dept-group').style.display = 'block';
-                $('partner-dept-label').textContent = t === 'OUT_GIVE' ? 'どこのチームにあげた？' : 'どこのチームからもらった？';
+                $('partner-dept-label').textContent = t === 'OUT_GIVE' ? 'どこにあげた？' : 'どこからもらった？';
                 const otherDepts = DEPARTMENTS.filter(d => d.id !== state.deptId);
                 $('partner-dept').innerHTML = otherDepts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
             } else {
