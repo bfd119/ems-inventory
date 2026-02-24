@@ -1969,7 +1969,7 @@
                 <div class="transaction-type-toggle" id="tx-type-toggle-container">
                     <div class="tx-group-wrapper" id="tx-group-out">
                         <button class="type-btn active" data-type="OUT_USE" id="btn-type-out-use"
-                            style="min-height: 56px;">使った</button>
+                            style="min-height: 56px;">使った（廃棄した）</button>
                         <button class="type-btn" data-type="OUT_GIVE" id="btn-type-out-give"
                             style="min-height: 56px;">あげた</button>
                     </div>
@@ -1988,14 +1988,20 @@
                     <div class="lot-list" id="lot-list"></div>
                 </div>
                 <div class="form-group" id="expiry-input-group" style="display:none;">
-                    <label for="transaction-expiry">いつまで使えるか</label>
-                    <div class="custom-date-input" id="transaction-expiry-wrapper">
-                        <input type="text" id="transaction-expiry" readonly placeholder="タップして選択">
-                        <span class="material-symbols-outlined icon">calendar_month</span>
+                    <label for="transaction-expiry" id="transaction-expiry-label">使用期限</label>
+                    <div id="expiry-input-wrapper-inbound" style="display: flex; gap: 8px; flex-direction: column;">
+                        <select id="transaction-expiry-select"
+                            style="padding: var(--spacing-sm); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm);">
+                            <option value="">（新規追加）</option>
+                        </select>
+                        <div class="custom-date-input" id="transaction-expiry-wrapper">
+                            <input type="text" id="transaction-expiry" readonly placeholder="タップして新しい期限を選択">
+                            <span class="material-symbols-outlined icon">calendar_month</span>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label id="transaction-date-label">いつ手に入れたか，いつもらったか</label>
+                    <label id="transaction-date-label">使用日</label>
                     <div class="custom-date-input" id="transaction-date-wrapper">
                         <input type="text" id="transaction-date" readonly placeholder="タップして選択">
                         <span class="material-symbols-outlined icon">calendar_month</span>
@@ -3354,7 +3360,10 @@
             if ($('tx-group-out')) $('tx-group-out').classList.toggle('active-out', isOutbound);
             if ($('tx-group-in')) $('tx-group-in').classList.toggle('active-in', isInbound);
 
-            el.txDateLabel.textContent = isInbound ? 'いつ手に入れたか，いつもらったか' : 'いつ買ったか，いつあげたか';
+            if (t === 'OUT_USE') el.txDateLabel.textContent = '使用日';
+            else if (t === 'OUT_GIVE') el.txDateLabel.textContent = 'あげた日';
+            else if (t === 'IN_BUY') el.txDateLabel.textContent = '購入日';
+            else if (t === 'IN_GET') el.txDateLabel.textContent = 'もらった日';
 
             const item = ITEMS.find(i => i.id === state.itemId);
             const lots = getLots(state.deptId, state.itemId);
@@ -3362,14 +3371,39 @@
 
             if (isInbound && item.hasExpiry) {
                 el.expiryInputGroup.style.display = 'block';
+                el.lotSelectGroup.style.display = 'none'; // 入庫時は期限選択グループ(lot-select-group)は隠す
+
+                // プルダウンに既存の期限をセット
                 if (lots.length > 0) {
-                    el.lotSelectGroup.style.display = 'block';
-                    if (lotLabel) lotLabel.textContent = '既存の期限からコピー:';
-                    renderLotList(lots);
+                    const uniqueExps = [...new Set(lots.map(l => l.expiryDate).filter(d => d))].sort();
+                    let optionsHtml = '<option value="">（新規追加）</option>';
+                    uniqueExps.forEach(exp => {
+                        optionsHtml += `<option value="${exp}">${exp}</option>`;
+                    });
+                    $('transaction-expiry-select').innerHTML = optionsHtml;
+                    $('transaction-expiry-select').style.display = 'block';
+
+                    // プルダウンの変更イベント処理
+                    $('transaction-expiry-select').onchange = (e) => {
+                        const v = e.target.value;
+                        if (v) {
+                            el.txExpiry.value = v; // 選択した期限をセット
+                            $('transaction-expiry-wrapper').style.display = 'none'; // 新規追加入力欄を隠す
+                        } else {
+                            $('transaction-expiry-wrapper').style.display = 'flex'; // 新規追加入力欄を表示
+                            const def = new Date(); def.setFullYear(def.getFullYear() + 1);
+                            el.txExpiry.value = def.toISOString().split('T')[0];
+                        }
+                    };
+                    // 初期状態: プルダウン未選択で新規追加扱い
+                    $('transaction-expiry-select').value = "";
+                    $('transaction-expiry-wrapper').style.display = 'flex';
                 } else {
-                    el.lotSelectGroup.style.display = 'none';
+                    $('transaction-expiry-select').style.display = 'none';
+                    $('transaction-expiry-wrapper').style.display = 'flex';
                 }
-                if (!el.txExpiry.value) {
+
+                if (!$('transaction-expiry-select').value) {
                     const def = new Date(); def.setFullYear(def.getFullYear() + 1);
                     el.txExpiry.value = def.toISOString().split('T')[0];
                 }
