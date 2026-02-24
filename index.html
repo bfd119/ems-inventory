@@ -3533,11 +3533,13 @@
                         await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
                         // 相手へ入庫
                         await fsStockIn(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}からもらった`, txDate);
+                        alert(`${partnerDeptName}の在庫にも自動で反映されています！\n（${partnerDeptName}の人は何も入力しなくて大丈夫です）`);
                     } else if (state.txType === 'IN_GET') {
                         // 相手から出庫
                         await fsStockOut(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}にあげた`, txDate);
                         // 自分へ入庫
                         await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
+                        alert(`${partnerDeptName}の在庫にも自動で反映されています！\n（${partnerDeptName}の人は何も入力しなくて大丈夫です）`);
                     }
                 } else {
                     // 通常の入出庫
