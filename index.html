@@ -1847,7 +1847,7 @@
         <div class="search-bar" id="search-bar">
             <div class="search-input-wrapper">
                 <span class="material-symbols-outlined search-icon">search</span>
-                <input type="text" id="item-search" placeholder="用品名を検索..." autocomplete="off">
+                <input type="text" id="item-search" placeholder="アイテムの名前でさがす..." autocomplete="off">
                 <button class="search-clear" id="search-clear">×</button>
             </div>
             <div class="search-suggestions" id="search-suggestions"></div>
@@ -1928,35 +1928,38 @@
                     id="close-transaction-modal">×</button>
             </div>
             <div class="modal-body">
-                <div class="current-stock"><span class="stock-label">現在庫:</span><span class="stock-value"
+                <div class="current-stock"><span class="stock-label">いまの数:</span><span class="stock-value"
                         id="current-stock-value">0</span><span id="current-stock-unit">個</span></div>
-                <div class="transaction-type-toggle">
-                    <button class="type-btn" data-type="OUT" id="btn-type-out">出庫</button>
-                    <button class="type-btn active" data-type="IN" id="btn-type-in">入庫</button>
+                <div class="transaction-type-toggle" style="flex-wrap: wrap; gap: 8px;">
+                    <button class="type-btn active" data-type="OUT_USE" id="btn-type-out-use">使った<br><small
+                            style="font-size:0.75em; font-weight:normal;">（廃棄した）</small></button>
+                    <button class="type-btn" data-type="OUT_GIVE" id="btn-type-out-give">あげた</button>
+                    <button class="type-btn" data-type="IN_BUY" id="btn-type-in-buy">購入した</button>
+                    <button class="type-btn" data-type="IN_GET" id="btn-type-in-get">もらった</button>
                 </div>
-                <div class="form-group" id="lot-select-group" style="display:none;"><label>出庫ロット選択:</label>
+                <div class="form-group" id="lot-select-group" style="display:none;"><label>どれを使う？（期限えらび）:</label>
                     <div class="lot-list" id="lot-list"></div>
                 </div>
                 <div class="form-group" id="expiry-input-group" style="display:none;">
-                    <label for="transaction-expiry">使用期限</label>
+                    <label for="transaction-expiry">いつまで使えるか</label>
                     <div class="custom-date-input" id="transaction-expiry-wrapper">
                         <input type="text" id="transaction-expiry" readonly placeholder="タップして選択">
                         <span class="material-symbols-outlined icon">calendar_month</span>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label id="transaction-date-label">入庫日</label>
+                    <label id="transaction-date-label">いつ手に入れたか，いつもらったか</label>
                     <div class="custom-date-input" id="transaction-date-wrapper">
                         <input type="text" id="transaction-date" readonly placeholder="タップして選択">
                         <span class="material-symbols-outlined icon">calendar_month</span>
                     </div>
                 </div>
-                <div class="form-group"><label>数量</label>
+                <div class="form-group"><label>いくつ</label>
                     <div class="quantity-input"><button class="qty-btn" id="qty-minus">−</button><input type="number"
                             id="transaction-quantity" value="1" min="1"><button class="qty-btn" id="qty-plus">+</button>
                     </div>
                 </div>
-                <div class="form-group"><label>備考</label><input type="text" id="transaction-remarks"
+                <div class="form-group"><label>メモ（ひとこと）</label><input type="text" id="transaction-remarks"
                         list="remarks-suggestions" placeholder="備考..."><datalist id="remarks-suggestions">
                         <option value="使用期限切れ">
                         <option value="定期補充">
@@ -1965,15 +1968,9 @@
                         <option value="他署から受領">
                         <option value="他署へ譲渡">
                     </datalist></div>
-                <div class="form-group" id="transfer-group" style="display:none;">
-                    <label class="transfer-checkbox-label">
-                        <input type="checkbox" id="is-transfer">
-                        <span id="transfer-checkbox-text">署所間移動（他署からもらう）</span>
-                    </label>
-                    <div id="transfer-dept-select" style="display:none;margin-top:8px;">
-                        <label id="transfer-label">どこから？</label>
-                        <select id="transfer-dept"></select>
-                    </div>
+                <div class="form-group" id="partner-dept-group" style="display:none;">
+                    <label id="partner-dept-label">どこに？</label>
+                    <select id="partner-dept"></select>
                 </div>
                 <button class="save-btn" id="save-transaction">保存</button>
             </div>
@@ -2046,7 +2043,7 @@
                         <label>用品名（新規追加）</label>
                         <div class="search-input-wrapper"
                             style="border:1px solid var(--color-border); margin-bottom:0;">
-                            <input type="text" id="new-item-name" placeholder="用品名を入力..." autocomplete="off">
+                            <input type="text" id="new-item-name" placeholder="アイテムの名前でさがす..." autocomplete="off">
                             <input type="hidden" id="new-item-existing-id">
                         </div>
                         <div id="new-item-suggestions" class="search-suggestions"
@@ -2063,13 +2060,13 @@
                         <div class="form-group"><label>単位</label><input type="text" id="new-item-unit"
                                 placeholder="例: 本" value="個"></div>
                         <div class="form-group toggle-group">
-                            <label class="toggle-label">使用期限あり</label>
+                            <label class="toggle-label">いつまで使えるか あり</label>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="new-item-has-expiry">
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
-                        <div class="form-group"><label>最低在庫数 <small
+                        <div class="form-group"><label>これより減ったらおしえる数 <small
                                     style="color:var(--color-text-muted)">(任意)</small></label>
                             <input type="number" id="new-item-min-stock" placeholder="0" min="0" value="0">
                         </div>
@@ -2534,8 +2531,10 @@
                 }
             });
 
-            $('btn-type-in').onclick = () => setTxType('IN');
-            $('btn-type-out').onclick = () => setTxType('OUT');
+            $('btn-type-out-use').onclick = () => setTxType('OUT_USE');
+            $('btn-type-out-give').onclick = () => setTxType('OUT_GIVE');
+            $('btn-type-in-buy').onclick = () => setTxType('IN_BUY');
+            $('btn-type-in-get').onclick = () => setTxType('IN_GET');
 
             $('qty-minus').onclick = () => { el.txQty.value = Math.max(1, (+el.txQty.value || 0) - 1); };
             $('qty-plus').onclick = () => { el.txQty.value = (+el.txQty.value || 0) + 1; };
@@ -3294,24 +3293,29 @@
             el.txRemarks.value = '';
             el.txDate.value = new Date().toISOString().split('T')[0];
             state.selectedLot = null;
-            setTxType('OUT');
+            setTxType('OUT_USE');
             closeModal('items');
             openModal('transaction');
         }
 
         function setTxType(t) {
             state.txType = t;
-            $('btn-type-in').classList.toggle('active', t === 'IN');
-            $('btn-type-out').classList.toggle('active', t === 'OUT');
-            el.txDateLabel.textContent = t === 'IN' ? '入庫日' : '出庫日';
+            $('btn-type-out-use').classList.toggle('active', t === 'OUT_USE');
+            $('btn-type-out-give').classList.toggle('active', t === 'OUT_GIVE');
+            $('btn-type-in-buy').classList.toggle('active', t === 'IN_BUY');
+            $('btn-type-in-get').classList.toggle('active', t === 'IN_GET');
+
+            const isInbound = (t === 'IN_BUY' || t === 'IN_GET');
+            const isOutbound = (t === 'OUT_USE' || t === 'OUT_GIVE');
+
+            el.txDateLabel.textContent = isInbound ? 'いつ手に入れたか，いつもらったか' : 'いつ買ったか，いつあげたか';
+
             const item = ITEMS.find(i => i.id === state.itemId);
             const lots = getLots(state.deptId, state.itemId);
-
             const lotLabel = el.lotSelectGroup.querySelector('label');
 
-            if (t === 'IN' && item.hasExpiry) {
+            if (isInbound && item.hasExpiry) {
                 el.expiryInputGroup.style.display = 'block';
-                // 入庫時も既存ロットがある場合はリストを表示（コピー用）
                 if (lots.length > 0) {
                     el.lotSelectGroup.style.display = 'block';
                     if (lotLabel) lotLabel.textContent = '既存の期限からコピー:';
@@ -3319,39 +3323,28 @@
                 } else {
                     el.lotSelectGroup.style.display = 'none';
                 }
-
-                // 初期値設定（編集中でなければ）
                 if (!el.txExpiry.value) {
                     const def = new Date(); def.setFullYear(def.getFullYear() + 1);
                     el.txExpiry.value = def.toISOString().split('T')[0];
                 }
-            } else if (t === 'OUT' && item.hasExpiry && lots.length > 0) {
+            } else if (isOutbound && item.hasExpiry && lots.length > 0) {
                 el.expiryInputGroup.style.display = 'none';
                 el.lotSelectGroup.style.display = 'block';
-                if (lotLabel) lotLabel.textContent = '出庫ロット選択:';
+                if (lotLabel) lotLabel.textContent = 'どれを使う？（期限えらび）:';
                 renderLotList(lots);
             } else {
                 el.expiryInputGroup.style.display = 'none';
                 el.lotSelectGroup.style.display = 'none';
             }
-            // 署所間移動オプションを表示
-            $('transfer-group').style.display = 'block';
-            $('is-transfer').checked = false;
-            $('transfer-dept-select').style.display = 'none';
-            // 移動先の部署セレクトを生成
-            const otherDepts = DEPARTMENTS.filter(d => d.id !== state.deptId);
-            $('transfer-dept').innerHTML = otherDepts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-            // 入庫/出庫で表現を変更
-            if (t === 'IN') {
-                $('transfer-checkbox-text').textContent = '署所間移動（他署からもらう）';
-                $('transfer-label').textContent = 'どこから？';
+
+            if (t === 'OUT_GIVE' || t === 'IN_GET') {
+                $('partner-dept-group').style.display = 'block';
+                $('partner-dept-label').textContent = t === 'OUT_GIVE' ? 'どこのチームにあげた？' : 'どこのチームからもらった？';
+                const otherDepts = DEPARTMENTS.filter(d => d.id !== state.deptId);
+                $('partner-dept').innerHTML = otherDepts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
             } else {
-                $('transfer-checkbox-text').textContent = '署所間移動（他署へわたす）';
-                $('transfer-label').textContent = 'どこへ？';
+                $('partner-dept-group').style.display = 'none';
             }
-            $('is-transfer').onchange = () => {
-                $('transfer-dept-select').style.display = $('is-transfer').checked ? 'block' : 'none';
-            };
         }
 
         function renderLotList(lots) {
@@ -3424,16 +3417,20 @@
             const remarks = el.txRemarks.value.trim();
             const item = ITEMS.find(i => i.id === state.itemId);
             if (isNaN(qty) || qty < 1) { alert('数量を入力してください'); return; }
+
+            const isInbound = (state.txType === 'IN_BUY' || state.txType === 'IN_GET');
+            const isOutbound = (state.txType === 'OUT_USE' || state.txType === 'OUT_GIVE');
+
             let expiry = null;
-            if (state.txType === 'IN' && item.hasExpiry) expiry = el.txExpiry.value || null;
-            else if (state.txType === 'OUT' && item.hasExpiry) {
+            if (isInbound && item.hasExpiry) expiry = el.txExpiry.value || null;
+            else if (isOutbound && item.hasExpiry) {
                 if (!state.selectedLot) { alert('ロットを選択してください'); return; }
-                if (state.selectedLot.quantity < qty) { alert('在庫不足'); return; }
+                if (state.selectedLot.quantity < qty) { alert('数がたりないよ！'); return; }
                 expiry = state.selectedLot.expiryDate;
             }
 
-            const isTransfer = $('is-transfer').checked;
-            const transferDeptId = isTransfer ? +$('transfer-dept').value : null;
+            const isTransfer = (state.txType === 'OUT_GIVE' || state.txType === 'IN_GET');
+            const partnerDeptId = isTransfer ? +$('partner-dept').value : null;
 
             el.saveBtn.disabled = true;
             showLoading(true);
@@ -3447,21 +3444,28 @@
 
                 if (isTransfer) {
                     // 署所間移動の場合
-                    const fromDept = state.txType === 'OUT' ? state.deptId : transferDeptId;
-                    const toDept = state.txType === 'OUT' ? transferDeptId : state.deptId;
-                    const fromDeptName = DEPARTMENTS.find(d => d.id === fromDept)?.name;
-                    const toDeptName = DEPARTMENTS.find(d => d.id === toDept)?.name;
+                    const partnerDeptName = DEPARTMENTS.find(d => d.id === partnerDeptId)?.name;
+                    const myDeptName = DEPARTMENTS.find(d => d.id === state.deptId)?.name;
+                    const finalRemarks = remarks || (state.txType === 'OUT_GIVE' ? `${partnerDeptName}にあげた` : `${partnerDeptName}からもらった`);
 
-                    // 移動元から出庫
-                    await fsStockOut(fromDept, state.itemId, expiry, qty, `${toDeptName}へわたす`, txDate);
-                    // 移動先へ入庫
-                    await fsStockIn(toDept, state.itemId, expiry, qty, `${fromDeptName}からもらう`, txDate);
+                    if (state.txType === 'OUT_GIVE') {
+                        // 自分から出庫
+                        await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
+                        // 相手へ入庫
+                        await fsStockIn(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}からもらった`, txDate);
+                    } else if (state.txType === 'IN_GET') {
+                        // 相手から出庫
+                        await fsStockOut(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}にあげた`, txDate);
+                        // 自分へ入庫
+                        await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
+                    }
                 } else {
                     // 通常の入出庫
-                    if (state.txType === 'IN') {
-                        await fsStockIn(state.deptId, state.itemId, expiry, qty, remarks, txDate);
+                    const finalRemarks = remarks || (state.txType === 'IN_BUY' ? '購入した' : '使った（廃棄した）');
+                    if (isInbound) {
+                        await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
                     } else {
-                        await fsStockOut(state.deptId, state.itemId, expiry, qty, remarks, txDate);
+                        await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
                     }
                 }
 
