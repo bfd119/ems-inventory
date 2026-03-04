@@ -3282,11 +3282,13 @@
             }
 
 
-            // 統一された追加ボタン
-            html += `<button class="category-tile add-tile" onclick="openAddCategoryModal()">
-                        <span class="add-icon">+</span>
-                        <span class="category-name">追加</span>
-                    </button>`;
+            // 統一された追加ボタン（警防課のみ）
+            if (state.deptId === 1) {
+                html += `<button class="category-tile add-tile" onclick="openAddCategoryModal()">
+                            <span class="add-icon">+</span>
+                            <span class="category-name">追加</span>
+                        </button>`;
+            }
 
             el.catGrid.innerHTML = html;
 
@@ -3428,8 +3430,10 @@
                     </li>`;
                 }).join('');
             }
-            // 追加ボタン
-            html += `<li class="item-row add-item-row" onclick="openAddItemModal(${state.catId})"><div class="add-item-icon">+</div><div class="add-item-text">用品を追加</div></li>`;
+            // 追加ボタン（警防課のみ）
+            if (state.deptId === 1) {
+                html += `<li class="item-row add-item-row" onclick="openAddItemModal(${state.catId})"><div class="add-item-icon">+</div><div class="add-item-text">用品を追加</div></li>`;
+            }
 
             el.itemsList.innerHTML = html;
             el.itemsList.querySelectorAll('.item-row:not(.add-item-row)').forEach(r => r.onclick = () => { state.itemId = +r.dataset.id; showTxModal(); });
