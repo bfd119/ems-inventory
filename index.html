@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>救急用品在庫管理</title>
+    <title>救急用在庫管理表</title>
     <meta name="description" content="消防救急資器材の在庫管理システム">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png"
@@ -84,6 +84,14 @@
 
         .screen.active {
             display: flex;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         @keyframes fadeIn {
@@ -1851,7 +1859,7 @@
 
     <section id="department-select" class="screen active">
         <div class="screen-header">
-            <h1 class="app-title">🚑救急用品在庫表</h1>
+            <h1 class="app-title">🚑救急用在庫管理表</h1>
             <p class="app-subtitle">部署を選択してください</p>
         </div>
         <div class="department-grid" id="department-grid"></div>
@@ -1859,6 +1867,11 @@
             <button class="settings-link" id="open-analytics-top">📊 在庫状況・使用履歴</button>
             <button class="settings-link" id="open-settings">⚙️ 設定（カテゴリ・用品・通知）</button>
             <a href="manual.html" class="settings-link">📖 使い方ガイド</a>
+        </div>
+        <div id="qr-code-container" style="text-align: center; margin-top: 2rem;">
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">📱スマートフォン等からアクセス</p>
+            <img id="app-qr-code" src="" alt="App QR Code"
+                style="width: 150px; height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         </div>
     </section>
 
@@ -1902,33 +1915,70 @@
         </header>
         <div class="analytics-tabs">
             <button class="tab-btn active" data-tab="summary">在庫状況</button>
-            <button class="tab-btn" data-tab="budget">使用実績</button>
-            <button class="tab-btn" data-tab="log">履歴</button>
+            <button class="tab-btn" data-tab="combined">実績・履歴</button>
         </div>
         <div class="analytics-content">
             <div id="tab-summary" class="tab-content active">
                 <div class="summary-list" id="summary-list"></div>
             </div>
-            <div id="tab-budget" class="tab-content">
-                <div class="budget-controls">
-                    <select id="budget-year" class="budget-select"></select>
-                    <select id="budget-month" class="budget-select">
-                        <option value="all">全期間</option>
-                    </select>
+            <div id="tab-combined" class="tab-content">
+                <div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; height: 100%;">
+                    <div class="filter-controls"
+                        style="background: var(--color-bg-card); padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-weight: bold; margin-right: 1rem;">期間指定:</label>
+                            <select id="period-type"
+                                style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--color-border); margin-right: 8px;">
+                                <option value="year_month">年度・月指定</option>
+                                <option value="all">すべて（直近の履歴順）</option>
+                            </select>
+                            <span id="period-ym-selectors">
+                                <select id="budget-year" class="budget-select" style="padding: 4px 8px;"></select>
+                                <select id="budget-month" class="budget-select" style="padding: 4px 8px;">
+                                    <option value="all">通期（年度）</option>
+                                </select>
+                            </span>
+                        </div>
+                        <div>
+                            <label
+                                style="font-weight: bold; margin-right: 1rem; margin-bottom: 0.5rem; display: inline-block;">動きの種類:</label>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <label><input type="radio" name="tx-type-filter" class="tx-type-filter" value="IN_BUY"
+                                        checked>
+                                    購入（入荷）</label>
+                                <label><input type="radio" name="tx-type-filter" class="tx-type-filter" value="OUT_USE">
+                                    消費（使用・廃棄）</label>
+                                <label><input type="radio" name="tx-type-filter" class="tx-type-filter" value="IN_GET">
+                                    もらった</label>
+                                <label><input type="radio" name="tx-type-filter" class="tx-type-filter"
+                                        value="OUT_GIVE">
+                                    あげた</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="view-toggles"
+                        style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 0.5rem;">
+                        <button id="view-mode-detail" class="tab-btn"
+                            style="flex: initial; padding: 6px 16px;">リスト表示（個別の履歴）</button>
+                        <button id="view-mode-summary" class="tab-btn active"
+                            style="flex: initial; padding: 6px 16px;">集計表示（合計数）</button>
+                    </div>
+
+                    <!-- リスト用コンテナ -->
+                    <div id="combined-list-view" style="display: none; flex: 1; overflow-y: auto;">
+                        <div class="log-list" id="log-list"></div>
+                    </div>
+
+                    <!-- サマリー用コンテナ -->
+                    <div id="combined-summary-view"
+                        style="display: flex; flex: 1; overflow-y: auto; flex-direction: column;">
+                        <div class="budget-table-wrapper" style="flex: 1;">
+                            <table class="budget-table" id="budget-table"></table>
+                        </div>
+                        <button class="export-btn" id="export-csv" style="margin-top: 1rem;">📥 CSVエクスポート</button>
+                    </div>
                 </div>
-                <div class="budget-table-wrapper">
-                    <table class="budget-table" id="budget-table"></table>
-                </div>
-                <button class="export-btn" id="export-csv">📥 CSVエクスポート</button>
-            </div>
-            <div id="tab-log" class="tab-content">
-                <div class="log-controls"
-                    style="margin-bottom: 1rem; display: flex; gap: 1rem; justify-content: center;">
-                    <label><input type="radio" name="log-filter" value="ALL"> 全て</label>
-                    <label><input type="radio" name="log-filter" value="IN"> 入庫</label>
-                    <label><input type="radio" name="log-filter" value="OUT" checked> 出庫</label>
-                </div>
-                <div class="log-list" id="log-list"></div>
             </div>
         </div>
     </section>
@@ -1998,6 +2048,14 @@
                             <input type="text" id="transaction-expiry" readonly placeholder="タップして新しい期限を選択">
                             <span class="material-symbols-outlined icon">calendar_month</span>
                         </div>
+                    </div>
+                </div>
+                <div class="form-group" id="unit-price-group" style="display:none;">
+                    <label>単価 (任意)</label>
+                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                        <span style="font-weight: 600;">¥</span>
+                        <input type="number" id="transaction-unit-price" placeholder="購入時の単価" min="0" step="1"
+                            style="flex: 1;">
                     </div>
                 </div>
                 <div class="form-group">
@@ -2447,6 +2505,14 @@
             bindEvents();
             loadData();
             if (typeof DatePicker !== 'undefined') DatePicker.init();
+
+            // QRコードの生成
+            const qrImg = document.getElementById('app-qr-code');
+            if (qrImg) {
+                // 現在のURL（ファイルパスまたはWebURL）を取得しエンコード
+                const currentUrl = encodeURIComponent(window.location.href);
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${currentUrl}`;
+            }
         }
 
         // Bootstrapping
@@ -2497,11 +2563,17 @@
             el.currentExpiryDisplay = $('current-expiry-display');
 
             // Log & Summary & Budget elements
-            el.logList = $('log-list');
             el.summaryList = $('summary-list');
+            el.logList = $('log-list');
             el.budgetTable = $('budget-table');
             el.budgetYear = $('budget-year');
             el.budgetMonth = $('budget-month');
+            el.periodType = $('period-type');
+            el.periodYmSelectors = $('period-ym-selectors');
+            el.viewModeDetail = $('view-mode-detail');
+            el.viewModeSummary = $('view-mode-summary');
+            el.combinedListView = $('combined-list-view');
+            el.combinedSummaryView = $('combined-summary-view');
 
             // モーダルのキャッシュ
             el.modals = {
@@ -2590,25 +2662,46 @@
 
             $('save-transaction').onclick = saveTx;
 
-            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
-            $('budget-year').onchange = renderBudget;
-            $('budget-month').onchange = renderBudget;
-            $('export-csv').onclick = exportCSV;
+            document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+
+            // 実績・履歴タブ内のイベント
+            if (el.periodType) {
+                el.periodType.onchange = () => {
+                    if (el.periodType.value === 'year_month') el.periodYmSelectors.style.display = 'inline';
+                    else el.periodYmSelectors.style.display = 'none';
+                    renderCombined();
+                };
+            }
+            if ($('budget-year')) $('budget-year').onchange = renderCombined;
+            if ($('budget-month')) $('budget-month').onchange = renderCombined;
+
+            document.querySelectorAll('.tx-type-filter').forEach(cb => cb.onchange = renderCombined);
+
+            if (el.viewModeDetail) {
+                el.viewModeDetail.onclick = () => {
+                    el.viewModeDetail.classList.add('active');
+                    el.viewModeSummary.classList.remove('active');
+                    el.combinedListView.style.display = 'block';
+                    el.combinedSummaryView.style.display = 'none';
+                };
+            }
+            if (el.viewModeSummary) {
+                el.viewModeSummary.onclick = () => {
+                    el.viewModeSummary.classList.add('active');
+                    el.viewModeDetail.classList.remove('active');
+                    el.combinedListView.style.display = 'none';
+                    el.combinedSummaryView.style.display = 'flex';
+                };
+            }
+
+            if ($('export-csv')) $('export-csv').onclick = exportCSV;
 
             $('save-new-item').onclick = saveNewItem;
 
             // 検索機能
-            // $('toggle-search').onclick = toggleSearchBar; // 常時表示のため削除
             $('item-search').oninput = handleSearchInput;
             $('search-clear').onclick = clearSearch;
-
-            // Add Item Modal Search - 復活
             $('new-item-name').oninput = handleNewItemSearch;
-            // $('reset-item-selection')は削除されたのでイベントバインドも不要
-            // if ($('reset-item-selection')) $('reset-item-selection').onclick = resetItemSelection;
-
-            // ログフィルタのイベントリスナー
-            document.querySelectorAll('input[name="log-filter"]').forEach(r => r.onchange = renderLog);
         }
 
         // ============================================
@@ -2639,7 +2732,7 @@
             if (links.length === 0) {
                 return items.map(r => ({
                     id: +r.id, categoryId: +r.category_id, name: r.name, unit: r.unit,
-                    hasExpiry: r.has_expiry, minStock: +r.min_stock
+                    hasExpiry: r.has_expiry, minStock: +r.min_stock, unitPrice: +r.unit_price || 0
                 }));
             }
 
@@ -2656,7 +2749,8 @@
                         name: item.name,
                         unit: item.unit,
                         hasExpiry: item.has_expiry,
-                        minStock: +item.min_stock
+                        minStock: +item.min_stock,
+                        unitPrice: +item.unit_price || 0
                     });
                 }
             });
@@ -2665,6 +2759,13 @@
             // 今回は移行スクリプトで全itemがitem_categoriesに入っている前提とする
 
             return result;
+        }
+
+        async function fsUpdateItemUnitPrice(itemId, price) {
+            const { error } = await db.from('items')
+                .update({ unit_price: price || 0 })
+                .eq('id', itemId);
+            if (error) throw error;
         }
 
         async function fsGetStocks() {
@@ -2943,7 +3044,7 @@
                 }));
 
                 renderDeptGrid();
-                initBudget();
+                initCombined();
             } catch (e) {
                 console.error('Data loading error:', e);
                 if (!cached) {
@@ -3313,9 +3414,13 @@
                     const alertText = alerts.join(' / ');
                     const hasAnyAlert = alerts.length > 0;
 
+                    const unitPriceHtml = (item.unitPrice && item.unitPrice > 0)
+                        ? `<span style="font-size:0.75rem; color:var(--color-text-secondary); margin-left:8px; font-weight:normal;">(¥${item.unitPrice.toLocaleString()})</span>`
+                        : '';
+
                     return `<li class="item-row" data-id="${item.id}">
                         <div class="item-info">
-                            <div class="item-name">${item.name}</div>
+                            <div class="item-name">${item.name}${unitPriceHtml}</div>
                             ${lotInfoHtml}
                             ${hasAnyAlert ? `<div style="margin-top:4px;"><span class="item-alert-label">${alertText}</span></div>` : ''}
                         </div>
@@ -3368,6 +3473,14 @@
             const item = ITEMS.find(i => i.id === state.itemId);
             const lots = getLots(state.deptId, state.itemId);
             const lotLabel = el.lotSelectGroup.querySelector('label');
+
+            const unitPriceGroup = document.getElementById('unit-price-group');
+            if (t === 'IN_BUY') {
+                if (unitPriceGroup) unitPriceGroup.style.display = 'block';
+                document.getElementById('transaction-unit-price').value = item.unitPrice || '';
+            } else {
+                if (unitPriceGroup) unitPriceGroup.style.display = 'none';
+            }
 
             if (isInbound && item.hasExpiry) {
                 el.expiryInputGroup.style.display = 'block';
@@ -3546,6 +3659,17 @@
                     const finalRemarks = remarks || (state.txType === 'IN_BUY' ? '購入した' : '使った（廃棄した）');
                     if (isInbound) {
                         await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
+                        // 購入時で単価が入力されていれば保存
+                        if (state.txType === 'IN_BUY') {
+                            const unitPriceParams = document.getElementById('transaction-unit-price').value;
+                            if (unitPriceParams !== '') {
+                                const newPrice = +unitPriceParams;
+                                await fsUpdateItemUnitPrice(state.itemId, newPrice);
+                                // メモリ上のITEMSも更新
+                                const idx = ITEMS.findIndex(i => i.id === state.itemId);
+                                if (idx !== -1) ITEMS[idx].unitPrice = newPrice;
+                            }
+                        }
                     } else {
                         await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
                     }
@@ -3570,37 +3694,13 @@
             } else {
                 analyticsTitle.textContent = '全体統計・分析';
             }
-            try { state.transactions = await fsGetTransactions(100); renderLog(); renderSummary(); initBudget(); renderBudget(); } catch (e) { handleError(e); }
+            try {
+                state.transactions = await fsGetTransactions(1000); // 100件から1000件に増加(集計のため)
+                renderSummary();
+                initCombined();
+                renderCombined();
+            } catch (e) { handleError(e); }
             showLoading(false);
-        }
-
-        function renderLog() {
-            // フィルタ取得
-            const filterType = document.querySelector('input[name="log-filter"]:checked')?.value || 'OUT';
-
-            let txs = state.transactions;
-
-            // 部署フィルタ
-            if (state.deptId) {
-                txs = txs.filter(t => t.departmentId === state.deptId);
-            }
-
-            // タイプフィルタ
-            if (filterType !== 'ALL') {
-                txs = txs.filter(t => t.type === filterType);
-            }
-
-            if (txs.length === 0) {
-                el.logList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>履歴がありません</p></div>';
-                return;
-            }
-            el.logList.innerHTML = txs.slice(0, 50).map(tx => {
-                const d = DEPARTMENTS.find(x => x.id === tx.departmentId);
-                const i = ITEMS.find(x => x.id === tx.itemId);
-                const dateLabel = tx.type === 'IN' ? '入庫日' : '出庫日';
-                const expStr = tx.expiryDate ? fmtDate(tx.expiryDate) : '';
-                return `<div class="log-item"><div class="log-type ${tx.type === 'IN' ? 'in' : 'out'}">${tx.type === 'IN' ? '入庫' : '出庫'}</div><div class="log-details"><div class="log-item-name">${i?.name || '?'}</div><div class="log-meta">${d?.name || '?'} / ${dateLabel}:${fmtDT(tx.timestamp)}${expStr ? ' / 期限:' + expStr : ''}${tx.remarks ? ' / ' + tx.remarks : ''}</div></div><div class="log-quantity">${tx.type === 'IN' ? '+' : '-'}${tx.quantity}</div></div>`;
-            }).join('');
         }
 
         function renderSummary() {
@@ -3808,13 +3908,13 @@
         function exportMatrixCSV() {
             // CSV生成ロジック
             // ヘッダー: 用品ID, カテゴリ, 用品名, 単位, 三次...東城, 署所計, 警防課
-            const keibouka = DEPARTMENTS.find(d => d.id === 99);
-            const otherDepts = DEPARTMENTS.filter(d => d.id !== 99).sort((a, b) => a.id - b.id);
+            const keibouka = DEPARTMENTS.find(d => d.id === 1);
+            const otherDepts = DEPARTMENTS.filter(d => d.id !== 1).sort((a, b) => a.id - b.id);
 
             let csv = '\uFEFF'; // BOM
 
             // ヘッダー行
-            const header = ['ID', 'カテゴリ', '用品名', '単位', ...otherDepts.map(d => d.name), '署所計', '警防課'];
+            const header = ['カテゴリ', '用品名', '単位', ...otherDepts.map(d => d.name), '署所計', '警防課'];
             csv += header.join(',') + '\n';
 
             // データ行
@@ -3823,7 +3923,6 @@
                 const lots = getLots(null, item.id);
 
                 const row = [
-                    item.id,
                     cat ? cat.name : '',
                     item.name,
                     item.unit
@@ -3833,16 +3932,16 @@
                 // 各署所
                 otherDepts.forEach(d => {
                     const qty = lots.filter(l => l.departmentId === d.id).reduce((a, l) => a + l.quantity, 0);
-                    row.push(qty);
+                    row.push(qty === 0 ? '' : qty);
                     subTotal += qty;
                 });
 
                 // 署所計
-                row.push(subTotal);
+                row.push(subTotal === 0 ? '' : subTotal);
 
                 // 警防課
                 const keiboukaQty = keibouka ? lots.filter(l => l.departmentId === keibouka.id).reduce((a, l) => a + l.quantity, 0) : 0;
-                row.push(keiboukaQty);
+                row.push(keiboukaQty === 0 ? '' : keiboukaQty);
 
                 csv += row.join(',') + '\n';
             });
@@ -3852,7 +3951,7 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.setAttribute('href', url);
-            a.setAttribute('download', `救急用品在庫表_${new Date().toISOString().split('T')[0]}.csv`);
+            a.setAttribute('download', `救急用在庫管理表_${new Date().toISOString().split('T')[0]}.csv`);
             a.click();
         }
 
@@ -3961,69 +4060,201 @@
             }).join('');
         }
 
-        function initBudget() {
+        function initCombined() {
             const yrs = new Set();
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1;
+            const currentNendo = currentMonth <= 3 ? currentYear - 1 : currentYear;
+
             state.transactions.forEach(t => {
                 const year = new Date(t.timestamp).getFullYear();
-                if (!isNaN(year) && year > 2000 && year < 2100) {
-                    yrs.add(year);
+                // 過去の年、かつ現在の年度以下の年を対象にする
+                if (!isNaN(year) && year > 2000) {
+                    const m = new Date(t.timestamp).getMonth() + 1;
+                    const nendo = m <= 3 ? year - 1 : year;
+                    if (nendo <= currentNendo) {
+                        yrs.add(nendo);
+                    }
                 }
             });
-            yrs.add(new Date().getFullYear());
-            el.budgetYear.innerHTML = [...yrs].sort((a, b) => b - a).map(y => `<option value="${y}">${y}年</option>`).join('');
-            el.budgetMonth.innerHTML = '<option value="all">全期間</option>' + [...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1}月</option>`).join('');
+            yrs.add(currentNendo);
+
+            if (el.budgetYear) el.budgetYear.innerHTML = [...yrs].sort((a, b) => b - a).map(y => `<option value="${y}">${y}年度</option>`).join('');
+            if (el.budgetMonth) el.budgetMonth.innerHTML = '<option value="all">通期</option>' + [...Array(12)].map((_, i) => {
+                const m = i < 9 ? i + 4 : i - 8; // 4月から始まる配列
+                return `<option value="${m}">${m}月</option>`;
+            }).join('');
         }
 
-        function renderBudget() {
-            const yr = +el.budgetYear.value, mo = el.budgetMonth.value;
-            // 部署フィルタ
-            let flt = state.transactions.filter(t => t.type === 'OUT' && new Date(t.timestamp).getFullYear() === yr && (mo === 'all' || new Date(t.timestamp).getMonth() + 1 === +mo));
-            if (state.deptId) {
-                flt = flt.filter(t => t.departmentId === state.deptId);
+        function renderCombined() {
+            const periodType = el.periodType ? el.periodType.value : 'all';
+            const yr = el.budgetYear ? +el.budgetYear.value : new Date().getFullYear();
+            const mo = el.budgetMonth ? el.budgetMonth.value : 'all';
+
+            // チェックされているトランザクション種別を取得（ラジオボタンなので1つ）
+            const checkedTypes = Array.from(document.querySelectorAll('.tx-type-filter:checked')).map(cb => cb.value);
+
+            // ベースとなるフィルタリング（旧バージョンの IN/OUT タグも考慮）
+            let flt = state.transactions.filter(t => {
+                if (checkedTypes.includes(t.type)) return true;
+                if (t.type === 'OUT' && checkedTypes.includes('OUT_USE')) return true;
+                // 古い IN データは購入・もらったとして扱う
+                if (t.type === 'IN' && (checkedTypes.includes('IN_BUY') || checkedTypes.includes('IN_GET'))) return true;
+                return false;
+            });
+
+            // 期間フィルタリング
+            if (periodType === 'year_month') {
+                flt = flt.filter(t => {
+                    const date = new Date(t.timestamp);
+                    const tYear = date.getFullYear();
+                    const tMonth = date.getMonth() + 1;
+                    // 年度判定 (4月〜翌3月)
+                    const nendo = (tMonth <= 3) ? tYear - 1 : tYear;
+
+                    if (nendo !== yr) return false;
+                    if (mo !== 'all' && tMonth !== +mo) return false;
+                    return true;
+                });
             }
 
+            // 部署フィルタ
+            if (state.deptId) {
+                flt = flt.filter(t => t.departmentId === state.deptId || t.targetDepartmentId === state.deptId);
+            }
+
+            // ----------------------------------------------------
+            // リスト（明細）表示のレンダリング
+            // ----------------------------------------------------
+            if (flt.length === 0) {
+                el.logList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>該当する履歴がありません</p></div>';
+            } else {
+                el.logList.innerHTML = flt.map(t => {
+                    const item = ITEMS.find(i => i.id === t.itemId);
+                    const dept = DEPARTMENTS.find(d => d.id === t.departmentId);
+                    if (!item || !dept) return '';
+
+                    const isOut = t.type.startsWith('OUT');
+                    const isTransfer = t.type === 'OUT_GIVE' || t.type === 'IN_GET';
+
+                    const typeLabels = {
+                        'IN_BUY': '購入', 'IN_GET': '受取', 'IN_RETURN': '返戻',
+                        'OUT_USE': '使・廃', 'OUT_GIVE': '譲渡', 'OUT_ADJUST': '調整', 'IN': '入庫', 'OUT': '出庫'
+                    };
+                    const typeLabel = typeLabels[t.type] || t.type;
+
+                    const d = new Date(t.timestamp);
+                    const dateStr = `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+
+                    return `<div class="log-item">
+                        <div class="log-type ${isOut ? 'out' : 'in'}">${typeLabel}</div>
+                        <div class="log-details">
+                            <div class="log-item-name">${item.name}</div>
+                            <div class="log-meta">
+                                ${dateStr} • ${dept.name}
+                                ${t.remarks ? ` • <span style="color:#666">💬 ${t.remarks}</span>` : ''}
+                                ${t.expiryDate && t.expiryDate !== '9999-12-31' ? ` • <span style="color:#e65100">期限: ${t.expiryDate}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="log-quantity ${isOut ? 'out' : 'in'}" style="color: ${isOut ? 'var(--color-out)' : 'var(--color-in)'}">
+                            ${isOut ? '-' : '+'}${t.quantity}${item.unit}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // ----------------------------------------------------
+            // 集計（サマリー）表示のレンダリング
+            // ----------------------------------------------------
             if (state.deptId) {
                 // 部署別表示: シンプルなリスト形式
                 const mx = {}; ITEMS.forEach(i => { mx[i.id] = 0; });
-                flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + t.quantity; });
+                flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + (t.type.startsWith('OUT') ? t.quantity : t.quantity); }); // ここはOUT/INに関わらず絶対値を集計（項目ごとに確認したい場合用）
                 const used = ITEMS.filter(i => mx[i.id] > 0);
-                if (used.length === 0) { el.budgetTable.innerHTML = '<tr><td colspan="2" style="padding:2rem;text-align:center">データなし</td></tr>'; return; }
-                let h = '<thead><tr><th>用品</th><th>使用数</th></tr></thead><tbody>';
-                used.forEach(i => { h += `<tr><td>${i.name}</td><td><b>${mx[i.id]}</b></td></tr>`; });
-                h += '</tbody>'; el.budgetTable.innerHTML = h;
+                if (used.length === 0) {
+                    el.budgetTable.innerHTML = '<tr><td colspan="2" style="padding:2rem;text-align:center">データなし</td></tr>';
+                } else {
+                    let h = '<thead><tr><th>用品</th><th>集計数</th></tr></thead><tbody>';
+                    used.forEach(i => { h += `<tr><td>${i.name}</td><td><b>${mx[i.id]}</b></td></tr>`; });
+                    h += '</tbody>'; el.budgetTable.innerHTML = h;
+                }
             } else {
                 // 全体表示: 部署別クロス集計
                 const mx = {}; DEPARTMENTS.forEach(d => { mx[d.id] = {}; ITEMS.forEach(i => { mx[d.id][i.id] = 0; }); });
                 flt.forEach(t => { if (mx[t.departmentId]) mx[t.departmentId][t.itemId] = (mx[t.departmentId][t.itemId] || 0) + t.quantity; });
                 const used = ITEMS.filter(i => flt.some(t => t.itemId === i.id));
-                if (used.length === 0) { el.budgetTable.innerHTML = '<tr><td colspan="12" style="padding:2rem;text-align:center">データなし</td></tr>'; return; }
-                let h = '<thead><tr><th>用品</th>' + DEPARTMENTS.map(d => `<th>${d.name}</th>`).join('') + '<th>計</th></tr></thead><tbody>';
-                used.forEach(i => { h += `<tr><td>${i.name}</td>`; let rt = 0; DEPARTMENTS.forEach(d => { const q = mx[d.id][i.id] || 0; rt += q; h += `<td>${q || '-'}</td>`; }); h += `<td><b>${rt}</b></td></tr>`; });
-                h += '</tbody>'; el.budgetTable.innerHTML = h;
+                if (used.length === 0) {
+                    el.budgetTable.innerHTML = '<tr><td colspan="12" style="padding:2rem;text-align:center">データなし</td></tr>';
+                } else {
+                    let h = '<thead><tr><th>用品</th>' + DEPARTMENTS.map(d => `<th>${d.name}</th>`).join('') + '<th>計</th></tr></thead><tbody>';
+                    used.forEach(i => {
+                        h += `<tr><td>${i.name}</td>`;
+                        let rt = 0;
+                        DEPARTMENTS.forEach(d => { const q = mx[d.id][i.id] || 0; rt += q; h += `<td>${q || '-'}</td>`; });
+                        h += `<td><b>${rt}</b></td></tr>`;
+                    });
+                    h += '</tbody>'; el.budgetTable.innerHTML = h;
+                }
             }
         }
 
         function exportCSV() {
-            const yr = el.budgetYear.value, mo = el.budgetMonth.value;
-            let flt = state.transactions.filter(t => t.type === 'OUT' && new Date(t.timestamp).getFullYear() === +yr && (mo === 'all' || new Date(t.timestamp).getMonth() + 1 === +mo));
+            const periodType = el.periodType ? el.periodType.value : 'all';
+            const yr = el.budgetYear ? el.budgetYear.value : new Date().getFullYear();
+            const mo = el.budgetMonth ? el.budgetMonth.value : 'all';
+
+            // チェックされているトランザクション種別を取得
+            const checkedTypes = Array.from(document.querySelectorAll('.tx-type-filter:checked')).map(cb => cb.value);
+
+            // 旧データを考慮したフィルタリング
+            let flt = state.transactions.filter(t => {
+                if (checkedTypes.includes(t.type)) return true;
+                if (t.type === 'OUT' && checkedTypes.includes('OUT_USE')) return true;
+                if (t.type === 'IN' && (checkedTypes.includes('IN_BUY') || checkedTypes.includes('IN_GET'))) return true;
+                return false;
+            });
+
+            // 期間フィルタリング
+            let periodText = '全期間';
+            if (periodType === 'year_month') {
+                periodText = `${yr}年度${mo === 'all' ? '通期' : mo + '月'}`;
+                flt = flt.filter(t => {
+                    const date = new Date(t.timestamp);
+                    const tYear = date.getFullYear();
+                    const tMonth = date.getMonth() + 1;
+                    const nendo = (tMonth <= 3) ? tYear - 1 : tYear;
+
+                    if (nendo !== +yr) return false;
+                    if (mo !== 'all' && tMonth !== +mo) return false;
+                    return true;
+                });
+            }
+
             if (state.deptId) {
-                flt = flt.filter(t => t.departmentId === state.deptId);
+                flt = flt.filter(t => t.departmentId === state.deptId || t.targetDepartmentId === state.deptId);
                 const dept = DEPARTMENTS.find(d => d.id === state.deptId);
                 const mx = {}; ITEMS.forEach(i => { mx[i.id] = 0; });
-                flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + t.quantity; });
-                let csv = '\ufeff用品名,使用数\n';
-                ITEMS.forEach(i => { if (mx[i.id] > 0) csv += `"${i.name}",${mx[i.id]}\n`; });
+                flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + (t.type.startsWith('OUT') ? t.quantity : t.quantity); });
+                let csv = '\ufeff用品名,実績数\n';
+                ITEMS.forEach(i => { csv += `"${i.name}",${mx[i.id] === 0 ? '' : mx[i.id]}\n`; });
                 const b = new Blob([csv], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(b), a = document.createElement('a');
-                a.href = u; a.download = `${dept?.name || '部署'}_使用量_${yr}年${mo === 'all' ? '' : mo + '月'}.csv`; a.click(); URL.revokeObjectURL(u);
+                a.href = u; a.download = `${dept?.name || '部署'}_実績_${periodText}.csv`; a.click(); URL.revokeObjectURL(u);
             } else {
-                const mx = {}; ITEMS.forEach(i => { mx[i.id] = {}; DEPARTMENTS.forEach(d => { mx[i.id][d.id] = 0; }); }); flt.forEach(t => { mx[t.itemId][t.departmentId] += t.quantity; });
+                const mx = {}; ITEMS.forEach(i => { mx[i.id] = {}; DEPARTMENTS.forEach(d => { mx[i.id][d.id] = 0; }); });
+                flt.forEach(t => {
+                    if (mx[t.itemId] && mx[t.itemId][t.departmentId] !== undefined) {
+                        mx[t.itemId][t.departmentId] += (t.type.startsWith('OUT') ? t.quantity : t.quantity);
+                    }
+                });
                 let csv = '\ufeff用品名,' + DEPARTMENTS.map(d => d.name).join(',') + ',合計\n';
-                ITEMS.forEach(i => { const vs = DEPARTMENTS.map(d => mx[i.id][d.id]); const t = vs.reduce((a, b) => a + b, 0); if (t > 0) csv += `"${i.name}",${vs.join(',')},${t}\n`; });
-                const b = new Blob([csv], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = `EMS使用量_${yr}年${mo === 'all' ? '' : mo + '月'}.csv`; a.click(); URL.revokeObjectURL(u);
+                ITEMS.forEach(i => { const vs = DEPARTMENTS.map(d => mx[i.id][d.id]); const t = vs.reduce((a, b) => a + b, 0); csv += `"${i.name}",${vs.map(v => v === 0 ? '' : v).join(',')},${t === 0 ? '' : t}\n`; });
+
+                const b = new Blob([csv], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(b), a = document.createElement('a');
+                a.href = u; a.download = `EMS実績_${periodText}.csv`; a.click(); URL.revokeObjectURL(u);
             }
         }
 
-        function switchTab(id) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + id)); }
+        function switchTab(id) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); document.querySelectorAll('.tab-content').forEach(c => { const isActive = c.id === 'tab-' + id; c.classList.toggle('active', isActive); c.style.display = isActive ? '' : 'none'; }); }
 
         function renderSettings() {
             if (state.settingsCatId) {
