@@ -2599,17 +2599,19 @@
             $('back-to-home').onclick = () => showScreen('home');
             $('open-dept-inventory').onclick = () => {
                 showScreen('analytics');
-                switchTab('summary');
+                switchTab('combined');
                 renderAnalytics();
             };
             $('open-stats').onclick = () => {
                 state.deptId = null; // 全体集計
                 showScreen('analytics');
+                switchTab('combined');
                 renderAnalytics();
             };
             $('open-analytics-top').onclick = () => {
                 state.deptId = null; // 全体集計
                 showScreen('analytics');
+                switchTab('combined');
                 renderAnalytics();
             };
             $('back-to-dashboard').onclick = () => {
@@ -4164,9 +4166,9 @@
             // ----------------------------------------------------
             if (state.deptId) {
                 // 部署別表示: シンプルなリスト形式
-                const mx = {}; ITEMS.forEach(i => { mx[i.id] = 0; });
+                const mx = {}; const uniqueItems = ITEMS.filter((item, idx, arr) => arr.findIndex(i => i.id === item.id) === idx); uniqueItems.forEach(i => { mx[i.id] = 0; });
                 flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + (t.type.startsWith('OUT') ? t.quantity : t.quantity); }); // ここはOUT/INに関わらず絶対値を集計（項目ごとに確認したい場合用）
-                const used = ITEMS.filter(i => mx[i.id] > 0);
+                const used = uniqueItems.filter(i => mx[i.id] > 0);
                 if (used.length === 0) {
                     el.budgetTable.innerHTML = '<tr><td colspan="2" style="padding:2rem;text-align:center">データなし</td></tr>';
                 } else {
@@ -4176,9 +4178,9 @@
                 }
             } else {
                 // 全体表示: 部署別クロス集計
-                const mx = {}; DEPARTMENTS.forEach(d => { mx[d.id] = {}; ITEMS.forEach(i => { mx[d.id][i.id] = 0; }); });
+                const mx = {}; const uniqueItems = ITEMS.filter((item, idx, arr) => arr.findIndex(i => i.id === item.id) === idx); DEPARTMENTS.forEach(d => { mx[d.id] = {}; uniqueItems.forEach(i => { mx[d.id][i.id] = 0; }); });
                 flt.forEach(t => { if (mx[t.departmentId]) mx[t.departmentId][t.itemId] = (mx[t.departmentId][t.itemId] || 0) + t.quantity; });
-                const used = ITEMS.filter(i => flt.some(t => t.itemId === i.id));
+                const used = uniqueItems.filter(i => flt.some(t => t.itemId === i.id));
                 if (used.length === 0) {
                     el.budgetTable.innerHTML = '<tr><td colspan="12" style="padding:2rem;text-align:center">データなし</td></tr>';
                 } else {
