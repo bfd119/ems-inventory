@@ -3004,19 +3004,29 @@
                 query = query.is('expiry_date', null);
             }
 
-            const { data: existing, error } = await query.limit(1).maybeSingle();
+            const { data: records, error } = await query.order('id', { ascending: true });
 
-            if (error || !existing || existing.quantity < quantity) {
-                console.error('在庫不足エラー詳細:', { deptId, itemId, expiryDate, quantity, existing, error });
+            if (error || !records || records.length === 0) {
+                throw new Error('在庫不足');
+            }
+
+            const totalStock = records.reduce((sum, r) => sum + r.quantity, 0);
+            if (totalStock < quantity) {
+                console.error('在庫不足エラー詳細:', { deptId, itemId, expiryDate, quantity, records, error });
                 // デバッグ用アラートは削除し、本来のエラーのみスロー
                 throw new Error('在庫不足');
             }
 
-            const newQty = existing.quantity - quantity;
-            if (newQty <= 0) {
-                await db.from('stocks').delete().eq('id', existing.id);
-            } else {
-                await db.from('stocks').update({ quantity: newQty }).eq('id', existing.id);
+            let remain = quantity;
+            for (const rec of records) {
+                if (remain <= 0) break;
+                if (rec.quantity <= remain) {
+                    await db.from('stocks').delete().eq('id', rec.id);
+                    remain -= rec.quantity;
+                } else {
+                    await db.from('stocks').update({ quantity: rec.quantity - remain }).eq('id', rec.id);
+                    remain = 0;
+                }
             }
             return fsAddTransaction(deptId, itemId, 'OUT', quantity, expiryDate, remarks, transactionDate);
         }
@@ -4044,46 +4054,40 @@
 
         // 特定部署のカテゴリ別在庫を表示
         function renderSummaryByCategory(deptId) {
-            const deptStocks = state.stocks.filter(s => s.departmentId === deptId && s.quantity > 0);
-
-            // カテゴリごとにグループ化
             const catData = {};
             CATEGORIES.forEach(c => { catData[c.id] = { category: c, items: [] }; });
 
-            deptStocks.forEach(s => {
-                const item = ITEMS.find(i => i.id === s.itemId);
-                if (!item || !catData[item.categoryId]) return;
-                const existing = catData[item.categoryId].items.find(x => x.item.id === item.id);
-                if (existing) {
-                    existing.qty += s.quantity;
-                    existing.lots.push(s);
-                } else {
-                    catData[item.categoryId].items.push({ item, qty: s.quantity, lowStock: false, lots: [s] });
-                }
-            });
+            ITEMS.forEach(item => {
+                if (!catData[item.categoryId]) return;
 
-            // 最低在庫チェック
-            Object.values(catData).forEach(c => {
-                c.items.forEach(s => {
-                    if (s.item.minStock && s.qty < s.item.minStock) {
-                        s.lowStock = true;
-                    }
-                });
+                const itemStocks = state.stocks.filter(s => s.departmentId === deptId && s.itemId === item.id && s.quantity > 0);
+                const totalQty = itemStocks.reduce((sum, s) => sum + s.quantity, 0);
+
+                const itemData = {
+                    item: item,
+                    qty: totalQty,
+                    lowStock: item.minStock && totalQty < item.minStock,
+                    lots: itemStocks
+                };
+                catData[item.categoryId].items.push(itemData);
             });
 
             const catsWithItems = Object.values(catData).filter(c => c.items.length > 0);
+
             if (catsWithItems.length === 0) {
-                el.summaryList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>在庫がありません</p></div>';
+                el.summaryList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>用品が登録されていません</p></div>';
                 return;
             }
 
-            el.summaryList.innerHTML = catsWithItems.map(c => {
+            let html = '<div class="matrix-accordion">';
+
+            catsWithItems.forEach(c => {
                 const catColor = ICON_COLORS[c.category.icon] || '#607D8B';
+
                 const itemsHtml = c.items.map(s => {
                     const lowClass = s.lowStock ? 'low-stock' : '';
                     const minLabel = s.item.minStock ? `<span class="min-stock-label">最低:${s.item.minStock}</span>` : '';
 
-                    // ロット情報の表示（期限付きのみ）
                     let lotInfoHtml = '';
                     if (s.item.hasExpiry && s.lots.length > 0) {
                         const sortedLots = [...s.lots].sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
@@ -4105,14 +4109,26 @@
                     </div>`;
                 }).join('');
 
-                return `<div class="summary-category" style="border-left: 4px solid ${catColor}">
-                    <div class="summary-category-header">
-                        <span class="material-symbols-outlined" style="color:${catColor}">${c.category.icon}</span>
-                        <span>${c.category.name}</span>
+                html += `
+                    <div class="matrix-accordion-item" id="dept-accordion-${c.category.id}" style="border-left: 4px solid ${catColor};">
+                        <div class="matrix-accordion-header" onclick="document.getElementById('dept-accordion-${c.category.id}').classList.toggle('open')">
+                            <div class="matrix-accordion-title">
+                                <span class="matrix-category-icon material-symbols-outlined" style="color:${catColor}">${c.category.icon}</span>
+                                <span style="font-weight: 600;">${c.category.name}</span>
+                            </div>
+                            <span class="material-symbols-outlined accordion-toggle-icon">expand_more</span>
+                        </div>
+                        <div class="matrix-accordion-content">
+                            <div style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+                                ${itemsHtml}
+                            </div>
+                        </div>
                     </div>
-                    ${itemsHtml}
-                </div>`;
-            }).join('');
+                `;
+            });
+
+            html += '</div>';
+            el.summaryList.innerHTML = html;
         }
 
         function initCombined() {
