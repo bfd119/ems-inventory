@@ -815,6 +815,43 @@
             font-weight: 500;
             position: sticky;
             top: 0;
+            z-index: 10;
+        }
+
+        /* 三次列の色 */
+        .bt-col-miyoshi {
+            background: #fff3e0;
+        }
+
+        .bt-col-miyoshi-header {
+            background: #ffe0b2 !important;
+        }
+
+        /* 庄原列の色 */
+        .bt-col-shobara {
+            background: #e8f5e9;
+        }
+
+        .bt-col-shobara-header {
+            background: #c8e6c9 !important;
+        }
+
+        /* 東城列の色 */
+        .bt-col-tojo {
+            background: #e3f2fd;
+        }
+
+        .bt-col-tojo-header {
+            background: #bbdefb !important;
+        }
+
+        /* 特定列の太い罫線 */
+        .bt-border-left {
+            border-left: 2.5px solid #999 !important;
+        }
+
+        .bt-border-right {
+            border-right: 2.5px solid #999 !important;
         }
 
         .budget-table td:first-child {
@@ -1469,7 +1506,15 @@
             border: 1px solid var(--color-border);
             padding: var(--spacing-xs);
             text-align: center;
-            white-space: nowrap;
+            vertical-align: top;
+        }
+
+        /* 個数表示（大きなフォント） */
+        .cell-qty {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            min-height: 1.8rem;
         }
 
         /* ヘッダー行 */
@@ -1538,6 +1583,7 @@
             background: #e0f2fe;
             /* 薄い青 */
             font-weight: 700;
+            vertical-align: top;
         }
 
         .total-col-header {
@@ -3883,7 +3929,7 @@
                 });
 
                 // 署所計
-                html += `<td class="total-col">${subTotal > 0 ? subTotal : '-'}</td>`;
+                html += `<td class="total-col">${subTotal > 0 ? `<div class="cell-qty">${subTotal}</div>` : '-'}</td>`;
 
                 // 警防課
                 html += `<td class="keibouka-col">
@@ -4185,11 +4231,32 @@
                 if (used.length === 0) {
                     el.budgetTable.innerHTML = '<tr><td colspan="12" style="padding:2rem;text-align:center">データなし</td></tr>';
                 } else {
-                    let h = '<thead><tr><th>用品</th>' + DEPARTMENTS.map(d => `<th>${d.name}</th>`).join('') + '<th>計</th></tr></thead><tbody>';
+                    // 列のクラスマッピング
+                    const colClassMap = {
+                        '三次': { bg: 'bt-col-miyoshi', header: 'bt-col-miyoshi-header', border: 'bt-border-left' },
+                        '庄原': { bg: 'bt-col-shobara', header: 'bt-col-shobara-header', border: 'bt-border-left' },
+                        '東城': { bg: 'bt-col-tojo', header: 'bt-col-tojo-header', border: 'bt-border-left bt-border-right' }
+                    };
+                    // 警防課列の右側（＝三次の左側）で太い罫線
+                    const keiboukaIdx = DEPARTMENTS.findIndex(d => d.name === '警防課');
+
+                    let h = '<thead><tr><th>用品</th>' + DEPARTMENTS.map((d, idx) => {
+                        const cc = colClassMap[d.name];
+                        let cls = cc ? cc.header + ' ' + (cc.border || '') : '';
+                        // 警防課の左側（用品列の右境界として扱うため、警防課自体に左太罫線）
+                        if (d.name === '警防課') cls += ' bt-border-left';
+                        return `<th class="${cls.trim()}">${d.name}</th>`;
+                    }).join('') + '<th>計</th></tr></thead><tbody>';
                     used.forEach(i => {
                         h += `<tr><td>${i.name}</td>`;
                         let rt = 0;
-                        DEPARTMENTS.forEach(d => { const q = mx[d.id][i.id] || 0; rt += q; h += `<td>${q || '-'}</td>`; });
+                        DEPARTMENTS.forEach((d, idx) => {
+                            const q = mx[d.id][i.id] || 0; rt += q;
+                            const cc = colClassMap[d.name];
+                            let cls = cc ? cc.bg + ' ' + (cc.border || '') : '';
+                            if (d.name === '警防課') cls += ' bt-border-left';
+                            h += `<td class="${cls.trim()}">${q || '-'}</td>`;
+                        });
                         h += `<td><b>${rt}</b></td></tr>`;
                     });
                     h += '</tbody>'; el.budgetTable.innerHTML = h;
