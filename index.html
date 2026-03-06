@@ -2813,30 +2813,16 @@
         }
 
         async function fsDeleteCategory(id) {
-            // item_categoriesから該当カテゴリの紐づけを削除
-            // 注意: 用品自体(items)は削除しない方針（他カテゴリで使われている可能性があるため）
+            // カテゴリ削除: 用品自体(items)は削除しない（他カテゴリで共有される可能性があるため）
+            // item_categoriesのリンクとレガシーのitems.category_id参照をクリーンアップしてから削除
 
-            // 1. 紐づけがある用品IDを取得
-            // 用品が存在する場合は削除禁止（ユーザー指示）
+            // 1. item_categoriesテーブルのリンクを削除
+            await db.from('item_categories').delete().eq('category_id', id);
 
-            // item_categories チェック
-            const { data: links, error: linkError } = await db.from('item_categories').select('item_id').eq('category_id', id);
+            // 2. レガシーのitems.category_idをクリア（FK制約回避）
+            await db.from('items').update({ category_id: null }).eq('category_id', id);
 
-            // item_categoriesテーブルのリンクのみで判定（レガシーのitems.category_idは参照しない）
-            if (!linkError && links && links.length > 0) {
-                // 用品が存在するため削除不可
-                throw new Error('ITEMS_EXIST');
-            }
-
-            // 関連データ削除（在庫・履歴）- 特定カテゴリでの在庫は消えるべき
-            // しかし items自体が残るなら、在庫(stocks)は department_id + item_id でユニーク。
-            // item_categoriesのリンクが消えても、在庫データ自体はitem_idに紐づいている。
-            // カテゴリごとの表示から消えればOK。
-            // ただし、「このカテゴリにあった用品の在庫」はどう扱う？
-            // 用品が「共有」なので、在庫も「共有」。カテゴリリンクを消しても在庫は残るべき。
-            // なので削除処理は不要になった。（用品が消えない限り在庫は消えない）
-
-            // カテゴリを削除
+            // 3. カテゴリを削除
             const { error } = await db.from('categories').delete().eq('id', id);
             if (error) throw error;
             return { success: true };
