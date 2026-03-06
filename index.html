@@ -2164,10 +2164,14 @@
                     </div>
 
                     <div id="new-item-details">
-                        <div class="form-group"><label>単位</label><input type="text" id="new-item-unit"
-                                placeholder="例: 本" value="個"></div>
+                        <div class="form-group"><label>単位</label><select id="new-item-unit">
+                                <option value="個" selected>個</option>
+                                <option value="枚">枚</option>
+                                <option value="本">本</option>
+                                <option value="筒">筒</option>
+                            </select></div>
                         <div class="form-group toggle-group">
-                            <label class="toggle-label">いつまで使えるか あり</label>
+                            <label class="toggle-label">使用期限 あり</label>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="new-item-has-expiry">
                                 <span class="toggle-slider"></span>
@@ -2612,6 +2616,12 @@
                 else showScreen('home');
             };
             $('open-settings').onclick = () => {
+                const pw = prompt('設定画面にアクセスするにはパスワードを入力してください:');
+                if (pw === null) return;
+                if (pw !== 'keibouka') {
+                    alert('パスワードが正しくありません。');
+                    return;
+                }
                 showScreen('settings');
                 renderSettings();
             };
@@ -2812,13 +2822,8 @@
             // item_categories チェック
             const { data: links, error: linkError } = await db.from('item_categories').select('item_id').eq('category_id', id);
 
-            // 旧仕様: itemsテーブルのcategory_idで判断
-            const { data: items } = await db.from('items').select('id').eq('category_id', id);
-
-            const hasLinks = !linkError && links && links.length > 0;
-            const hasItems = items && items.length > 0;
-
-            if (hasLinks || hasItems) {
+            // item_categoriesテーブルのリンクのみで判定（レガシーのitems.category_idは参照しない）
+            if (!linkError && links && links.length > 0) {
                 // 用品が存在するため削除不可
                 throw new Error('ITEMS_EXIST');
             }
