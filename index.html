@@ -77,7 +77,9 @@
         .screen {
             display: none;
             flex-direction: column;
-            min-height: 100dvh;
+            height: 100dvh;
+            max-height: 100dvh;
+            overflow: hidden;
             padding: var(--spacing-md);
             animation: fadeIn 0.2s ease;
         }
@@ -440,12 +442,14 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            min-height: 0;
         }
 
         .tab-content {
             display: none;
             flex: 1;
-            overflow-y: auto;
+            overflow: hidden;
+            flex-direction: column;
         }
 
         .tab-content.active {
@@ -2018,8 +2022,8 @@
 
                     <!-- サマリー用コンテナ -->
                     <div id="combined-summary-view"
-                        style="display: flex; flex: 1; overflow-y: auto; flex-direction: column;">
-                        <div class="budget-table-wrapper" style="flex: 1;">
+                        style="display: flex; flex: 1; flex-direction: column; overflow: hidden;">
+                        <div class="budget-table-wrapper" style="flex: 1; overflow: auto;">
                             <table class="budget-table" id="budget-table"></table>
                         </div>
                         <button class="export-btn" id="export-csv" style="margin-top: 1rem;">📥 CSVエクスポート</button>
