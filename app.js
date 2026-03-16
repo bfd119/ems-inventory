@@ -424,6 +424,7 @@ function bindEvents() {
     if ($('budget-month')) $('budget-month').onchange = renderCombined;
 
     document.querySelectorAll('.tx-type-filter').forEach(cb => cb.onchange = renderCombined);
+    document.querySelectorAll('.history-type-filter').forEach(cb => cb.onchange = renderCombined);
 
     if ($('export-csv')) $('export-csv').onclick = exportCSV;
 
@@ -1972,12 +1973,28 @@ function renderCombined() {
     }
 
     // ----------------------------------------------------
-    // リスト（明細）表示のレンダリング
+    // リスト（明細）表示のレンダリング（入力履歴タブ）
+    // 入力履歴タブは専用のフィルタで制御（実績タブのフィルタとは独立）
     // ----------------------------------------------------
-    if (flt.length === 0) {
+    const historyFilter = document.querySelector('.history-type-filter:checked');
+    const historyFilterValue = historyFilter ? historyFilter.value : 'all';
+
+    // 入力履歴用のフィルタ: 部署フィルタのみ適用（実績の種別フィルタは使わない）
+    let historyFlt = state.transactions;
+    if (state.deptId) {
+        historyFlt = historyFlt.filter(t => t.departmentId === state.deptId || t.targetDepartmentId === state.deptId);
+    }
+    // 入庫/出庫フィルタ
+    if (historyFilterValue === 'in') {
+        historyFlt = historyFlt.filter(t => t.type === 'IN' || t.type === 'IN_BUY' || t.type === 'IN_GET' || t.type === 'IN_RETURN');
+    } else if (historyFilterValue === 'out') {
+        historyFlt = historyFlt.filter(t => t.type === 'OUT' || t.type.startsWith('OUT_'));
+    }
+
+    if (historyFlt.length === 0) {
         el.logList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>該当する履歴がありません</p></div>';
     } else {
-        el.logList.innerHTML = flt.map(t => {
+        el.logList.innerHTML = historyFlt.map(t => {
             const item = ITEMS.find(i => i.id === t.itemId);
             const dept = DEPARTMENTS.find(d => d.id === t.departmentId);
             if (!item || !dept) return '';

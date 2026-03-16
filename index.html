@@ -133,6 +133,15 @@
                 </div>
             </div>
             <div id="tab-history" class="tab-content" style="display: none;">
+                <div class="filter-controls"
+                    style="background: var(--color-bg-card); padding: 0.75rem 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 0.5rem;">
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                        <label style="font-weight: bold; margin-right: 0.5rem;">表示:</label>
+                        <label><input type="radio" name="history-type-filter" class="history-type-filter" value="all" checked> すべて</label>
+                        <label><input type="radio" name="history-type-filter" class="history-type-filter" value="in"> 入庫のみ</label>
+                        <label><input type="radio" name="history-type-filter" class="history-type-filter" value="out"> 出庫のみ</label>
+                    </div>
+                </div>
                 <div id="combined-list-view" style="flex: 1; overflow-y: auto;">
                     <div class="log-list" id="log-list"></div>
                 </div>
