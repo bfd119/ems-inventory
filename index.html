@@ -81,13 +81,14 @@
         </header>
         <div class="analytics-tabs">
             <button class="tab-btn active" data-tab="summary">在庫状況</button>
-            <button class="tab-btn" data-tab="combined">実績・履歴</button>
+            <button class="tab-btn" data-tab="results">実績</button>
+            <button class="tab-btn" data-tab="history">入力履歴</button>
         </div>
         <div class="analytics-content">
             <div id="tab-summary" class="tab-content active">
                 <div class="summary-list" id="summary-list"></div>
             </div>
-            <div id="tab-combined" class="tab-content">
+            <div id="tab-results" class="tab-content" style="display: none;">
                 <div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; height: 100%;">
                     <div class="filter-controls"
                         style="background: var(--color-bg-card); padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -122,21 +123,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="view-toggles"
-                        style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 0.5rem;">
-                        <button id="view-mode-detail" class="tab-btn"
-                            style="flex: initial; padding: 6px 16px;">リスト表示（個別の履歴）</button>
-                        <button id="view-mode-summary" class="tab-btn active"
-                            style="flex: initial; padding: 6px 16px;">集計表示（合計数）</button>
-                    </div>
-
-                    <!-- リスト用コンテナ -->
-                    <div id="combined-list-view" style="display: none; flex: 1; overflow-y: auto;">
-                        <div class="log-list" id="log-list"></div>
-                    </div>
-
-                    <!-- サマリー用コンテナ -->
                     <div id="combined-summary-view"
                         style="display: flex; flex: 1; flex-direction: column; overflow: hidden;">
                         <div class="budget-table-wrapper" style="flex: 1; overflow: auto;">
@@ -144,6 +130,11 @@
                         </div>
                         <button class="export-btn" id="export-csv" style="margin-top: 1rem;">📥 CSVエクスポート</button>
                     </div>
+                </div>
+            </div>
+            <div id="tab-history" class="tab-content" style="display: none;">
+                <div id="combined-list-view" style="flex: 1; overflow-y: auto;">
+                    <div class="log-list" id="log-list"></div>
                 </div>
             </div>
         </div>
