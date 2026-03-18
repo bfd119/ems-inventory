@@ -502,9 +502,16 @@ async function fsUpdateItemUnitPrice(itemId, price) {
 }
 
 async function fsGetStocks() {
-    const { data, error } = await db.from('stocks').select('*');
-    if (error) throw error;
-    return data.map(r => ({
+    let allData = [];
+    let offset = 0;
+    while (true) {
+        const { data, error } = await db.from('stocks').select('*').range(offset, offset + 999);
+        if (error) throw error;
+        allData = allData.concat(data);
+        if (data.length < 1000) break;
+        offset += 1000;
+    }
+    return allData.map(r => ({
         departmentId: +r.department_id, itemId: +r.item_id,
         expiryDate: r.expiry_date, quantity: +r.quantity, id: r.id
     }));
