@@ -510,7 +510,7 @@ async function fsGetStocks() {
     }));
 }
 
-async function fsGetTransactions(limit = 100) {
+async function fsGetTransactions(limit = 10000) {
     const { data, error } = await db.from('transactions')
         .select('*').order('timestamp', { ascending: false }).limit(limit);
     if (error) throw error;
@@ -815,7 +815,7 @@ async function loadData() {
             fsGetCategories(),
             fsGetItems(),
             fsGetStocks(),
-            fsGetTransactions(100)
+            fsGetTransactions(10000)
         ]);
 
         [CATEGORIES, ITEMS, state.stocks, state.transactions] = await Promise.race([dataPromise, timeoutPromise]);
@@ -1483,7 +1483,7 @@ async function renderAnalytics() {
         analyticsTitle.textContent = '全体統計・分析';
     }
     try {
-        state.transactions = await fsGetTransactions(1000); // 100件から1000件に増加(集計のため)
+        state.transactions = await fsGetTransactions(10000); // 全件取得（集計の正確性のため）
         renderSummary();
         initCombined();
         renderCombined();

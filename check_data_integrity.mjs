@@ -43,8 +43,28 @@ async function main() {
     // 1. 全データ取得
     console.log('データ取得中...');
     const items = await supabaseRequest('items', 'GET', null, '?select=*');
-    const stocks = await supabaseRequest('stocks', 'GET', null, '?select=*');
-    const transactions = await supabaseRequest('transactions', 'GET', null, '?select=*&order=timestamp.asc');
+    
+    // stocksを全件取得（ページネーション対応）
+    let stocks = [];
+    let stockOffset = 0;
+    while (true) {
+        const batch = await supabaseRequest('stocks', 'GET', null, `?select=*&limit=1000&offset=${stockOffset}`);
+        stocks = stocks.concat(batch);
+        if (batch.length < 1000) break;
+        stockOffset += 1000;
+    }
+    
+    // トランザクションを全件取得（ページネーション対応）
+    let transactions = [];
+    let offset = 0;
+    const limit = 1000;
+    while (true) {
+        const batch = await supabaseRequest('transactions', 'GET', null, `?select=*&order=timestamp.asc&limit=${limit}&offset=${offset}`);
+        console.log(`  バッチ取得: ${batch.length}件 (offset: ${offset})`);
+        transactions = transactions.concat(batch);
+        if (batch.length < limit) break;
+        offset += limit;
+    }
 
     console.log(`  用品: ${items.length}件`);
     console.log(`  在庫レコード: ${stocks.length}件`);
