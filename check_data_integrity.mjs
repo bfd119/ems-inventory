@@ -6,6 +6,8 @@ const SUPABASE_URL = 'https://aacntdoacjjssspoctul.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhY250ZG9hY2pqc3NzcG9jdHVsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzkwMDk5NywiZXhwIjoyMDgzNDc2OTk3fQ.knTlspYRILXuyA9NVTc58iMeM6OEcsJwH-J21FGddRs';
 
 const FIX_MODE = process.argv.includes('--fix');
+const DEPT_ID_ARG = process.argv.find(arg => arg.startsWith('--dept='));
+const TARGET_DEPT_ID = DEPT_ID_ARG ? parseInt(DEPT_ID_ARG.split('=')[1]) : null;
 
 const DEPARTMENTS = [
     { id: 1, name: "警防課" }, { id: 2, name: "三次" }, { id: 3, name: "作木" },
@@ -39,6 +41,10 @@ async function main() {
     if (FIX_MODE) {
         console.log('⚠️  修復モードで実行しています\n');
     }
+    if (TARGET_DEPT_ID) {
+        const dept = DEPARTMENTS.find(d => d.id === TARGET_DEPT_ID);
+        console.log(`🎯 対象署所: ${dept ? dept.name : TARGET_DEPT_ID} (ID: ${TARGET_DEPT_ID})\n`);
+    }
 
     // 1. 全データ取得
     console.log('データ取得中...');
@@ -48,7 +54,9 @@ async function main() {
     let stocks = [];
     let stockOffset = 0;
     while (true) {
-        const batch = await supabaseRequest('stocks', 'GET', null, `?select=*&limit=1000&offset=${stockOffset}`);
+        let filter = `?select=*&limit=1000&offset=${stockOffset}`;
+        if (TARGET_DEPT_ID) filter += `&department_id=eq.${TARGET_DEPT_ID}`;
+        const batch = await supabaseRequest('stocks', 'GET', null, filter);
         stocks = stocks.concat(batch);
         if (batch.length < 1000) break;
         stockOffset += 1000;
@@ -59,7 +67,9 @@ async function main() {
     let offset = 0;
     const limit = 1000;
     while (true) {
-        const batch = await supabaseRequest('transactions', 'GET', null, `?select=*&order=timestamp.asc&limit=${limit}&offset=${offset}`);
+        let filter = `?select=*&order=timestamp.asc&limit=${limit}&offset=${offset}`;
+        if (TARGET_DEPT_ID) filter += `&department_id=eq.${TARGET_DEPT_ID}`;
+        const batch = await supabaseRequest('transactions', 'GET', null, filter);
         console.log(`  バッチ取得: ${batch.length}件 (offset: ${offset})`);
         transactions = transactions.concat(batch);
         if (batch.length < limit) break;
