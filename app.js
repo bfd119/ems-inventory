@@ -518,13 +518,25 @@ async function fsGetStocks() {
 }
 
 async function fsGetTransactions(limit = 10000) {
-    const { data, error } = await db.from('transactions')
-        .select('*').order('timestamp', { ascending: false }).limit(limit);
-    if (error) throw error;
-    return data.map(r => ({
+    let allData = [];
+    let offset = 0;
+    const batchSize = 1000;
+    while (allData.length < limit) {
+        const fetchCount = Math.min(batchSize, limit - allData.length);
+        const { data, error } = await db.from('transactions')
+            .select('*')
+            .order('timestamp', { ascending: false })
+            .range(offset, offset + fetchCount - 1);
+        if (error) throw error;
+        allData = allData.concat(data);
+        if (data.length < fetchCount) break;
+        offset += fetchCount;
+    }
+    return allData.map(r => ({
         id: r.id, departmentId: +r.department_id, itemId: +r.item_id,
         type: r.type, quantity: +r.quantity, expiryDate: r.expiry_date,
-        remarks: r.remarks, timestamp: r.timestamp
+        remarks: r.remarks, timestamp: r.timestamp,
+        targetDepartmentId: r.target_department_id ? +r.target_department_id : null
     }));
 }
 
@@ -637,28 +649,14 @@ async function fsDeleteItem(id) {
 }
 
 async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transactionDate) {
-    // 既存の在庫を検索
-    let query = db.from('stocks')
-        .select('*')
-        .eq('department_id', deptId)
-        .eq('item_id', itemId);
-
-    if (expiryDate) {
-        query = query.eq('expiry_date', expiryDate);
-    } else {
-        query = query.is('expiry_date', null);
-    }
-
-    const { data: existing } = await query.limit(1).maybeSingle();
-
-    if (existing) {
-        await db.from('stocks')
-            .update({ quantity: existing.quantity + quantity })
-            .eq('id', existing.id);
-    } else {
-        await db.from('stocks')
-            .insert({ department_id: deptId, item_id: itemId, expiry_date: expiryDate || null, quantity });
-    }
+    // upsert_stock RPC でアトミックに在庫を加算（重複防止）
+    const { error: rpcError } = await db.rpc('upsert_stock', {
+        p_department_id: deptId,
+        p_item_id:       itemId,
+        p_expiry_date:   expiryDate || null,
+        p_delta:         quantity
+    });
+    if (rpcError) throw rpcError;
     return fsAddTransaction(deptId, itemId, 'IN', quantity, expiryDate, remarks, transactionDate);
 }
 
@@ -738,16 +736,14 @@ async function fsDeleteTransaction(txId) {
     const { data: stockRecords } = await stockQuery;
 
     if (isOut) {
-        // 出庫の取り消し → 在庫を加算
-        if (stockRecords && stockRecords.length > 0) {
-            await db.from('stocks')
-                .update({ quantity: stockRecords[0].quantity + qty })
-                .eq('id', stockRecords[0].id);
-        } else {
-            // レコードがない場合は新規作成
-            await db.from('stocks')
-                .insert({ department_id: deptId, item_id: itemId, expiry_date: expiryDate || null, quantity: qty });
-        }
+        // 出庫の取り消し → upsert_stock で在庫を加算（アトミック）
+        const { error: rpcError } = await db.rpc('upsert_stock', {
+            p_department_id: deptId,
+            p_item_id:       itemId,
+            p_expiry_date:   expiryDate || null,
+            p_delta:         qty
+        });
+        if (rpcError) throw rpcError;
     } else {
         // 入庫の取り消し → 在庫を減算
         if (stockRecords && stockRecords.length > 0) {
