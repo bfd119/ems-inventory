@@ -648,7 +648,7 @@ async function fsDeleteItem(id) {
     return { success: true };
 }
 
-async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transactionDate) {
+async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transactionDate, transferPairId = null) {
     // upsert_stock RPC でアトミックに在庫を加算（重複防止）
     const { error: rpcError } = await db.rpc('upsert_stock', {
         p_department_id: deptId,
@@ -657,10 +657,10 @@ async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transact
         p_delta:         quantity
     });
     if (rpcError) throw rpcError;
-    return fsAddTransaction(deptId, itemId, 'IN', quantity, expiryDate, remarks, transactionDate);
+    return fsAddTransaction(deptId, itemId, 'IN', quantity, expiryDate, remarks, transactionDate, transferPairId);
 }
 
-async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transactionDate) {
+async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transactionDate, transferPairId = null) {
     let query = db.from('stocks')
         .select('*')
         .eq('department_id', deptId)
@@ -696,52 +696,44 @@ async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transac
             remain = 0;
         }
     }
-    return fsAddTransaction(deptId, itemId, 'OUT', quantity, expiryDate, remarks, transactionDate);
+    return fsAddTransaction(deptId, itemId, 'OUT', quantity, expiryDate, remarks, transactionDate, transferPairId);
 }
 
-async function fsAddTransaction(deptId, itemId, type, quantity, expiryDate, remarks, transactionDate) {
+async function fsAddTransaction(deptId, itemId, type, quantity, expiryDate, remarks, transactionDate, transferPairId = null) {
     const ts = transactionDate ? new Date(transactionDate) : new Date();
+    const insertData = { department_id: deptId, item_id: itemId, type, quantity, expiry_date: expiryDate || null, remarks: remarks || '', timestamp: ts.toISOString() };
+    if (transferPairId) insertData.transfer_pair_id = transferPairId;
     const { data, error } = await db.from('transactions')
-        .insert({ department_id: deptId, item_id: itemId, type, quantity, expiry_date: expiryDate || null, remarks: remarks || '', timestamp: ts.toISOString() })
+        .insert(insertData)
         .select().single();
     if (error) throw error;
-    return { id: data.id, departmentId: +data.department_id, itemId: +data.item_id, type: data.type, quantity: +data.quantity, expiryDate: data.expiry_date, remarks: data.remarks, timestamp: data.timestamp };
+    return { id: data.id, departmentId: +data.department_id, itemId: +data.item_id, type: data.type, quantity: +data.quantity, expiryDate: data.expiry_date, remarks: data.remarks, timestamp: data.timestamp, transferPairId: data.transfer_pair_id || null };
 }
 
-// トランザクション削除（在庫ロールバック付き）
-async function fsDeleteTransaction(txId) {
-    // 1. トランザクション取得
-    const { data: tx, error: fetchError } = await db.from('transactions')
-        .select('*').eq('id', txId).single();
-    if (fetchError) throw fetchError;
-
+// 単一トランザクションの在庫ロールバック処理（内部ヘルパー）
+async function _rollbackStock(tx) {
     const deptId = tx.department_id;
     const itemId = tx.item_id;
     const expiryDate = tx.expiry_date;
     const qty = tx.quantity;
     const isOut = tx.type === 'OUT' || tx.type.startsWith('OUT_');
 
-    // 2. 在庫ロールバック
     let stockQuery = db.from('stocks')
         .select('*')
         .eq('department_id', deptId)
         .eq('item_id', itemId);
-
     if (expiryDate) {
         stockQuery = stockQuery.eq('expiry_date', expiryDate);
     } else {
         stockQuery = stockQuery.is('expiry_date', null);
     }
-
     const { data: stockRecords } = await stockQuery;
 
     if (isOut) {
-        // 出庫の取り消し → upsert_stock で在庫を加算（アトミック）
+        // 出庫の取り消し → 在庫を加算（アトミック）
         const { error: rpcError } = await db.rpc('upsert_stock', {
-            p_department_id: deptId,
-            p_item_id:       itemId,
-            p_expiry_date:   expiryDate || null,
-            p_delta:         qty
+            p_department_id: deptId, p_item_id: itemId,
+            p_expiry_date: expiryDate || null, p_delta: qty
         });
         if (rpcError) throw rpcError;
     } else {
@@ -751,17 +743,45 @@ async function fsDeleteTransaction(txId) {
             if (newQty <= 0) {
                 await db.from('stocks').delete().eq('id', stockRecords[0].id);
             } else {
-                await db.from('stocks')
-                    .update({ quantity: newQty })
-                    .eq('id', stockRecords[0].id);
+                await db.from('stocks').update({ quantity: newQty }).eq('id', stockRecords[0].id);
             }
         }
-        // レコードがなければ在庫0のまま（既に0なので何もしない）
     }
+}
 
-    // 3. トランザクションを削除
-    const { error: deleteError } = await db.from('transactions').delete().eq('id', txId);
-    if (deleteError) throw deleteError;
+// トランザクション削除（在庫ロールバック付き・授受ペア連動削除対応）
+async function fsDeleteTransaction(txId) {
+    // 1. トランザクション取得
+    const { data: tx, error: fetchError } = await db.from('transactions')
+        .select('*').eq('id', txId).single();
+    if (fetchError) throw fetchError;
+
+    // 2. 授受ペアの確認
+    if (tx.transfer_pair_id) {
+        // ペア相手（自分以外で同じtransfer_pair_idを持つレコード）を取得
+        const { data: pairTxs } = await db.from('transactions')
+            .select('*')
+            .eq('transfer_pair_id', tx.transfer_pair_id)
+            .neq('id', txId);
+
+        // 自分自身の在庫ロールバック
+        await _rollbackStock(tx);
+        // ペア相手の在庫ロールバック
+        if (pairTxs && pairTxs.length > 0) {
+            for (const pairTx of pairTxs) {
+                await _rollbackStock(pairTx);
+            }
+        }
+        // ペア全体をまとめて削除
+        const { error: deleteError } = await db.from('transactions')
+            .delete().eq('transfer_pair_id', tx.transfer_pair_id);
+        if (deleteError) throw deleteError;
+    } else {
+        // 通常の単独削除
+        await _rollbackStock(tx);
+        const { error: deleteError } = await db.from('transactions').delete().eq('id', txId);
+        if (deleteError) throw deleteError;
+    }
 
     return tx;
 }
@@ -1427,22 +1447,23 @@ async function saveTx() {
         }
 
         if (isTransfer) {
-            // 署所間移動の場合
+            // 署所間移動の場合 — ペアUUIDを生成して両トランザクションに付与
+            const transferPairId = crypto.randomUUID();
             const partnerDeptName = DEPARTMENTS.find(d => d.id === partnerDeptId)?.name;
             const myDeptName = DEPARTMENTS.find(d => d.id === state.deptId)?.name;
             const finalRemarks = remarks || (state.txType === 'OUT_GIVE' ? `${partnerDeptName}にあげた` : `${partnerDeptName}からもらった`);
 
             if (state.txType === 'OUT_GIVE') {
                 // 自分から出庫
-                await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
+                await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate, transferPairId);
                 // 相手へ入庫
-                await fsStockIn(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}からもらった`, txDate);
+                await fsStockIn(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}からもらった`, txDate, transferPairId);
                 alert(`${partnerDeptName}の在庫にも自動で反映されています！\n（${partnerDeptName}の人は何も入力しなくて大丈夫です）`);
             } else if (state.txType === 'IN_GET') {
                 // 相手から出庫
-                await fsStockOut(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}にあげた`, txDate);
+                await fsStockOut(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}にあげた`, txDate, transferPairId);
                 // 自分へ入庫
-                await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
+                await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate, transferPairId);
                 alert(`${partnerDeptName}の在庫にも自動で反映されています！\n（${partnerDeptName}の人は何も入力しなくて大丈夫です）`);
             }
         } else {
