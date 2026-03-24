@@ -1446,13 +1446,12 @@ async function saveTx() {
     const item = ITEMS.find(i => i.id === state.itemId);
     if (isNaN(qty) || qty < 1) { alert('数量を入力してください'); return; }
 
-    // ── 未来日付バリデーション ──
+    // ── 未来日付バリデーション（タイムゾーン安全な文字列比較）──
     const inputDateStr = el.txDate.value;
     if (inputDateStr) {
-        const inputDate = new Date(inputDateStr);
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        if (inputDate > todayStart) {
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        if (inputDateStr > todayStr) {
             alert('未来の日付は入力できません。\n日付を今日以前に修正してください。');
             return;
         }
