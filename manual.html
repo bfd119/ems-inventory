@@ -23,13 +23,17 @@
         }
 
         .container {
-            max-width: 700px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
             margin-bottom: 30px;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
         h1 {
@@ -43,18 +47,16 @@
             color: #4a6bff;
             text-decoration: none;
             margin-bottom: 20px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
+            font-weight: 500;
         }
 
         .intro {
-            background: white;
+            background: #4a6bff;
+            color: white;
             border-radius: 16px;
             padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(74, 107, 255, 0.2);
             text-align: center;
         }
 
@@ -62,147 +64,135 @@
             background: white;
             border-radius: 16px;
             padding: 24px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
         .toc h2 {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             margin-bottom: 16px;
             color: #1a1a2e;
+            border-left: 4px solid #4a6bff;
+            padding-left: 12px;
         }
 
         .toc ol {
             padding-left: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
         }
 
         .toc li {
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .toc a {
             color: #4a6bff;
             text-decoration: none;
+            transition: color 0.2s;
         }
 
         .toc a:hover {
+            color: #2a4bff;
             text-decoration: underline;
         }
 
         .section {
             background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .section-number {
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 32px;
-            font-weight: 600;
-            margin-bottom: 12px;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
         }
 
         .section h2 {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
             color: #1a1a2e;
             display: flex;
             align-items: center;
             gap: 12px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .section-number {
+            background: #4a6bff;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
         .section h3 {
-            font-size: 1rem;
-            margin: 16px 0 12px;
+            font-size: 1.1rem;
+            margin: 24px 0 12px;
             color: #1a1a2e;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 6px;
+            padding-left: 10px;
+            border-left: 4px solid #4a6bff;
         }
 
-        .section h4 {
-            font-size: 0.95rem;
-            margin: 12px 0 8px;
-            color: #4a6bff;
-        }
-
-        .section p {
-            color: #666;
-            margin-bottom: 12px;
+        .img-container {
+            margin: 20px 0;
+            text-align: center;
         }
 
         .section img {
             width: 100%;
-            max-width: 350px;
+            max-width: 450px;
             border-radius: 12px;
-            margin: 16px auto;
-            display: block;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eee;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
         }
 
-        .section ul,
-        .section ol {
-            padding-left: 24px;
-            margin-bottom: 12px;
-            color: #666;
+        .section img:hover {
+            transform: scale(1.02);
         }
 
-        .section li {
-            margin-bottom: 6px;
+        .img-caption {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 10px;
+            margin-bottom: 20px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 16px 0;
-            font-size: 0.9rem;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-
-        .tip {
-            background: #fff8e1;
-            border-left: 4px solid #ffc107;
-            padding: 16px;
-            border-radius: 0 12px 12px 0;
-            margin: 16px 0;
-        }
-
-        .tip-title {
-            font-weight: 600;
-            color: #f57c00;
-            margin-bottom: 8px;
-        }
-
-        .flow-section {
-            background: #f0f9ff;
+        .highlight-box {
+            background: #f0f4ff;
             border-radius: 12px;
             padding: 20px;
-            margin: 16px 0;
+            margin: 20px 0;
+            border-left: 5px solid #4a6bff;
         }
 
-        .flow-section h3 {
-            color: #0369a1;
-            margin-top: 0;
-            border: none;
+        .highlight-box h4 {
+            color: #1a1a2e;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .important-note {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #c53030;
+        }
+
+        .important-note h4 {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         footer {
@@ -210,12 +200,7 @@
             margin-top: 40px;
             color: #888;
             font-size: 0.85rem;
-        }
-
-        hr {
-            border: none;
-            border-top: 1px solid #eee;
-            margin: 24px 0;
+            padding-bottom: 40px;
         }
 
         .qr-fixed {
@@ -236,188 +221,132 @@
             display: block;
         }
 
-        .qr-fixed .qr-label {
-            font-size: 0.65rem;
-            color: #666;
-            margin-top: 6px;
-        }
-
-        @media (max-width: 480px) {
-            .qr-fixed {
-                padding: 8px;
-                top: auto;
-                bottom: 16px;
-            }
-
-            .qr-fixed img {
-                width: 60px;
-                height: 60px;
-            }
-
-            .qr-fixed .qr-label {
-                font-size: 0.6rem;
-            }
+        @media (max-width: 600px) {
+            .section { padding: 20px; }
+            h1 { font-size: 1.4rem; }
+            .qr-fixed { display: none; }
         }
     </style>
 </head>
 
 <body>
-    <!-- 右固定QRコード -->
     <div class="qr-fixed">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://bfd119.github.io/ems-inventory/"
-            alt="アプリQRコード">
-        <div class="qr-label">📱 アプリを開く</div>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://bfd119.github.io/ems-inventory/" alt="QR">
+        <div style="font-size: 0.65rem; color: #666; margin-top: 4px;">📱 アプリ版</div>
     </div>
 
     <div class="container">
         <a href="index.html" class="back-link">← アプリに戻る</a>
 
         <header>
-            <h1>🚑 救急用品在庫管理 - 操作説明書</h1>
+            <h1>救急用品在庫管理システム<br>操作マニュアル</h1>
+            <p style="color: #666;">最終更新: 2026年3月</p>
         </header>
 
         <div class="intro">
-            <p>消防署の救急用品在庫をスマートフォンやパソコンで簡単に管理・分析・設定できるシステムです。</p>
+            <p>このマニュアルでは、日々の入出庫管理から署所間の移管、履歴の修正方法までを解説します。</p>
         </div>
 
         <nav class="toc">
             <h2>📋 目次</h2>
             <ol>
-                <li><a href="#section1">ホーム画面（署所の選択）</a></li>
-                <li><a href="#section2">ダッシュボード（日々の在庫確認と記録）</a></li>
-                <li><a href="#section3">入庫・出庫・補充・移動の記録方法</a></li>
-                <li><a href="#section4">📊 全体統計・分析機能</a></li>
-                <li><a href="#section5">⚙️ 各種設定・アラート通知機能</a></li>
-                <li><a href="#flows">よくある操作フロー</a></li>
+                <li><a href="#home">1. ホーム画面と署所選択</a></li>
+                <li><a href="#basic">2. 基本の入庫・使用（出庫）</a></li>
+                <li><a href="#transfer">3. 署所間の移管（あげた・もらった）</a></li>
+                <li><a href="#history">4. 入力履歴の確認と削除</a></li>
+                <li><a href="#stats">5. 全体統計の活用</a></li>
             </ol>
         </nav>
 
-        <!-- セクション1: ホーム画面 -->
-        <div class="section" id="section1">
-            <h2 class="section-title"><span class="section-number">1</span> ホーム画面（署所の選択）</h2>
-            <p>アプリを開くと、最初に部署（署所）選択画面が表示されます。<br>ここが全体の入り口となります。</p>
+        <section class="section" id="home">
+            <h2><div class="section-number">1</div>ホーム画面と署所選択</h2>
+            <p>アプリ起動後、まずは自分の署所を選択してください。ここで選んだ署所が、その後の操作（入出庫など）の対象となります。</p>
+            <div class="img-container">
+                <img src="images/screen_home.png" alt="ホーム画面">
+                <div class="img-caption">▲ 署所選択画面。自分の所属をタップします。</div>
+            </div>
+            <p>署所を選択すると、カテゴリ一覧（ダッシュボード）が表示されます。</p>
+            <div class="img-container">
+                <img src="images/screen_dashboard.png" alt="ダッシュボード">
+                <div class="img-caption">▲ ダッシュボード画面。カテゴリを選んで用品を探します。</div>
+            </div>
+        </section>
 
-            <h3>主な操作</h3>
+        <section class="section" id="basic">
+            <h2><div class="section-number">2</div>基本の入庫・使用（出庫）</h2>
+            <p>カテゴリ内の用品をタップして記録画面を開き、在庫の動きを記録します。</p>
+            
+            <h3>📥 購入・補充（入庫）の手順</h3>
             <ol>
-                <li><strong>自分の部署のボタン</strong>をタップすると、その署所の「ダッシュボード」に移動し、日々の作業を行えます。</li>
-                <li><strong>「📊 全体統計・分析」</strong>ボタンで、全部署の在庫状況や使用実績を横断して確認できます。</li>
-                <li><strong>「⚙️ 設定」</strong>ボタンで、用品マスタ、カテゴリ構成、通知設定（メール自動通知）、機能の並べ替えなどを行えます。</li>
+                <li>用品を選択し、<b>「購入した」</b>をタップします。</li>
+                <li>数量を入力し、「保存」をタップすると在庫が増えます。</li>
             </ol>
-        </div>
+            <div class="img-container">
+                <img src="images/screen_inbound.png" alt="入庫画面">
+                <div class="img-caption">▲ 入庫記録画面。数量を入れて保存します。</div>
+            </div>
 
-        <!-- セクション2: ダッシュボード機能 -->
-        <div class="section" id="section2">
-            <h2><span class="section-number">2</span> ダッシュボード（日々の在庫確認と記録）</h2>
-            <p>自分の署所を選ぶと、用品カテゴリの一覧（ダッシュボード）が表示されます。</p>
-
-            <h3>画面構成と操作</h3>
-            <ul>
-                <li><strong>カテゴリの選択：</strong> 「医薬品」「静脈路確保」などのカテゴリタイルをタップすると、中に含まれる用品の一覧が表示されます。</li>
-                <li><strong>自署在庫と全体在庫：</strong> 画面上部のボタンで切り替えられます。他署所にどれだけ在庫があるか調べたい場合は「全体在庫」をタップしてください。</li>
-                <li><strong>検索バー：</strong> 直接用品の名前を入力して探すことができます。（バーコードスキャン対応予定）</li>
-            </ul>
-        </div>
-
-        <!-- セクション3: 入出庫の記録方法 -->
-        <div class="section" id="section3">
-            <h2><span class="section-number">3</span> 入庫・出庫・補充・移動の記録方法</h2>
-            <p>用品一覧から特定の用品をタップすると、入出庫の記録を行う画面が開きます。</p>
-
-            <h3>📝 記録の流れ</h3>
+            <h3>📤 使用・廃棄（出庫）の手順</h3>
             <ol>
-                <li><strong>動きの種類を選ぶ：</strong> 上部のボタンで「使った（出庫）」「購入した（入庫）」などを選びます。</li>
-                <li><strong>期限を選ぶ（※使用期限付きの場合）：</strong> 「どれを使う？」と表示されるので、使用した対象の期限ロットを選びます。</li>
-                <li><strong>使用日と数量を入力する：</strong> マイナス・プラスボタンで数量を調整します。</li>
-                <li><strong>メモ（任意）：</strong> 「定期補充」「救急活動で使用」などのメモを残せます。署所間で移動した場合は「どこに？」の選択欄を利用してください。</li>
-                <li><strong>保存ボタン</strong>を押すと記録が確定し、現在庫へ反映されます。</li>
+                <li>用品を選択し、<b>「使った・廃棄した」</b>をタップします。</li>
+                <li>数量を入力し、「保存」をタップすると在庫が減ります。</li>
             </ol>
-            <div class="tip">
-                <div class="tip-title">💡 署所間移動について</div>
-                「あげた」「もらった」を選択すると、行き先（または元の署所）を選ぶ欄が表示されます。これにより、相手の署所の在庫へも自動で変動が反映されます。
+            <div class="img-container">
+                <img src="images/screen_outbound.png" alt="出庫画面">
+                <div class="img-caption">▲ 出庫記録画面。活動で使用した際などに入力します。</div>
             </div>
-        </div>
+        </section>
 
-        <!-- セクション4: 全体統計・分析 -->
-        <div class="section" id="section4">
-            <h2><span class="section-number">4</span> 📊 全体統計・分析機能</h2>
-            <p>すべての署所の状況をマトリクス形式で俯瞰できる「管理者・全体視点」の機能です。ホーム画面からアクセスできます。</p>
+        <section class="section" id="transfer">
+            <h2><div class="section-number">3</div>署所間の移管（あげた・もらった）</h2>
+            <p>署所間で用品を動かした際の記録です。この機能には<b>「自動連動」</b>が備わっています。</p>
 
-            <h3>在庫状況タブ</h3>
-            <p>カテゴリ別に各署所の現在の在庫数が一覧で表示されます。署所ごとの総計と全体合計（計）がひと目で分かります。<br>在庫調整や発注の参考にしてください。</p>
-
-            <h3>実績・履歴タブ</h3>
-            <p>対象期間の実績（出庫・入庫状況）を分析します。</p>
-            <ul>
-                <li><strong>期間指定：</strong> 「2025年度 通期」や特定の「月」で絞り込みができます。</li>
-                <li><strong>動きの種類フィルター：</strong> 「購入（入荷）」だけ、「消費（使用）」だけを絞り込んで集計できます。</li>
-                <li><strong>表示形式：</strong> 「集計表示」なら全署所のマトリクス、「リスト表示」なら一件ごとの最新ログを確認できます。</li>
-                <li><strong>CSVエクスポート：</strong> 表示している集計内容をExcel等のCSV形式でダウンロードできます。</li>
-            </ul>
-        </div>
-
-        <!-- セクション5: 各種設定・アラート通知機能 -->
-        <div class="section" id="section5">
-            <h2><span class="section-number">5</span> ⚙️ 各種設定・アラート通知機能</h2>
-            <p>ホーム画面にある「設定」ボタンから、システム全体のマスターデータ（用品・カテゴリ）および設定を管理します。</p>
-
-            <h3>カテゴリ・用品の追加と編集</h3>
-            <ul>
-                <li><strong>カテゴリ一覧・並べ替え：</strong> 「並べ替え」ボタンで、カテゴリの表示順をドラッグ＆ドロップで変更できます。新規追加もボタンから行えます。</li>
-                <li><strong>用品の追加：</strong> 「使用期限管理をする/しない」「最低在庫数の設定（アラート用）」など、用品の属性を制御できます。削除や名称変更もここで行います。</li>
-            </ul>
-
-            <h3>通知設定（メール自動送信）</h3>
-            <p>在庫が不足した際や、期限が近い用品がある際に、自動でメールをお知らせする機能です（※バックグラウンドで動作します）。送付先メールアドレスにはカンマ区切りで複数の宛先を指定できます。</p>
-
-            <div class="tip">
-                <div class="tip-title">⚠️ 最低在庫数の設定</div>
-                用品の編集画面で「最低在庫数」を0より大きい数字に設定しておくと、在庫機能がその数値を下回った際にアラート対象となります。
-            </div>
-        </div>
-
-        <!-- よくある操作フロー -->
-        <div class="section" id="flows">
-            <h2><span class="section-number">💡</span> よくある操作フロー</h2>
-
-            <div class="flow-section">
-                <h3>📥 定期補充を記録する</h3>
-                <ol>
-                    <li>自署のダッシュボードを開く</li>
-                    <li>カテゴリを選び、補充する用品をタップ</li>
-                    <li>「購入した」または「もらった」を選択</li>
-                    <li>数量を入力</li>
-                    <li>備考に「定期補充」と入力して <strong>保存</strong></li>
-                </ol>
+            <div class="highlight-box">
+                <h4>✨ 便利な自動連動機能</h4>
+                <p>「あげた」または「もらった」を入力した際、相手先の署所を選択して保存すると、<b>相手側の在庫数も自動で更新されます。</b></p>
+                <p style="font-weight: 600; color: #4a6bff;">💡 ポイント：どちらか一方が入力すれば、双方が入力する必要はありません！</p>
             </div>
 
-            <div class="flow-section">
-                <h3>📤 救急活動での使用を記録する</h3>
-                <ol>
-                    <li>自署のダッシュボードを開く</li>
-                    <li>使用した用品をタップ</li>
-                    <li>「使った（廃棄した）」を選択</li>
-                    <li>ロット（期限）を選択 ※期限管理ありの場合</li>
-                    <li>数量を入力して <strong>保存</strong></li>
-                </ol>
+            <h3>操作手順</h3>
+            <ol>
+                <li>用品を選択し、<b>「あげた」</b>または<b>「もらった」</b>をタップします。</li>
+                <li><b>「相手先」</b>の署所を選択します。</li>
+                <li>数量を入力して「保存」します。これで両方の在庫が正しく更新されます。</li>
+            </ol>
+            <div class="img-container">
+                <img src="images/screen_transfer.png" alt="移管画面">
+                <div class="img-caption">▲ 移管画面。相手先（例：庄原署）を選ぶだけで連動します。</div>
             </div>
+        </section>
 
-            <div class="flow-section">
-                <h3>📊 必要な発注量を決定する</h3>
-                <ol>
-                    <li>ホーム画面から <strong>「全体統計・分析」</strong> を開く</li>
-                    <li>「在庫状況」タブで、各署所の残量を一覧で確認する</li>
-                    <li>CSVでダウンロードし、不足分を計算して発注する</li>
-                </ol>
+        <section class="section" id="history">
+            <h2><div class="section-number">4</div>入力履歴の確認と削除</h2>
+            <p>「間違えて入力してしまった！」という場合は、入力履歴から削除（取消）が可能です。</p>
+
+            <h3>🗑️ 履歴を削除して在庫を戻す</h3>
+            <ol>
+                <li>ホーム画面から「全体統計・分析」を開き、<b>「入力履歴」</b>タブをタップします。</li>
+                <li>削除したい履歴の右側にある<b>ゴミ箱アイコン</b>をタップします。</li>
+                <li>確認ダイアログで「OK」を押すと、その操作が取り消され、<b>在庫数も自動的に元の状態に戻ります。</b></li>
+            </ol>
+            <div class="img-container">
+                <img src="images/screen_history.png" alt="入力履歴画面">
+                <div class="img-caption">▲ 履歴画面。ゴミ箱ボタンで入力を取り消せます。</div>
             </div>
-        </div>
+            
+            <div class="important-note">
+                <h4>⚠️ 注意事項</h4>
+                <p>移管（あげた・もらった）の履歴を削除した場合、<b>連動して相手側の在庫数も元の状態に戻ります。</b></p>
+            </div>
+        </section>
 
-        <div class="section" style="text-align: center;">
-            <h2>❓ お問い合わせ</h2>
-            <p>操作でご不明な点がありましたら、システム管理者（警防課・担当者）までお問い合わせください。</p>
-        </div>
+        <section class="section" id="stats">
+            <h2><div class="section-number">5</div>全体統計の活用</h2>
+            <p>「在庫状況」タブでは、全署所の在庫を一覧で俯瞰できます。足りない署所への融通や、備蓄計画の判断材料として活用してください。</p>
+        </section>
 
         <footer>
-            <p><strong>救急用品在庫管理システム</strong> © 2026</p>
+            <p>救急用品在庫管理システム © 2026</p>
         </footer>
     </div>
 </body>
