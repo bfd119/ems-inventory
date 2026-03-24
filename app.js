@@ -60,6 +60,14 @@ var DatePicker = {
     },
 
     nextMonth() {
+        // 未来日付防止: 今月より先には進めない
+        const today = new Date();
+        const next = new Date(this.state.currentDate);
+        next.setMonth(next.getMonth() + 1);
+        if (next.getFullYear() > today.getFullYear() ||
+            (next.getFullYear() === today.getFullYear() && next.getMonth() > today.getMonth())) {
+            return; // 今月が上限
+        }
         this.state.currentDate.setMonth(this.state.currentDate.getMonth() + 1);
         this.render();
     },
@@ -70,6 +78,11 @@ var DatePicker = {
     },
 
     nextYear() {
+        // 未来日付防止: 今年より先には進めない
+        const today = new Date();
+        if (this.state.currentDate.getFullYear() >= today.getFullYear()) {
+            return; // 今年が上限
+        }
         this.state.currentDate.setFullYear(this.state.currentDate.getFullYear() + 1);
         this.render();
     },
@@ -132,6 +145,7 @@ var DatePicker = {
         }
 
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // 時刻を正規化して日付単位で比較
         const isTodayMonth = today.getFullYear() === year && today.getMonth() === month;
 
         for (let d = 1; d <= daysInMonth; d++) {
@@ -139,17 +153,27 @@ var DatePicker = {
             el.className = 'dp-day';
             el.textContent = d;
 
+            // 未来日付判定
+            const thisDate = new Date(year, month, d);
+            const isFuture = thisDate > today;
+
             if (isTodayMonth && today.getDate() === d) el.classList.add('today');
 
-            // Check selected
-            if (this.state.selectedDate &&
-                this.state.selectedDate.getFullYear() === year &&
-                this.state.selectedDate.getMonth() === month &&
-                this.state.selectedDate.getDate() === d) {
-                el.classList.add('selected');
+            if (isFuture) {
+                // 未来の日付はグレーアウトして選択不可
+                el.classList.add('future');
+                el.onclick = null; // クリック無効
+            } else {
+                // Check selected
+                if (this.state.selectedDate &&
+                    this.state.selectedDate.getFullYear() === year &&
+                    this.state.selectedDate.getMonth() === month &&
+                    this.state.selectedDate.getDate() === d) {
+                    el.classList.add('selected');
+                }
+                el.onclick = () => this.selectDate(year, month, d);
             }
 
-            el.onclick = () => this.selectDate(year, month, d);
             grid.appendChild(el);
         }
     },
@@ -1421,6 +1445,18 @@ async function saveTx() {
     const remarks = el.txRemarks.value.trim();
     const item = ITEMS.find(i => i.id === state.itemId);
     if (isNaN(qty) || qty < 1) { alert('数量を入力してください'); return; }
+
+    // ── 未来日付バリデーション ──
+    const inputDateStr = el.txDate.value;
+    if (inputDateStr) {
+        const inputDate = new Date(inputDateStr);
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        if (inputDate > todayStart) {
+            alert('未来の日付は入力できません。\n日付を今日以前に修正してください。');
+            return;
+        }
+    }
 
     const isInbound = (state.txType === 'IN_BUY' || state.txType === 'IN_GET');
     const isOutbound = (state.txType === 'OUT_USE' || state.txType === 'OUT_GIVE');

@@ -752,6 +752,14 @@
             pointer-events: none;
         }
 
+        /* 未来日付: グレーアウトして選択不可 */
+        .dp-day.future {
+            color: var(--color-border);
+            pointer-events: none;
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
         /* Month/Year View */
         .dp-year-selector {
             display: flex;
