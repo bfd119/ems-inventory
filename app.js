@@ -9,12 +9,13 @@ var DatePicker = {
         selectedDate: null,
         view: 'day', // 'day' or 'month-year'
         onSelect: null,
-        targetInput: null
+        targetInput: null,
+        allowFuture: false // 未来日付を許可するか（使用期限フィールド用）
     },
     elements: {}, // Will be populated in init()
 
 
-    open(targetInputId) {
+    open(targetInputId, allowFuture = false) {
         console.log('DatePicker.open called for:', targetInputId);
         const target = document.getElementById(targetInputId);
         if (!target) {
@@ -22,6 +23,7 @@ var DatePicker = {
             return;
         }
         this.state.targetInput = target;
+        this.state.allowFuture = allowFuture; // 未来日付許可フラグをセット
 
         if (!this.elements.modal) {
             console.error('DatePicker modal element not found!');
@@ -60,13 +62,15 @@ var DatePicker = {
     },
 
     nextMonth() {
-        // 未来日付防止: 今月より先には進めない
-        const today = new Date();
-        const next = new Date(this.state.currentDate);
-        next.setMonth(next.getMonth() + 1);
-        if (next.getFullYear() > today.getFullYear() ||
-            (next.getFullYear() === today.getFullYear() && next.getMonth() > today.getMonth())) {
-            return; // 今月が上限
+        // 未来日付防止: 使用期限フィールドは未来月へ進めることを許可
+        if (!this.state.allowFuture) {
+            const today = new Date();
+            const next = new Date(this.state.currentDate);
+            next.setMonth(next.getMonth() + 1);
+            if (next.getFullYear() > today.getFullYear() ||
+                (next.getFullYear() === today.getFullYear() && next.getMonth() > today.getMonth())) {
+                return; // 今月が上限
+            }
         }
         this.state.currentDate.setMonth(this.state.currentDate.getMonth() + 1);
         this.render();
@@ -78,10 +82,12 @@ var DatePicker = {
     },
 
     nextYear() {
-        // 未来日付防止: 今年より先には進めない
-        const today = new Date();
-        if (this.state.currentDate.getFullYear() >= today.getFullYear()) {
-            return; // 今年が上限
+        // 未来日付防止: 使用期限フィールドは未来年へ進めることを許可
+        if (!this.state.allowFuture) {
+            const today = new Date();
+            if (this.state.currentDate.getFullYear() >= today.getFullYear()) {
+                return; // 今年が上限
+            }
         }
         this.state.currentDate.setFullYear(this.state.currentDate.getFullYear() + 1);
         this.render();
@@ -153,14 +159,14 @@ var DatePicker = {
             el.className = 'dp-day';
             el.textContent = d;
 
-            // 未来日付判定
+            // 未来日付判定（使用期限フィールドは未来日付も選択可）
             const thisDate = new Date(year, month, d);
             const isFuture = thisDate > today;
 
             if (isTodayMonth && today.getDate() === d) el.classList.add('today');
 
-            if (isFuture) {
-                // 未来の日付はグレーアウトして選択不可
+            if (isFuture && !this.state.allowFuture) {
+                // 未来の日付はグレーアウトして選択不可（使用期限フィールド以外）
                 el.classList.add('future');
                 el.onclick = null; // クリック無効
             } else {
@@ -216,16 +222,16 @@ var DatePicker = {
         document.querySelector('#datepicker-modal .modal-overlay').onclick = () => this.close();
 
         // Bind inputs
-        const bindInput = (id) => {
+        const bindInput = (id, allowFuture = false) => {
             const wrapper = document.getElementById(id + '-wrapper');
             if (wrapper) {
-                wrapper.onclick = () => this.open(id);
+                wrapper.onclick = () => this.open(id, allowFuture);
             }
         };
 
-        bindInput('transaction-expiry');
-        bindInput('transaction-date');
-        bindInput('new-expiry-date');
+        bindInput('transaction-expiry', true);  // 使用期限は未来日付を許可
+        bindInput('transaction-date', false);   // 取引日付は未来不可
+        bindInput('new-expiry-date', true);    // 期限編集も未来日付を許可
     }
 };
 
