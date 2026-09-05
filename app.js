@@ -258,13 +258,10 @@ const ICON_COLORS = {
     'inventory_2': '#607D8B', 'monitor_heart': '#9C27B0', 'ambulance': '#FBC02D',
     'edit_note': '#795548', 'content_cut': '#607D8B'
 };
-// 部署マスター（固定）
-const DEPARTMENTS = [
-    { id: 1, name: "警防課" }, { id: 2, name: "三次" }, { id: 3, name: "作木" },
-    { id: 4, name: "吉舎" }, { id: 5, name: "三和" }, { id: 6, name: "口和" },
-    { id: 7, name: "甲奴" }, { id: 8, name: "庄原" }, { id: 9, name: "西城" },
-    { id: 10, name: "高野" }, { id: 11, name: "東城" }
-];
+// 署所マスター。departments テーブルから読み込む（loadData 内で設定）。
+// 以前はここに直接書いており、署所の追加・改称のたびに
+// app.js と送信スクリプトの両方を直す必要があった。
+let DEPARTMENTS = [];
 let CATEGORIES = [], ITEMS = [];
 const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, transactionsStale: true, editingCategoryId: null, editingItemId: null, settingsCatId: null };
 const $ = id => document.getElementById(id);
@@ -465,6 +462,15 @@ function bindEvents() {
 // ============================================
 // Supabase API
 // ============================================
+
+async function fsGetDepartments() {
+    const { data, error } = await db.from('departments').select('*').order('sort_order');
+    if (error) throw error;
+    return data.map(d => ({
+        id: +d.id, name: d.name, fullName: d.full_name,
+        isHeadquarters: !!d.is_headquarters, colorKey: d.color_key
+    }));
+}
 
 async function fsGetCategories() {
     const { data, error } = await db.from('categories').select('*').order('id');
@@ -682,6 +688,7 @@ const CACHE_KEY = 'ems_inventory_cache';
 function saveCache() {
     try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({
+            departments: DEPARTMENTS,
             categories: CATEGORIES,
             items: ITEMS,
             stocks: state.stocks,
@@ -700,6 +707,7 @@ async function loadData() {
     if (cached) {
         try {
             const c = JSON.parse(cached);
+            DEPARTMENTS = c.departments || [];
             CATEGORIES = c.categories || [];
             ITEMS = c.items || [];
             state.stocks = c.stocks || [];
@@ -719,12 +727,13 @@ async function loadData() {
         // ホーム・ダッシュボードでは使わず、統計画面を開いた時に取れば足りる。
         // 4600件超あり、1000件ずつのページングで5往復かかっていた。
         const dataPromise = Promise.all([
+            fsGetDepartments(),
             fsGetCategories(),
             fsGetItems(),
             fsGetStocks()
         ]);
 
-        [CATEGORIES, ITEMS, state.stocks] = await Promise.race([dataPromise, timeoutPromise]);
+        [DEPARTMENTS, CATEGORIES, ITEMS, state.stocks] = await Promise.race([dataPromise, timeoutPromise]);
 
         saveCache();
 
@@ -1441,8 +1450,8 @@ function renderInventoryMatrix() {
 function renderMatrixTable(items) {
     // 署所リスト: 各署所(ID順) -> 署所計 -> 警防課
     // 警防課IDは1、その他は2〜10
-    const keibouka = DEPARTMENTS.find(d => d.id === 1);
-    const otherDepts = DEPARTMENTS.filter(d => d.id !== 1).sort((a, b) => a.id - b.id);
+    const keibouka = DEPARTMENTS.find(d => d.isHeadquarters);
+    const otherDepts = DEPARTMENTS.filter(d => !d.isHeadquarters);
 
     let html = `
                 <div class="matrix-table-wrapper">
@@ -1592,8 +1601,8 @@ function toggleMatrixAccordion(catId) {
 function exportMatrixCSV() {
     // CSV生成ロジック
     // ヘッダー: 用品ID, カテゴリ, 用品名, 単位, 三次...東城, 署所計, 警防課
-    const keibouka = DEPARTMENTS.find(d => d.id === 1);
-    const otherDepts = DEPARTMENTS.filter(d => d.id !== 1).sort((a, b) => a.id - b.id);
+    const keibouka = DEPARTMENTS.find(d => d.isHeadquarters);
+    const otherDepts = DEPARTMENTS.filter(d => !d.isHeadquarters);
 
     let csv = '\uFEFF'; // BOM
 
@@ -1948,19 +1957,21 @@ function renderCombined() {
             el.budgetTable.innerHTML = '<tr><td colspan="12" style="padding:2rem;text-align:center">データなし</td></tr>';
         } else {
             // 列のクラスマッピング
+            // 色分けは署所名ではなく departments.color_key で判定する。
+            // 名前で一致させていたため、改称すると色が消えていた。
             const colClassMap = {
-                '三次': { bg: 'bt-col-miyoshi', header: 'bt-col-miyoshi-header', border: 'bt-border-left' },
-                '庄原': { bg: 'bt-col-shobara', header: 'bt-col-shobara-header', border: 'bt-border-left' },
-                '東城': { bg: 'bt-col-tojo', header: 'bt-col-tojo-header', border: 'bt-border-left bt-border-right' }
+                miyoshi: { bg: 'bt-col-miyoshi', header: 'bt-col-miyoshi-header', border: 'bt-border-left' },
+                shobara: { bg: 'bt-col-shobara', header: 'bt-col-shobara-header', border: 'bt-border-left' },
+                tojo:    { bg: 'bt-col-tojo',    header: 'bt-col-tojo-header',    border: 'bt-border-left bt-border-right' }
             };
             // 警防課列の右側（＝三次の左側）で太い罫線
             const keiboukaIdx = DEPARTMENTS.findIndex(d => d.name === '警防課');
 
             let h = '<thead><tr><th>用品</th>' + DEPARTMENTS.map((d, idx) => {
-                const cc = colClassMap[d.name];
+                const cc = colClassMap[d.colorKey];
                 let cls = cc ? cc.header + ' ' + (cc.border || '') : '';
                 // 警防課の左側（用品列の右境界として扱うため、警防課自体に左太罫線）
-                if (d.name === '警防課') cls += ' bt-border-left';
+                if (d.isHeadquarters) cls += ' bt-border-left';
                 return `<th class="${cls.trim()}">${d.name}</th>`;
             }).join('') + '<th>計</th></tr></thead><tbody>';
             used.forEach(i => {
@@ -1968,9 +1979,9 @@ function renderCombined() {
                 let rt = 0;
                 DEPARTMENTS.forEach((d, idx) => {
                     const q = mx[d.id][i.id] || 0; rt += q;
-                    const cc = colClassMap[d.name];
+                    const cc = colClassMap[d.colorKey];
                     let cls = cc ? cc.bg + ' ' + (cc.border || '') : '';
-                    if (d.name === '警防課') cls += ' bt-border-left';
+                    if (d.isHeadquarters) cls += ' bt-border-left';
                     h += `<td class="${cls.trim()}">${q || '-'}</td>`;
                 });
                 h += `<td><b>${rt}</b></td></tr>`;

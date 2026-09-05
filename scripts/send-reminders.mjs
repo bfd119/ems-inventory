@@ -20,13 +20,6 @@ import { fetchAll, fetchSetting } from './supabase.mjs';
 const DRY_RUN = process.argv.includes('--dry-run');
 const STATE_PATH = 'backup/_reminder_state.json';
 
-// 署所名。TODO: 将来 departments テーブルへ移す（現在はコード3箇所に分散している）
-const DEPT_NAMES = {
-    1: '警防課', 2: '三次署', 3: '作木出張所', 4: '吉舎出張所',
-    5: '三和出張所', 6: '口和出張所', 7: '甲奴出張所', 8: '庄原署',
-    9: '西城分署', 10: '高野出張所', 11: '東城署',
-};
-
 const APP_URL = 'https://bfd119.github.io/ems-inventory/';
 
 /** 期限なしを表す値。DB は NULL だが、過去データに 9999-12-31 も混在している */
@@ -74,8 +67,12 @@ async function main() {
     }
     console.log(`通知段階: 期限の ${thresholds.join('日前 / ')}日前 ＋ 期限切れ`);
 
-    const [stocks, items] = await Promise.all([fetchAll('stocks'), fetchAll('items')]);
+    const [stocks, items, departments] = await Promise.all([
+        fetchAll('stocks'), fetchAll('items'), fetchAll('departments', '*', 'sort_order'),
+    ]);
     const itemMap = new Map(items.map((i) => [i.id, i]));
+    // 署所名は departments テーブルから取る（以前はこのファイルに直接書いていた）
+    const deptNames = new Map(departments.map((d) => [String(d.id), d.full_name || d.name]));
 
     const now = new Date();
     const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
@@ -141,7 +138,7 @@ async function main() {
     let sent = 0;
     for (const deptId of deptIds) {
         const rows = byDept[deptId].sort((a, b) => a.expiry.localeCompare(b.expiry));
-        const deptName = DEPT_NAMES[deptId] || `署所ID:${deptId}`;
+        const deptName = deptNames.get(String(deptId)) || `署所ID:${deptId}`;
         const to = emails[deptId];
 
         const expired = rows.filter((r) => r.daysLeft < 0);
