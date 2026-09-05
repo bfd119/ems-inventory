@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase SDK（リポジトリに同梱。CDN 障害や意図しない自動更新の影響を受けない） -->
+    <script src="vendor/supabase-js-2.115.0.min.js"></script>
 </head>
 
 <body>
@@ -36,7 +36,7 @@
         </div>
         <div id="qr-code-container" style="text-align: center; margin-top: 2rem;">
             <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">📱スマートフォン等からアクセス</p>
-            <img id="app-qr-code" src="" alt="App QR Code"
+            <img id="app-qr-code" src="images/app-qr.png" alt="アプリのQRコード"
                 style="width: 150px; height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         </div>
     </section>

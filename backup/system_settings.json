@@ -1,0 +1,13 @@
+[
+  {
+    "key": "reminder_config",
+    "updated_at": "2026-02-14T02:25:24.951536+00:00",
+    "value": {
+      "enabled": true,
+      "schedule_days": [
+        30,
+        10
+      ]
+    }
+  }
+]

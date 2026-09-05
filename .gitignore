@@ -1,6 +1,11 @@
 # Dependencies
 node_modules/
 
+# 認証情報（絶対にコミットしない）
+.env
+.env.*
+!.env.example
+
 # IDE
 .vscode/
 .idea/
@@ -14,3 +19,7 @@ Thumbs.db
 
 # Cache
 *.cache
+
+# 一時的な調査スクリプト・出力
+tmp_*.mjs
+audit_results*.json

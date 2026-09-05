@@ -1,0 +1,1127 @@
+[
+  {
+    "category_id": 29,
+    "has_expiry": true,
+    "id": 263,
+    "min_stock": 0,
+    "name": "アドレナリン",
+    "unit": "個",
+    "unit_price": 3200
+  },
+  {
+    "category_id": 29,
+    "has_expiry": true,
+    "id": 264,
+    "min_stock": 0,
+    "name": "ブドウ糖",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": true,
+    "id": 266,
+    "min_stock": 0,
+    "name": "針18G",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": true,
+    "id": 267,
+    "min_stock": 0,
+    "name": "針20G",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": true,
+    "id": 268,
+    "min_stock": 0,
+    "name": "針22G",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": true,
+    "id": 269,
+    "min_stock": 0,
+    "name": "針24G",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": false,
+    "id": 270,
+    "min_stock": 0,
+    "name": "輸液セット",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": false,
+    "id": 272,
+    "min_stock": 0,
+    "name": "キープポア（サイズ1.2㎝）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": false,
+    "id": 273,
+    "min_stock": 0,
+    "name": "キープポア（サイズ2.5㎝）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": false,
+    "id": 274,
+    "min_stock": 0,
+    "name": "酒精綿（ステリコット）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": false,
+    "id": 275,
+    "min_stock": 0,
+    "name": "針ポイ",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": false,
+    "id": 276,
+    "min_stock": 0,
+    "name": "穿刺絆創膏（インジェクション）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": true,
+    "id": 277,
+    "min_stock": 0,
+    "name": "チューブ6.0mm",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": true,
+    "id": 278,
+    "min_stock": 0,
+    "name": "チューブ6.5mm",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": true,
+    "id": 279,
+    "min_stock": 0,
+    "name": "チューブ7.0mm",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": true,
+    "id": 280,
+    "min_stock": 0,
+    "name": "チューブ7.5mm",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": true,
+    "id": 281,
+    "min_stock": 0,
+    "name": "チューブ8.0mm",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": true,
+    "id": 282,
+    "min_stock": 0,
+    "name": "イントロック",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": true,
+    "id": 283,
+    "min_stock": 0,
+    "name": "イントロック薄型",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": false,
+    "id": 284,
+    "min_stock": 0,
+    "name": "イージーキャップⅡ",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": false,
+    "id": 285,
+    "min_stock": 0,
+    "name": "AWチェッカー",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": false,
+    "id": 286,
+    "min_stock": 0,
+    "name": "トーマスホルダー",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": false,
+    "id": 287,
+    "min_stock": 0,
+    "name": "スタイレット",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 31,
+    "has_expiry": false,
+    "id": 288,
+    "min_stock": 0,
+    "name": "ETCO2センサー",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 32,
+    "has_expiry": true,
+    "id": 289,
+    "min_stock": 0,
+    "name": "血糖チップ",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 32,
+    "has_expiry": false,
+    "id": 290,
+    "min_stock": 0,
+    "name": "血糖針",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 291,
+    "min_stock": 0,
+    "name": "LT#５",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 292,
+    "min_stock": 0,
+    "name": "LT#４",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 293,
+    "min_stock": 0,
+    "name": "LT#３",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 294,
+    "min_stock": 0,
+    "name": "LT#2.5",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 295,
+    "min_stock": 0,
+    "name": "LT#２",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 296,
+    "min_stock": 0,
+    "name": "LT#１",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 297,
+    "min_stock": 0,
+    "name": "LT#０",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 298,
+    "min_stock": 0,
+    "name": "酸素マスク成人高",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 299,
+    "min_stock": 0,
+    "name": "酸素マスク成人中",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 300,
+    "min_stock": 0,
+    "name": "酸素マスク小児高",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 301,
+    "min_stock": 0,
+    "name": "酸素マスク小児中",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 302,
+    "min_stock": 0,
+    "name": "鼻カニューレ",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 303,
+    "min_stock": 0,
+    "name": "吸引チューブ18Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 304,
+    "min_stock": 0,
+    "name": "吸引チューブ16Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 305,
+    "min_stock": 0,
+    "name": "吸引チューブ14Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 306,
+    "min_stock": 0,
+    "name": "吸引チューブ12Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 307,
+    "min_stock": 0,
+    "name": "吸引チューブ10Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 308,
+    "min_stock": 0,
+    "name": "サクション10Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 309,
+    "min_stock": 0,
+    "name": "サクション12Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 310,
+    "min_stock": 0,
+    "name": "サクション14Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 311,
+    "min_stock": 0,
+    "name": "サクション16Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 312,
+    "min_stock": 0,
+    "name": "サクション18Fr",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 313,
+    "min_stock": 0,
+    "name": "経鼻AW 6",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 314,
+    "min_stock": 0,
+    "name": "経鼻AW 7",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 315,
+    "min_stock": 0,
+    "name": "経鼻AW 8",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 316,
+    "min_stock": 0,
+    "name": "経口AW6.0",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 317,
+    "min_stock": 0,
+    "name": "経口AW7.0",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 318,
+    "min_stock": 0,
+    "name": "経口AW8.0",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 319,
+    "min_stock": 0,
+    "name": "人工鼻",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 320,
+    "min_stock": 0,
+    "name": "セレスパック",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 321,
+    "min_stock": 0,
+    "name": "潤滑剤(チューブ塗布）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 322,
+    "min_stock": 0,
+    "name": "羊水カテーテル",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": false,
+    "id": 323,
+    "min_stock": 0,
+    "name": "ヤンカーサクション",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 324,
+    "min_stock": 0,
+    "name": "i-GEL #5",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 325,
+    "min_stock": 0,
+    "name": "フローキャップ",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 326,
+    "min_stock": 0,
+    "name": "i-GEL #4",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 33,
+    "has_expiry": true,
+    "id": 327,
+    "min_stock": 0,
+    "name": "i-GEL #3",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 328,
+    "min_stock": 0,
+    "name": "上衣S",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 329,
+    "min_stock": 0,
+    "name": "上衣M",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 330,
+    "min_stock": 0,
+    "name": "上衣L",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 331,
+    "min_stock": 0,
+    "name": "上衣LL",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 332,
+    "min_stock": 0,
+    "name": "下衣S",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 333,
+    "min_stock": 0,
+    "name": "下衣M",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 334,
+    "min_stock": 0,
+    "name": "下衣L",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 335,
+    "min_stock": 0,
+    "name": "下衣LL",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 336,
+    "min_stock": 0,
+    "name": "タイベックLL",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 337,
+    "min_stock": 0,
+    "name": "タイベックL",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 338,
+    "min_stock": 0,
+    "name": "タイベックM",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 339,
+    "min_stock": 0,
+    "name": "エアクールM",
+    "unit": "個",
+    "unit_price": 3000
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 340,
+    "min_stock": 0,
+    "name": "エアクールL",
+    "unit": "個",
+    "unit_price": 3000
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 341,
+    "min_stock": 0,
+    "name": "エアクールLL",
+    "unit": "個",
+    "unit_price": 3000
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 342,
+    "min_stock": 0,
+    "name": "エアクール（ファン）",
+    "unit": "個",
+    "unit_price": 3000
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 343,
+    "min_stock": 0,
+    "name": "エアクール（バッテリー）",
+    "unit": "個",
+    "unit_price": 10000
+  },
+  {
+    "category_id": 34,
+    "has_expiry": false,
+    "id": 344,
+    "min_stock": 0,
+    "name": "エアクール（フィルター）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 345,
+    "min_stock": 0,
+    "name": "サージカルマスク（箱）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 346,
+    "min_stock": 0,
+    "name": "N95マスク（枚）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 347,
+    "min_stock": 0,
+    "name": "プラ手LL（箱）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 348,
+    "min_stock": 0,
+    "name": "プラ手L（箱）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 349,
+    "min_stock": 0,
+    "name": "プラ手M（箱）",
+    "unit": "個",
+    "unit_price": 1700
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 350,
+    "min_stock": 0,
+    "name": "プラ手S（箱）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 351,
+    "min_stock": 0,
+    "name": "アームカバー",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 352,
+    "min_stock": 0,
+    "name": "ロング手袋L",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 353,
+    "min_stock": 0,
+    "name": "ロング手袋M",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 354,
+    "min_stock": 0,
+    "name": "ストレッチャーカバー",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 355,
+    "min_stock": 0,
+    "name": "シューズカバー（枚）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 356,
+    "min_stock": 0,
+    "name": "シューズカバー（ブーツ）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 357,
+    "min_stock": 0,
+    "name": "ゴーグル",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 35,
+    "has_expiry": false,
+    "id": 358,
+    "min_stock": 0,
+    "name": "ソンタラシート",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 359,
+    "min_stock": 0,
+    "name": "三角巾",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 360,
+    "min_stock": 0,
+    "name": "サージカルパッド",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 361,
+    "min_stock": 0,
+    "name": "伸縮包帯",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 362,
+    "min_stock": 0,
+    "name": "アルミックシート",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 363,
+    "min_stock": 0,
+    "name": "ケーパイン",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 364,
+    "min_stock": 0,
+    "name": "ネックカラー(成人）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 365,
+    "min_stock": 0,
+    "name": "ネックカラー(小児）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 366,
+    "min_stock": 0,
+    "name": "トランスーム",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 36,
+    "has_expiry": false,
+    "id": 367,
+    "min_stock": 0,
+    "name": "養生テープ",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 37,
+    "has_expiry": false,
+    "id": 368,
+    "min_stock": 0,
+    "name": "アルガーゼ詰替",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 37,
+    "has_expiry": false,
+    "id": 369,
+    "min_stock": 0,
+    "name": "アルガーゼ本体",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 37,
+    "has_expiry": true,
+    "id": 370,
+    "min_stock": 0,
+    "name": "消毒用エタノール（手指消毒用）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 37,
+    "has_expiry": true,
+    "id": 371,
+    "min_stock": 0,
+    "name": "消毒用エタノール（資器材用）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 37,
+    "has_expiry": true,
+    "id": 372,
+    "min_stock": 0,
+    "name": "次亜塩素酸Na",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 374,
+    "min_stock": 0,
+    "name": "搬送表",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 375,
+    "min_stock": 0,
+    "name": "ZOLL記録紙",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 376,
+    "min_stock": 0,
+    "name": "DASH記録紙",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 377,
+    "min_stock": 0,
+    "name": "冷却剤",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 378,
+    "min_stock": 0,
+    "name": "トリアージタグ",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 379,
+    "min_stock": 0,
+    "name": "救命講習テキスト",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 380,
+    "min_stock": 0,
+    "name": "応急手当テキスト",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 381,
+    "min_stock": 0,
+    "name": "入門テキスト",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 382,
+    "min_stock": 0,
+    "name": "マスカー（大）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 383,
+    "min_stock": 0,
+    "name": "マスカー（小）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": false,
+    "id": 384,
+    "min_stock": 0,
+    "name": "フェイスシールド",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 38,
+    "has_expiry": true,
+    "id": 385,
+    "min_stock": 0,
+    "name": "お産セット",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 39,
+    "has_expiry": true,
+    "id": 386,
+    "min_stock": 0,
+    "name": "AEDパッド(FR3)",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 39,
+    "has_expiry": true,
+    "id": 387,
+    "min_stock": 0,
+    "name": "AEDパッド(ZOLL）",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 39,
+    "has_expiry": false,
+    "id": 388,
+    "min_stock": 0,
+    "name": "ECGパッド",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": null,
+    "has_expiry": true,
+    "id": 405,
+    "min_stock": 0,
+    "name": "ソルラクト",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 30,
+    "has_expiry": false,
+    "id": 407,
+    "min_stock": 0,
+    "name": "カテリープ",
+    "unit": "個",
+    "unit_price": 0
+  }
+]

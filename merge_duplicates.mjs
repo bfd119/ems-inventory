@@ -1,8 +1,14 @@
 // 重複用品統合＆M2M移行スクリプト
 // 実行方法: node merge_duplicates.mjs
 
-const SUPABASE_URL = 'https://aacntdoacjjssspoctul.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhY250ZG9hY2pqc3NzcG9jdHVsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzkwMDk5NywiZXhwIjoyMDgzNDc2OTk3fQ.knTlspYRILXuyA9NVTc58iMeM6OEcsJwH-J21FGddRs';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://aacntdoacjjssspoctul.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY;
+
+if (!SUPABASE_KEY) {
+    console.error('環境変数 SUPABASE_SECRET_KEY が設定されていません。');
+    console.error('実行例: node --env-file=.env merge_duplicates.mjs');
+    process.exit(1);
+}
 
 async function supabaseRequest(table, method, data = null, filter = '') {
     const url = `${SUPABASE_URL}/rest/v1/${table}${filter}`;

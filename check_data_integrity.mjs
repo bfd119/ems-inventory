@@ -2,8 +2,14 @@
 // 実行方法: node check_data_integrity.mjs [--fix]
 // --fix オプションを付けると、stocksテーブルをtransactionsから再計算して修復する
 
-const SUPABASE_URL = 'https://aacntdoacjjssspoctul.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhY250ZG9hY2pqc3NzcG9jdHVsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzkwMDk5NywiZXhwIjoyMDgzNDc2OTk3fQ.knTlspYRILXuyA9NVTc58iMeM6OEcsJwH-J21FGddRs';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://aacntdoacjjssspoctul.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY;
+
+if (!SUPABASE_KEY) {
+    console.error('環境変数 SUPABASE_SECRET_KEY が設定されていません。');
+    console.error('実行例: node --env-file=.env check_data_integrity.mjs [--fix]');
+    process.exit(1);
+}
 
 const FIX_MODE = process.argv.includes('--fix');
 const DEPT_ID_ARG = process.argv.find(arg => arg.startsWith('--dept='));

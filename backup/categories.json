@@ -1,0 +1,86 @@
+[
+  {
+    "department_id": null,
+    "icon": "medication",
+    "id": 29,
+    "name": "医薬品",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "vaccines",
+    "id": 30,
+    "name": "静脈路確保",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "medical_services",
+    "id": 31,
+    "name": "気管挿管",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "bloodtype",
+    "id": 32,
+    "name": "血糖測定",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "sick",
+    "id": 33,
+    "name": "気道管理",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "checkroom",
+    "id": 34,
+    "name": "感染防止衣",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "clean_hands",
+    "id": 35,
+    "name": "感染防止",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "healing",
+    "id": 36,
+    "name": "外傷",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "sanitizer",
+    "id": 37,
+    "name": "消毒",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "inventory_2",
+    "id": 38,
+    "name": "その他",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "monitor_heart",
+    "id": 39,
+    "name": "心電図",
+    "type": "system"
+  },
+  {
+    "department_id": null,
+    "icon": "medication",
+    "id": 48,
+    "name": "CPA",
+    "type": "user"
+  }
+]

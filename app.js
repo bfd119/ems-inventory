@@ -273,14 +273,7 @@ function initializeApp() {
     bindEvents();
     loadData();
     if (typeof DatePicker !== 'undefined') DatePicker.init();
-
-    // QRコードの生成
-    const qrImg = document.getElementById('app-qr-code');
-    if (qrImg) {
-        // 現在のURL（ファイルパスまたはWebURL）を取得しエンコード
-        const currentUrl = encodeURIComponent(window.location.href);
-        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${currentUrl}`;
-    }
+    // QRコードは images/app-qr.png として静的に配置済み（外部APIへの依存を廃止）
 }
 
 // Bootstrapping

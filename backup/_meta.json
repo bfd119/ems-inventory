@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-09-05T06:13:22.590Z",
+  "counts": {
+    "categories": 12,
+    "items": 125,
+    "item_categories": 132,
+    "stocks": 1113,
+    "transactions": 4639,
+    "system_settings": 1
+  },
+  "failures": [],
+  "note": "scripts/backup.mjs により自動生成。手動で編集しないこと。"
+}
