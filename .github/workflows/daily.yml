@@ -1,0 +1,71 @@
+name: 日次メンテナンス（スリープ防止・バックアップ・期限通知）
+
+# このワークフロー1本で3つの役割を果たす:
+#
+#  1. Supabase のスリープ防止
+#     無料プランは7日間アクセスがないと自動停止し、手動で再開するまで
+#     アプリが使えなくなる。毎日読み取りを行うことでタイマーを常にリセットする。
+#
+#  2. バックアップ
+#     読み取った内容を backup/ に JSON で保存してコミットする。
+#
+#  3. 使用期限のリマインドメール
+#     旧 Google Apps Script (mail_sender.js) の置き換え。
+#
+# 毎回 backup/_meta.json のタイムスタンプが変わるため必ずコミットが発生する。
+# これはリポジトリの活動を維持する役割も持つ。public リポジトリのスケジュール実行は
+# 60日間活動がないと GitHub により自動停止されるため、その対策を兼ねている。
+
+on:
+  schedule:
+    # 22:00 UTC = 07:00 JST（毎日）
+    - cron: '0 22 * * *'
+  workflow_dispatch: # 手動実行も可能
+
+# 同時に2つ走ってコミットが衝突しないようにする
+concurrency:
+  group: daily-maintenance
+  cancel-in-progress: false
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # backup/ をコミットするために必要
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+
+      - name: バックアップ取得（＋スリープ防止）
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/backup.mjs
+
+      - name: 使用期限リマインドメール送信
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          DEPARTMENT_EMAILS: ${{ secrets.DEPARTMENT_EMAILS }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        run: node scripts/send-reminders.mjs
+
+      - name: 変更をコミット
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backup/
+          if git diff --staged --quiet; then
+            echo "変更なし"
+          else
+            git commit -m "chore: 自動バックアップ $(date -u '+%Y-%m-%d')"
+            git push
+          fi

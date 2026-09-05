@@ -1,7 +1,17 @@
 {
+  "name": "ems-inventory",
+  "version": "1.0.0",
+  "description": "救急用在庫管理表 - 消防救急資器材の在庫管理システム",
+  "private": true,
+  "scripts": {
+    "check": "node --env-file=.env check_data_integrity.mjs",
+    "check:fix": "node --env-file=.env check_data_integrity.mjs --fix",
+    "backup": "node --env-file=.env scripts/backup.mjs",
+    "keepalive": "node --env-file=.env scripts/keepalive.mjs",
+    "reminder": "node --env-file=.env scripts/send-reminders.mjs",
+    "reminder:dry": "node --env-file=.env scripts/send-reminders.mjs --dry-run"
+  },
   "dependencies": {
-    "docx": "^9.6.0",
-    "image-size": "^2.0.2",
-    "pdf-parse": "^2.4.5"
+    "nodemailer": "^10.0.0"
   }
 }
