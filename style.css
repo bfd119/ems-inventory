@@ -149,7 +149,7 @@
 
         .department-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: var(--spacing-sm);
             width: 100%;
             max-width: 340px;
@@ -284,7 +284,10 @@
 
         .category-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            /* minmax(0, 1fr) にすること。1fr は minmax(auto, 1fr) と同義で、
+               最小値がタイルのコンテンツ幅になるため列が縮まず、
+               狭い画面でコンテナを突き抜けて横スクロールが発生する */
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: var(--spacing-sm);
             flex: 1;
             align-content: start;
@@ -302,6 +305,11 @@
             border-radius: var(--border-radius-md);
             aspect-ratio: 1;
             box-shadow: var(--shadow-sm);
+            /* グリッド項目が自身のコンテンツ幅で押し広げられないようにする。
+               アイコンフォント読み込み中は合字名（例: medication）がそのまま
+               描画されて非常に横長になるため、隠して破綻を防ぐ */
+            min-width: 0;
+            overflow: hidden;
         }
 
         .category-tile.add-tile {
@@ -372,6 +380,8 @@
             font-weight: 500;
             text-align: center;
             color: var(--color-text-secondary);
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .dashboard-section {
@@ -978,7 +988,9 @@
             position: relative;
             width: 100%;
             max-width: 420px;
-            max-height: 85vh;
+            /* dvh を使う。vh はスマホのアドレスバーを含んだ高さのため、
+               85vh だと画面下部（保存ボタン）がはみ出して押せなくなる */
+            max-height: 85dvh;
             background: var(--color-bg-card);
             border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
             display: flex;
@@ -1278,6 +1290,13 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             vertical-align: middle;
+            /* アイコンフォントが読み込めなかった場合、合字名（medication 等）が
+               そのまま文字として描画され、幅が数倍に膨らんでレイアウトを壊す。
+               グリフは 1em 四方なので、それより少し広い幅で切り詰めて防ぐ */
+            display: inline-block;
+            max-width: 1.4em;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
         .category-icon .material-symbols-outlined {
@@ -1917,4 +1936,88 @@
             height: 480px;
             min-height: 480px;
             max-height: 480px;
+        }
+        /* ============================================================
+           スマートフォン向け（iPhone SE2 = 375px、表示拡大時は 320px）
+
+           従来この CSS にはメディアクエリが「PC向けの min-width:768px」
+           1つしか無く、狭い画面は素の状態で描画されていた。
+           そのため 320px では正方形タイル(91px)に内容が収まらず、
+           12タイル全てで文字の下端が切れていた。
+           ============================================================ */
+        @media (max-width: 480px) {
+
+            /* 画面の左右余白を詰めて、タイルに使える幅を稼ぐ */
+            .screen {
+                padding: var(--spacing-sm);
+            }
+
+            /* 正方形の固定をやめ、内容に合わせて高さを取る。
+               グリッド項目は既定で stretch するため、同じ行の高さは揃う */
+            .category-tile {
+                aspect-ratio: auto;
+                min-height: 92px;
+                padding: var(--spacing-sm) var(--spacing-xs);
+                gap: 2px;
+            }
+
+            .category-icon .material-symbols-outlined {
+                font-size: 2rem;
+            }
+
+            .category-name {
+                font-size: 0.75rem;
+                line-height: 1.25;
+            }
+
+            .fav-set-label {
+                font-size: 0.6rem;
+                line-height: 1.2;
+            }
+
+            /* 署所ボタンも同様に、内容が収まる高さを確保する */
+            .department-btn {
+                aspect-ratio: auto;
+                min-height: 88px;
+                padding: var(--spacing-sm) var(--spacing-xs);
+                font-size: 0.9rem;
+            }
+
+            .app-title {
+                font-size: 1.5rem;
+            }
+
+            /* モーダルは画面下端いっぱいまで使う。
+               iPhone のホームバー領域に保存ボタンが潜り込まないよう
+               セーフエリア分の余白を確保する */
+            .modal-content {
+                max-height: 90dvh;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+
+            /* 横に長い表は、はみ出さずに枠内でスクロールさせる */
+            .budget-table-wrapper,
+            .matrix-accordion-content {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* 保存ボタンをモーダル下端に固定する。
+           従来はスクロール領域の内側にあり、画面の狭い端末や
+           ソフトキーボード表示中はスクロールしないと押せなかった。 */
+        #transaction-modal .save-btn {
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+        }
+
+        /* ボタン下の余白が透けて中身が見えるのを防ぐ */
+        #transaction-modal .modal-body {
+            padding-bottom: 0;
+        }
+
+        #transaction-modal .save-btn {
+            margin-bottom: var(--spacing-md);
+            box-shadow: 0 -8px 12px -6px var(--color-bg-card),
+                        0 0 0 var(--spacing-md) var(--color-bg-card);
         }
