@@ -674,7 +674,8 @@ async function fsDeleteItem(id) {
     return { success: true };
 }
 
-async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transactionDate, transferPairId = null) {
+// txType には IN_BUY / IN_RETURN などの細分値を渡す（署所間移動は fsTransferStock 側で処理する）
+async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transactionDate, txType = 'IN_BUY') {
     // upsert_stock RPC でアトミックに在庫を加算（重複防止）
     const { error: rpcError } = await db.rpc('upsert_stock', {
         p_department_id: deptId,
@@ -683,10 +684,10 @@ async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transact
         p_delta:         quantity
     });
     if (rpcError) throw rpcError;
-    return fsAddTransaction(deptId, itemId, 'IN', quantity, expiryDate, remarks, transactionDate, transferPairId);
+    return fsAddTransaction(deptId, itemId, txType, quantity, expiryDate, remarks, transactionDate);
 }
 
-async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transactionDate, transferPairId = null) {
+async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transactionDate, txType = 'OUT_USE') {
     let query = db.from('stocks')
         .select('*')
         .eq('department_id', deptId)
@@ -722,7 +723,25 @@ async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transac
             remain = 0;
         }
     }
-    return fsAddTransaction(deptId, itemId, 'OUT', quantity, expiryDate, remarks, transactionDate, transferPairId);
+    return fsAddTransaction(deptId, itemId, txType, quantity, expiryDate, remarks, transactionDate);
+}
+
+// 署所間の移動。移動元の減算・移動先の加算・履歴2件の記録を
+// DB 側の1トランザクションで行うため、途中で失敗しても在庫が壊れない。
+async function fsTransferStock(fromDeptId, toDeptId, itemId, expiryDate, quantity, fromRemarks, toRemarks, transactionDate, transferPairId) {
+    const ts = transactionDate ? new Date(transactionDate) : new Date();
+    const { error } = await db.rpc('transfer_stock', {
+        p_from_department_id: fromDeptId,
+        p_to_department_id: toDeptId,
+        p_item_id: itemId,
+        p_expiry_date: expiryDate || null,
+        p_quantity: quantity,
+        p_from_remarks: fromRemarks || '',
+        p_to_remarks: toRemarks || '',
+        p_timestamp: ts.toISOString(),
+        p_transfer_pair_id: transferPairId
+    });
+    if (error) throw error;
 }
 
 async function fsAddTransaction(deptId, itemId, type, quantity, expiryDate, remarks, transactionDate, transferPairId = null) {
@@ -1291,6 +1310,8 @@ function showTxModal() {
 
 function setTxType(t) {
     state.txType = t;
+    // 「もらった」で在庫なしだった場合に無効化されたままにならないよう、毎回戻す
+    el.saveBtn.disabled = false;
     $('btn-type-out-use').classList.toggle('active', t === 'OUT_USE');
     $('btn-type-out-give').classList.toggle('active', t === 'OUT_GIVE');
     $('btn-type-in-buy').classList.toggle('active', t === 'IN_BUY');
@@ -1319,7 +1340,28 @@ function setTxType(t) {
         if (unitPriceGroup) unitPriceGroup.style.display = 'none';
     }
 
-    if (isInbound && item.hasExpiry) {
+    // 相手署所の選択（あげた／もらった）
+    // ※「もらった」のロット一覧は相手署所に依存するため、期限UIより先に構築する
+    if (t === 'OUT_GIVE' || t === 'IN_GET') {
+        $('partner-dept-group').style.display = 'block';
+        $('partner-dept-label').textContent = t === 'OUT_GIVE' ? 'どこにあげた？' : 'どこからもらった？';
+        const otherDepts = DEPARTMENTS.filter(d => d.id !== state.deptId);
+        $('partner-dept').innerHTML = otherDepts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        // 相手を変えたらロット一覧を作り直す
+        $('partner-dept').onchange = (t === 'IN_GET') ? renderPartnerLots : null;
+    } else {
+        $('partner-dept-group').style.display = 'none';
+        $('partner-dept').onchange = null;
+    }
+
+    if (t === 'IN_GET') {
+        // もらう場合は、相手署所が実際に持っているロットから選ぶ。
+        // 自分の在庫の期限を入力しても、相手に同じ期限の在庫が無ければ
+        // 出庫に失敗するため（相手の在庫は画面から見えない）。
+        el.expiryInputGroup.style.display = 'none';
+        el.lotSelectGroup.style.display = 'block';
+        renderPartnerLots();
+    } else if (isInbound && item.hasExpiry) {
         el.expiryInputGroup.style.display = 'block';
         el.lotSelectGroup.style.display = 'none'; // 入庫時は期限選択グループ(lot-select-group)は隠す
 
@@ -1366,47 +1408,50 @@ function setTxType(t) {
         el.expiryInputGroup.style.display = 'none';
         el.lotSelectGroup.style.display = 'none';
     }
-
-    if (t === 'OUT_GIVE' || t === 'IN_GET') {
-        $('partner-dept-group').style.display = 'block';
-        $('partner-dept-label').textContent = t === 'OUT_GIVE' ? 'どこにあげた？' : 'どこからもらった？';
-        const otherDepts = DEPARTMENTS.filter(d => d.id !== state.deptId);
-        $('partner-dept').innerHTML = otherDepts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-    } else {
-        $('partner-dept-group').style.display = 'none';
-    }
 }
 
-function renderLotList(lots) {
-    lots.sort((a, b) => new Date(a.expiryDate || '9999') - new Date(b.expiryDate || '9999'));
-    // IN時はクリックでコピー、OUT時は選択
-    const isIn = state.txType === 'IN';
+// 「もらった」用: 選択中の相手署所が実際に持っている在庫ロットを一覧表示する
+function renderPartnerLots() {
+    const partnerId = +$('partner-dept').value;
+    const partner = DEPARTMENTS.find(d => d.id === partnerId);
+    const partnerName = partner ? partner.name : '相手署所';
+    const lotLabel = el.lotSelectGroup.querySelector('label');
+    const lots = getLots(partnerId, state.itemId);
+
+    state.selectedLot = null;
+
+    if (lots.length === 0) {
+        if (lotLabel) lotLabel.textContent = `${partnerName}の在庫:`;
+        el.lotList.innerHTML = `<div class="lot-empty">${partnerName}にこの用品の在庫がありません</div>`;
+        el.saveBtn.disabled = true;
+        return;
+    }
+
+    if (lotLabel) lotLabel.textContent = `${partnerName}のどれをもらう？（期限・残り）:`;
+    el.saveBtn.disabled = false;
+    // 相手の在庫なので、期限の編集ボタンは出さない
+    // （editLotExpiry は自署所の在庫を書き換えるため、ここで押せると誤操作になる）
+    renderLotList(lots, { allowExpiryEdit: false });
+}
+
+// ロット一覧を描画する。
+// options.allowExpiryEdit: 期限の編集ボタンを出すか（相手署所の在庫では出さない）
+function renderLotList(lots, options = {}) {
+    const allowExpiryEdit = options.allowExpiryEdit !== false;
+    lots.sort((a, b) => (a.expiryDate || '9999-12-31').localeCompare(b.expiryDate || '9999-12-31'));
 
     el.lotList.innerHTML = lots.map((l, i) => `
-                <div class="lot-item ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}" data-idx="${i}" title="${isIn ? 'クリックして期限をコピー' : '出庫するロットを選択'}">
+                <div class="lot-item ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}" data-idx="${i}" title="選択する">
                     <span>${l.expiryDate || '期限なし'}</span>
-                    <span>${l.quantity}個</span>
-                    <button class="edit-expiry-btn" onclick="event.stopPropagation();editLotExpiry('${l.expiryDate || ''}', ${l.quantity})">📅</button>
+                    <span>残り ${l.quantity}個</span>
+                    ${allowExpiryEdit ? `<button class="edit-expiry-btn" onclick="event.stopPropagation();editLotExpiry('${l.expiryDate || ''}', ${l.quantity})">📅</button>` : ''}
                 </div>`).join('');
 
     state.selectedLot = null;
     el.lotList.querySelectorAll('.lot-item').forEach(li => li.onclick = () => {
-        const lot = lots[+li.dataset.idx];
-
-        if (isIn) {
-            // 入庫時は期限をコピー
-            if (lot.expiryDate) {
-                el.txExpiry.value = lot.expiryDate;
-                // フィードバック（一瞬背景色を変えるなど）
-                li.style.backgroundColor = '#dbeafe'; // 薄い青
-                setTimeout(() => li.style.backgroundColor = '', 200);
-            }
-        } else {
-            // 出庫時は選択状態にする
-            el.lotList.querySelectorAll('.lot-item').forEach(x => x.classList.remove('selected'));
-            li.classList.add('selected');
-            state.selectedLot = lot;
-        }
+        el.lotList.querySelectorAll('.lot-item').forEach(x => x.classList.remove('selected'));
+        li.classList.add('selected');
+        state.selectedLot = lots[+li.dataset.idx];
     });
 }
 
@@ -1463,8 +1508,17 @@ async function saveTx() {
     const isOutbound = (state.txType === 'OUT_USE' || state.txType === 'OUT_GIVE');
 
     let expiry = null;
-    if (isInbound && item.hasExpiry) expiry = el.txExpiry.value || null;
-    else if (isOutbound && item.hasExpiry) {
+    if (state.txType === 'IN_GET') {
+        // もらう場合は、相手署所が実際に持っているロットを選んでもらう
+        if (!state.selectedLot) { alert('もらう在庫を選んでください'); return; }
+        if (state.selectedLot.quantity < qty) {
+            alert(`相手の在庫が足りません。\n選んだ在庫の残りは ${state.selectedLot.quantity}個です。`);
+            return;
+        }
+        expiry = state.selectedLot.expiryDate;
+    } else if (isInbound && item.hasExpiry) {
+        expiry = el.txExpiry.value || null;
+    } else if (isOutbound && item.hasExpiry) {
         if (!state.selectedLot) { alert('ロットを選択してください'); return; }
         if (state.selectedLot.quantity < qty) { alert('数がたりないよ！'); return; }
         expiry = state.selectedLot.expiryDate;
@@ -1490,24 +1544,21 @@ async function saveTx() {
             const myDeptName = DEPARTMENTS.find(d => d.id === state.deptId)?.name;
             const finalRemarks = remarks || (state.txType === 'OUT_GIVE' ? `${partnerDeptName}にあげた` : `${partnerDeptName}からもらった`);
 
+            // 出庫と入庫を DB 側の単一トランザクションで実行する。
+            // 従来は2回に分けて呼んでおり、片方が失敗すると在庫が消えていた。
             if (state.txType === 'OUT_GIVE') {
-                // 自分から出庫
-                await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate, transferPairId);
-                // 相手へ入庫
-                await fsStockIn(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}からもらった`, txDate, transferPairId);
-                alert(`${partnerDeptName}の在庫にも自動で反映されています！\n（${partnerDeptName}の人は何も入力しなくて大丈夫です）`);
-            } else if (state.txType === 'IN_GET') {
-                // 相手から出庫
-                await fsStockOut(partnerDeptId, state.itemId, expiry, qty, remarks || `${myDeptName}にあげた`, txDate, transferPairId);
-                // 自分へ入庫
-                await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate, transferPairId);
-                alert(`${partnerDeptName}の在庫にも自動で反映されています！\n（${partnerDeptName}の人は何も入力しなくて大丈夫です）`);
+                await fsTransferStock(state.deptId, partnerDeptId, state.itemId, expiry, qty,
+                    finalRemarks, remarks || `${myDeptName}からもらった`, txDate, transferPairId);
+            } else {
+                await fsTransferStock(partnerDeptId, state.deptId, state.itemId, expiry, qty,
+                    remarks || `${myDeptName}にあげた`, finalRemarks, txDate, transferPairId);
             }
+            alert(`${partnerDeptName}の在庫にも自動で反映されています！\n（${partnerDeptName}の人は何も入力しなくて大丈夫です）`);
         } else {
             // 通常の入出庫
             const finalRemarks = remarks || (state.txType === 'IN_BUY' ? '購入した' : '使った（廃棄した）');
             if (isInbound) {
-                await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
+                await fsStockIn(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate, state.txType);
                 // 購入時で単価が入力されていれば保存
                 if (state.txType === 'IN_BUY') {
                     const unitPriceParams = document.getElementById('transaction-unit-price').value;
@@ -1520,7 +1571,7 @@ async function saveTx() {
                     }
                 }
             } else {
-                await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate);
+                await fsStockOut(state.deptId, state.itemId, expiry, qty, finalRemarks, txDate, state.txType);
             }
         }
 
