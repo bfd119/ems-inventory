@@ -266,7 +266,7 @@ const DEPARTMENTS = [
     { id: 10, name: "高野" }, { id: 11, name: "東城" }
 ];
 let CATEGORIES = [], ITEMS = [];
-const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, editingCategoryId: null, editingItemId: null, settingsCatId: null };
+const state = { deptId: null, catId: null, itemId: null, txType: 'IN', stocks: [], transactions: [], selectedLot: null, transactionsStale: true, editingCategoryId: null, editingItemId: null, settingsCatId: null };
 const $ = id => document.getElementById(id);
 const el = {};
 
@@ -715,14 +715,16 @@ async function loadData() {
         // タイムアウト付きでデータを取得
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('タイムアウト: データの読み込みに時間がかかっています')), 10000));
 
+        // 取引履歴は起動時に取得しない。
+        // ホーム・ダッシュボードでは使わず、統計画面を開いた時に取れば足りる。
+        // 4600件超あり、1000件ずつのページングで5往復かかっていた。
         const dataPromise = Promise.all([
             fsGetCategories(),
             fsGetItems(),
-            fsGetStocks(),
-            fsGetTransactions(10000)
+            fsGetStocks()
         ]);
 
-        [CATEGORIES, ITEMS, state.stocks, state.transactions] = await Promise.race([dataPromise, timeoutPromise]);
+        [CATEGORIES, ITEMS, state.stocks] = await Promise.race([dataPromise, timeoutPromise]);
 
         saveCache();
 
@@ -758,9 +760,15 @@ function showDashboard() {
     // $('search-bar').style.display = 'none';
     $('item-search').value = '';
     $('search-suggestions').innerHTML = '';
+    renderStockAlerts();
+}
 
-    // 在庫不足リストの表示（自署の場合のみ）
+// 在庫不足・期限切れのアラートを描画する。
+// 入出庫のたびに呼べるよう showDashboard から切り出した
+// （検索欄のリセットなど、他の副作用を伴わずに更新するため）。
+function renderStockAlerts() {
     const catGrid = $('category-grid');
+    if (!catGrid) return;
     // 既存のリストがあれば削除
     const existingList = document.querySelector('.shortage-list-section');
     if (existingList) existingList.remove();
@@ -811,8 +819,8 @@ function showDashboard() {
                     const lots = getLots(state.deptId, item.id);
                     const total = lots.reduce((a, l) => a + l.quantity, 0);
                     return `<div class="shortage-item-row" onclick="state.catId=${item.categoryId};state.itemId=${item.id};showTxModal()">
-                                    <span style="font-weight:500">${item.name}</span>
-                                    <span style="color:var(--color-danger);font-weight:700">現在: ${total}${item.unit} (基準: ${item.minStock})</span>
+                                    <span style="font-weight:500">${esc(item.name)}</span>
+                                    <span style="color:var(--color-danger);font-weight:700">現在: ${total}${esc(item.unit)} (基準: ${item.minStock})</span>
                                 </div>`;
                 }).join('')}
                         </div>`;
@@ -840,7 +848,7 @@ function showDashboard() {
                     }).join(', ');
 
                     return `<div class="shortage-item-row" onclick="state.catId=${item.categoryId};state.itemId=${item.id};showTxModal()">
-                                    <span style="font-weight:500">${item.name}</span>
+                                    <span style="font-weight:500">${esc(item.name)}</span>
                                     <span style="font-size:0.85rem; color:var(--color-text-secondary)">${lotText}</span>
                                 </div>`;
                 }).join('')}
@@ -900,10 +908,10 @@ function renderSearchSuggestions(items) {
         const total = lots.reduce((a, l) => a + l.quantity, 0);
         return `<div class="suggestion-item" data-item-id="${item.id}" data-cat-id="${item.categoryId}">
                     <div>
-                        <div class="suggestion-item-name">${item.name}</div>
-                        <div class="suggestion-item-category">${catName}</div>
+                        <div class="suggestion-item-name">${esc(item.name)}</div>
+                        <div class="suggestion-item-category">${esc(catName)}</div>
                     </div>
-                    <div class="suggestion-item-stock">${total}${item.unit}</div>
+                    <div class="suggestion-item-stock">${total}${esc(item.unit)}</div>
                 </div>`;
     }).join('');
 
@@ -953,9 +961,9 @@ function renderCatGrid() {
                 return `
                         <button class="category-tile" data-id="${c.id}" style="${style}">
                             <span class="category-icon">
-                                <span class="material-symbols-outlined" style="color: ${iconColor}">${c.icon}</span>
+                                <span class="material-symbols-outlined" style="color: ${iconColor}">${esc(c.icon)}</span>
                             </span>
-                            <span class="category-name">${c.name}</span>
+                            <span class="category-name">${esc(c.name)}</span>
                             ${labelHtml}
                         </button>`;
             }).join('');
@@ -1042,11 +1050,11 @@ function showItemsModal() {
 
             return `<li class="item-row" data-id="${item.id}">
                         <div class="item-info">
-                            <div class="item-name">${item.name}${unitPriceHtml}</div>
+                            <div class="item-name">${esc(item.name)}${unitPriceHtml}</div>
                             ${lotInfoHtml}
                             ${hasAnyAlert ? `<div style="margin-top:4px;"><span class="item-alert-label">${alertText}</span></div>` : ''}
                         </div>
-                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger); font-weight:bold;' : ''}">${total}${item.unit}</div>
+                        <div class="item-stock" style="${isShortage ? 'color:var(--color-danger); font-weight:bold;' : ''}">${total}${esc(item.unit)}</div>
                     </li>`;
         }).join('');
     }
@@ -1344,7 +1352,11 @@ async function saveTx() {
         }
 
         state.stocks = await fsGetStocks();
-        renderAnalytics(); // 全体画面更新
+        // 統計画面は開いていないため作り直さない。
+        // 従来はここで取引1万件を取り直しており、保存のたびに5往復発生していた。
+        // 次に統計画面を開いた時に取り直すよう、要再取得の印だけ立てる。
+        state.transactionsStale = true;
+        renderStockAlerts();
         closeModal('transaction');
         showItemsModal();
     } catch (e) { handleError(e); }
@@ -1363,7 +1375,11 @@ async function renderAnalytics() {
         analyticsTitle.textContent = '全体統計・分析';
     }
     try {
-        state.transactions = await fsGetTransactions(10000); // 全件取得（集計の正確性のため）
+        // 未取得、または入出庫で変化があった時だけ取り直す
+        if (state.transactionsStale || state.transactions.length === 0) {
+            state.transactions = await fsGetTransactions(10000);
+            state.transactionsStale = false;
+        }
         renderSummary();
         initCombined();
         renderCombined();
@@ -1406,8 +1422,8 @@ function renderInventoryMatrix() {
                     <div class="matrix-accordion-item" id="accordion-${cat.id}">
                         <div class="matrix-accordion-header" onclick="toggleMatrixAccordion(${cat.id})">
                             <div class="matrix-accordion-title">
-                                <span class="matrix-category-icon material-symbols-outlined" style="color: ${ICON_COLORS[cat.icon] || ''}">${cat.icon}</span>
-                                <span>${cat.name}</span>
+                                <span class="matrix-category-icon material-symbols-outlined" style="color: ${ICON_COLORS[cat.icon] || ''}">${esc(cat.icon)}</span>
+                                <span>${esc(cat.name)}</span>
                             </div>
                             <span class="material-symbols-outlined accordion-toggle-icon">expand_more</span>
                         </div>
@@ -1537,8 +1553,8 @@ function renderMatrixTable(items) {
         // メイン行描画
         html += `<tr class="matrix-item-row">
                     <td class="item-name-cell">
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-unit">${item.unit}</div>
+                        <div class="item-name">${esc(item.name)}</div>
+                        <div class="item-unit">${esc(item.unit)}</div>
                     </td>`;
 
         // 各署所列
@@ -1680,6 +1696,7 @@ async function deleteTransaction(txId) {
 
         // ローカルのstate更新
         state.transactions = state.transactions.filter(t => t.id !== txId);
+        state.transactionsStale = true;
         state.stocks = await fsGetStocks();
 
         // キャッシュ更新
@@ -1755,10 +1772,10 @@ function renderSummaryByCategory(deptId) {
             return `<div class="summary-item ${lowClass}">
                         <div class="summary-item-header">
                             <div>
-                                <span class="summary-item-name">${s.item.name} ${minLabel}</span>
+                                <span class="summary-item-name">${esc(s.item.name)} ${minLabel}</span>
                                 ${lotInfoHtml}
                             </div>
-                            <span class="summary-item-total">${s.qty}${s.item.unit}</span>
+                            <span class="summary-item-total">${s.qty}${esc(s.item.unit)}</span>
                         </div>
                     </div>`;
         }).join('');
@@ -1767,8 +1784,8 @@ function renderSummaryByCategory(deptId) {
                     <div class="matrix-accordion-item" id="dept-accordion-${c.category.id}" style="border-left: 4px solid ${catColor};">
                         <div class="matrix-accordion-header" onclick="document.getElementById('dept-accordion-${c.category.id}').classList.toggle('open')">
                             <div class="matrix-accordion-title">
-                                <span class="matrix-category-icon material-symbols-outlined" style="color:${catColor}">${c.category.icon}</span>
-                                <span style="font-weight: 600;">${c.category.name}</span>
+                                <span class="matrix-category-icon material-symbols-outlined" style="color:${catColor}">${esc(c.category.icon)}</span>
+                                <span style="font-weight: 600;">${esc(c.category.name)}</span>
                             </div>
                             <span class="material-symbols-outlined accordion-toggle-icon">expand_more</span>
                         </div>
@@ -1890,15 +1907,15 @@ function renderCombined() {
             return `<div class="log-item">
                         <div class="log-type ${isOut ? 'out' : 'in'}">${typeLabel}</div>
                         <div class="log-details">
-                            <div class="log-item-name">${item.name}</div>
+                            <div class="log-item-name">${esc(item.name)}</div>
                             <div class="log-meta">
                                 ${dateStr} • ${dept.name}
-                                ${t.remarks ? ` • <span style="color:#666">💬 ${t.remarks}</span>` : ''}
+                                ${t.remarks ? ` • <span style="color:#666">💬 ${esc(t.remarks)}</span>` : ''}
                                 ${t.expiryDate && t.expiryDate !== '9999-12-31' ? ` • <span style="color:#e65100">期限: ${t.expiryDate}</span>` : ''}
                             </div>
                         </div>
                         <div class="log-quantity ${isOut ? 'out' : 'in'}" style="color: ${isOut ? 'var(--color-out)' : 'var(--color-in)'}">
-                            ${isOut ? '-' : '+'}${t.quantity}${item.unit}
+                            ${isOut ? '-' : '+'}${t.quantity}${esc(item.unit)}
                         </div>
                         <button class="log-delete-btn" onclick="event.stopPropagation();deleteTransaction(${t.id})" title="この入力を取り消す">
                             <span class="material-symbols-outlined">delete</span>
@@ -1919,7 +1936,7 @@ function renderCombined() {
             el.budgetTable.innerHTML = '<tr><td colspan="2" style="padding:2rem;text-align:center">データなし</td></tr>';
         } else {
             let h = '<thead><tr><th>用品</th><th>集計数</th></tr></thead><tbody>';
-            used.forEach(i => { h += `<tr><td>${i.name}</td><td><b>${mx[i.id]}</b></td></tr>`; });
+            used.forEach(i => { h += `<tr><td>${esc(i.name)}</td><td><b>${mx[i.id]}</b></td></tr>`; });
             h += '</tbody>'; el.budgetTable.innerHTML = h;
         }
     } else {
@@ -1947,7 +1964,7 @@ function renderCombined() {
                 return `<th class="${cls.trim()}">${d.name}</th>`;
             }).join('') + '<th>計</th></tr></thead><tbody>';
             used.forEach(i => {
-                h += `<tr><td>${i.name}</td>`;
+                h += `<tr><td>${esc(i.name)}</td>`;
                 let rt = 0;
                 DEPARTMENTS.forEach((d, idx) => {
                     const q = mx[d.id][i.id] || 0; rt += q;
@@ -2089,7 +2106,7 @@ async function renderSettingsCategories() {
     else {
         h += visibleCategories.map(c => `
                     <div class="settings-item" onclick="state.settingsCatId=${c.id};renderSettings()" style="${c.type === 'user' ? 'border: 2px solid var(--color-accent-primary); background: #fffaf0;' : ''}">
-                        <span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${c.icon}</span> ${c.name} ${c.departmentId ? '<small>(自署所用)</small>' : ''}${c.type === 'user' ? '<span style="font-size:0.7rem; color:var(--color-accent-primary); opacity:0.7; margin-left:8px;">お気に入りセット</span>' : ''}</span>
+                        <span class="settings-item-name"><span class="material-symbols-outlined" style="color: ${ICON_COLORS[c.icon] || ''}">${esc(c.icon)}</span> ${esc(c.name)} ${c.departmentId ? '<small>(自署所用)</small>' : ''}${c.type === 'user' ? '<span style="font-size:0.7rem; color:var(--color-accent-primary); opacity:0.7; margin-left:8px;">お気に入りセット</span>' : ''}</span>
                         <div class="settings-actions">
                             <button class="icon-btn" onclick="event.stopPropagation();editCategory(${c.id})"><span class="material-symbols-outlined">edit</span></button>
                             <button class="delete-btn" onclick="event.stopPropagation();deleteCategory(${c.id})">×</button>
@@ -2153,7 +2170,7 @@ function renderSettingsItems(catId) {
     let h = `<div class="settings-section">
                 <div style="display:flex;align-items:center;margin-bottom:1rem;">
                     <button class="back-btn" onclick="state.settingsCatId=null;renderSettings()" style="margin-right:1rem;font-size:1.2rem;">←</button>
-                    <h3 class="section-title" style="margin:0"><span class="material-symbols-outlined" style="color:${ICON_COLORS[cat.icon] || ''};vertical-align:bottom;">${cat.icon}</span> ${cat.name}</h3>
+                    <h3 class="section-title" style="margin:0"><span class="material-symbols-outlined" style="color:${ICON_COLORS[cat.icon] || ''};vertical-align:bottom;">${esc(cat.icon)}</span> ${esc(cat.name)}</h3>
                 </div>
                 <div style="margin-bottom:1rem;text-align:right;"><button class="btn-sm" onclick="openAddItemModal(${catId})">＋このカテゴリに用品追加</button></div>
                 <div class="settings-list">`;
@@ -2167,7 +2184,7 @@ function renderSettingsItems(catId) {
                     ` : '';
             return `
                     <div class="settings-item" onclick="editItem(${i.id}, ${catId})">
-                        <span class="settings-item-name">${i.name}</span>
+                        <span class="settings-item-name">${esc(i.name)}</span>
                         <div class="settings-actions">
                              ${sortBtns}
                              <button class="delete-btn" onclick="event.stopPropagation();deleteItemSetting(${i.id})">×</button>
@@ -2281,7 +2298,7 @@ function openAddItemModal(catId) {
 
         // ソースカテゴリ（Systemのみ）の生成と初期化
         const sysCats = CATEGORIES.filter(c => c.type === 'system');
-        $('fav-set-source-category').innerHTML = sysCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        $('fav-set-source-category').innerHTML = sysCats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
         updateFavSetSourceItems();
 
         // お気に入りセットの場合、追加先のカテゴリ（親画面のコンテキスト）は変更不可
@@ -2323,7 +2340,7 @@ function updateFavSetSourceItems() {
     if (items.length === 0) {
         container.innerHTML = '<option value="">(用品なし)</option>';
     } else {
-        container.innerHTML = items.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+        container.innerHTML = items.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join('');
     }
 }
 
@@ -2385,7 +2402,7 @@ function handleNewItemSearch(e) {
     }
 
     // ユニークな用品名のみ抽出（名前で重複排除）
-    const uniqueItems = [];
+    const matchedItems = [];
     const seenNames = new Set();
 
     // 全アイテムから検索
@@ -2394,24 +2411,29 @@ function handleNewItemSearch(e) {
         // 名前が一致し、まだリストに出ていない
         if (iName.includes(query) && !seenNames.has(iName)) {
             seenNames.add(iName);
-            uniqueItems.push(i);
+            matchedItems.push(i);
         }
     });
 
-    if (uniqueItems.length === 0) {
+    if (matchedItems.length === 0) {
         container.style.display = 'none';
         return;
     }
 
-    container.innerHTML = uniqueItems.slice(0, 5).map(item => `
-                <div class="suggestion-item" onclick="alertExistingItem('${item.name}')" style="background:#fff0f0; border-color:#feb2b2;">
+    container.innerHTML = matchedItems.slice(0, 5).map(item => `
+                <div class="suggestion-item" data-name="${esc(item.name)}" style="background:#fff0f0; border-color:#feb2b2;">
                     <div>
-                        <div class="suggestion-item-name" style="color:#c53030;">${item.name}</div>
-                        <div class="suggestion-item-category" style="font-size:0.75rem;">単位: ${item.unit}</div>
+                        <div class="suggestion-item-name" style="color:#c53030;">${esc(item.name)}</div>
+                        <div class="suggestion-item-category" style="font-size:0.75rem;">単位: ${esc(item.unit)}</div>
                     </div>
                     <div style="font-size:0.8rem; color:#c53030; font-weight:bold;">× 登録不可（既存）</div>
                 </div>
             `).join('');
+    // 用品名を onclick 属性に直接埋め込むと、名前に ' や < が含まれた場合に
+    // 壊れる（かつスクリプトを注入できる）ため、属性値から読み取る方式にする
+    container.querySelectorAll('.suggestion-item').forEach(elm => {
+        elm.onclick = () => alertExistingItem(elm.dataset.name);
+    });
     container.style.display = 'block';
 }
 
@@ -2427,7 +2449,7 @@ function selectExistingItem(itemId) { ... }
 function resetItemSelection() { ... }
 */
 
-function populateCatSelect() { $('new-item-category').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
+function populateCatSelect() { $('new-item-category').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join(''); }
 
 async function saveNewCategory() {
     const n = $('new-category-name').value.trim();
@@ -2626,6 +2648,16 @@ async function deleteItemSetting(id) {
     showLoading(true);
     try { await fsDeleteItem(id); ITEMS = ITEMS.filter(i => i.id !== id); renderSettings(); } catch (e) { handleError(e); }
     showLoading(false);
+}
+
+// HTML に文字列を埋め込む前のエスケープ。
+// 用品名・カテゴリ名・備考は利用者が自由に入力でき、そのまま innerHTML に
+// 差し込むとタグとして解釈されてしまう（例: <img onerror=...>）。
+function esc(v) {
+    if (v === null || v === undefined) return '';
+    return String(v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 // ITEMS は「用品×カテゴリ」のリンク単位で作られているため、
