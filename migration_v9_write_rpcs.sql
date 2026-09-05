@@ -119,11 +119,17 @@ BEGIN
         RAISE EXCEPTION '数量は1以上で指定してください';
     END IF;
 
-    -- 対象ロットの合計を排他ロック付きで確認
-    SELECT COALESCE(SUM(quantity), 0) INTO v_total FROM public.stocks
+    -- 対象ロットを先に排他ロックしてから合計を取る。
+    -- PostgreSQL は集計関数と FOR UPDATE を同一の SELECT で併用できないため
+    -- （0A000: FOR UPDATE is not allowed with aggregate functions）、2文に分ける。
+    PERFORM 1 FROM public.stocks
     WHERE department_id = p_department_id AND item_id = p_item_id
       AND (expiry_date = p_expiry_date OR (expiry_date IS NULL AND p_expiry_date IS NULL))
     FOR UPDATE;
+
+    SELECT COALESCE(SUM(quantity), 0) INTO v_total FROM public.stocks
+    WHERE department_id = p_department_id AND item_id = p_item_id
+      AND (expiry_date = p_expiry_date OR (expiry_date IS NULL AND p_expiry_date IS NULL));
 
     IF v_total < p_quantity THEN
         RAISE EXCEPTION '在庫不足';
