@@ -239,9 +239,12 @@ var DatePicker = {
 // Supabase 設定
 // ============================================
 const SUPABASE_URL = 'https://aacntdoacjjssspoctul.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhY250ZG9hY2pqc3NzcG9jdHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MDA5OTcsImV4cCI6MjA4MzQ3Njk5N30.oBliHP_Jd9NOSSK1XFcO9egQWPzVhxn_KM0OTgaR8TQ';
+// Publishable キー。ブラウザに埋め込む前提の公開キーで、秘匿する必要はない。
+// （旧 anon キー[JWT形式]から移行。旧キーは2026年末に廃止される）
+// ※ このキー自体はアクセス制御を行わない。制御は DB 側の RLS ポリシーで行うこと。
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_f_PvEWu2AQb2hYIa7Ue1lw_War9UOU5';
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const ICONS = [
     'medication', 'vaccines', 'medical_services', 'bloodtype',
