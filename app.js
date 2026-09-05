@@ -521,9 +521,7 @@ async function fsGetItems() {
 }
 
 async function fsUpdateItemUnitPrice(itemId, price) {
-    const { error } = await db.from('items')
-        .update({ unit_price: price || 0 })
-        .eq('id', itemId);
+    const { error } = await db.rpc('set_item_unit_price', { p_item_id: itemId, p_price: price || 0 });
     if (error) throw error;
 }
 
@@ -567,163 +565,77 @@ async function fsGetTransactions(limit = 10000) {
 }
 
 async function fsAddCategory(name, icon, type = 'system', departmentId = null) {
-    const { data, error } = await db.from('categories')
-        .insert({ name, icon: icon || 'inventory_2', type, department_id: departmentId }).select().single();
+    const { data, error } = await db.rpc('add_category', {
+        p_name: name, p_icon: icon || 'inventory_2', p_type: type, p_department_id: departmentId
+    });
     if (error) throw error;
     return { ...data, departmentId: data.department_id ? +data.department_id : null };
 }
 
 async function fsUpdateCategory(id, name, icon) {
-    const { data, error } = await db.from('categories')
-        .update({ name, icon: icon || 'inventory_2' }).eq('id', id).select().single();
+    const { data, error } = await db.rpc('update_category', {
+        p_id: id, p_name: name, p_icon: icon || 'inventory_2'
+    });
     if (error) throw error;
     return data;
 }
 
 async function fsDeleteCategory(id) {
-    // カテゴリ削除: 用品自体(items)は削除しない（他カテゴリで共有される可能性があるため）
-    // item_categoriesのリンクとレガシーのitems.category_id参照をクリーンアップしてから削除
-
-    // 1. item_categoriesテーブルのリンクを削除
-    await db.from('item_categories').delete().eq('category_id', id);
-
-    // 2. レガシーのitems.category_idをクリア（FK制約回避）
-    await db.from('items').update({ category_id: null }).eq('category_id', id);
-
-    // 3. カテゴリを削除
-    const { error } = await db.from('categories').delete().eq('id', id);
+    // 用品(items)自体は削除しない（他カテゴリと共有される可能性があるため）。
+    // リンクとレガシー参照のクリーンアップは delete_category 側で行う。
+    const { error } = await db.rpc('delete_category', { p_id: id });
     if (error) throw error;
     return { success: true };
 }
 
 async function fsAddItem(categoryId, name, unit, hasExpiry, minStock, existingItemId = null) {
-    let itemId = existingItemId;
-
-    if (!itemId) {
-        // 新規用品作成
-        // category_idカラムは後方互換あるいはNOT NULL制約回避のため一応指定するが、
-        // 将来的にはNULL許容または廃止。とりあえず指定しておく。
-        const { data, error } = await db.from('items')
-            .insert({ category_id: categoryId, name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
-            .select().single();
-        if (error) throw error;
-        itemId = data.id;
-    } else {
-        // 既存用品の場合、プロパティ更新（任意）
-        // ここでは名前などを更新せず、リンクだけ作る方針
-    }
-
-    // リンク作成 (item_categories)
-    // 重複エラー回避 (ON CONFLICT DO NOTHINGがあればいいが、insertでエラーになるかもなので)
-    const { error: linkError } = await db.from('item_categories')
-        .insert({ item_id: itemId, category_id: categoryId });
-
-    // すでに存在する場合のエラーは無視してよいが、握りつぶしすぎも危険。
-    // 23505 (unique_violation) ならOK
-    if (linkError && linkError.code !== '23505') {
-        // テーブルがない場合(42P01)は、旧仕様として無視するかエラーにするか。
-        // ここではエラーログ出して続行（itemsには入ってるので）
-        console.warn('Failed to insert into item_categories', linkError);
-    }
-
-    return { id: itemId, categoryId: categoryId, name, unit, hasExpiry, minStock };
+    const { data, error } = await db.rpc('add_item', {
+        p_category_id: categoryId, p_name: name, p_unit: unit || '個',
+        p_has_expiry: !!hasExpiry, p_min_stock: minStock || 0,
+        p_existing_item_id: existingItemId
+    });
+    if (error) throw error;
+    return { id: data.id, categoryId, name, unit, hasExpiry, minStock };
 }
 
 async function fsUpdateItem(id, oldCategoryId, newCategoryId, name, unit, hasExpiry, minStock) {
-    // 用品自体の更新
-    const { data, error } = await db.from('items')
-        .update({ name, unit: unit || '個', has_expiry: !!hasExpiry, min_stock: minStock || 0 })
-        .eq('id', id).select().single();
+    const { data, error } = await db.rpc('update_item', {
+        p_id: id, p_old_category_id: oldCategoryId, p_new_category_id: newCategoryId,
+        p_name: name, p_unit: unit || '個', p_has_expiry: !!hasExpiry, p_min_stock: minStock || 0
+    });
     if (error) throw error;
-
-    // カテゴリ変更があった場合、リンクを更新
-    if (oldCategoryId && newCategoryId && oldCategoryId !== newCategoryId) {
-        // 既存のリンクを更新 (旧カテゴリ -> 新カテゴリ)
-        // 重複チェック: 新カテゴリに既にリンクがある場合は、旧リンクを削除するだけでよい（統合）
-        // しかし「移動」なので、統合されると元のコンテキストが消える。
-        // まぁ「移動先に既にある」なら「移動」＝「そっちに合流」でOK。
-
-        const { data: existing } = await db.from('item_categories')
-            .select('id').match({ item_id: id, category_id: newCategoryId }).maybeSingle();
-
-        if (existing) {
-            // 移動先にもうある -> 旧リンクを削除
-            await db.from('item_categories').delete().match({ item_id: id, category_id: oldCategoryId });
-        } else {
-            // 移動先にない -> リンクのカテゴリIDを更新
-            await db.from('item_categories')
-                .update({ category_id: newCategoryId })
-                .match({ item_id: id, category_id: oldCategoryId });
-        }
-
-        // Legacy column update (optional, keeps last used category)
-        await db.from('items').update({ category_id: newCategoryId }).eq('id', id);
-    }
-
-    return { id: data.id, categoryId: newCategoryId || oldCategoryId, name: data.name, unit: data.unit, hasExpiry: data.has_expiry, minStock: data.min_stock };
+    return {
+        id: data.id, categoryId: newCategoryId || oldCategoryId, name: data.name,
+        unit: data.unit, hasExpiry: data.has_expiry, minStock: data.min_stock
+    };
 }
 
 async function fsDeleteItem(id) {
-    // 関連する取引履歴と在庫を先に削除
-    await db.from('transactions').delete().eq('item_id', id);
-    await db.from('stocks').delete().eq('item_id', id);
-
-    // 用品を削除
-    const { error } = await db.from('items').delete().eq('id', id);
+    // 関連する取引履歴・在庫・カテゴリリンクも delete_item 側でまとめて削除される
+    const { error } = await db.rpc('delete_item', { p_id: id });
     if (error) throw error;
     return { success: true };
 }
 
-// txType には IN_BUY / IN_RETURN などの細分値を渡す（署所間移動は fsTransferStock 側で処理する）
 async function fsStockIn(deptId, itemId, expiryDate, quantity, remarks, transactionDate, txType = 'IN_BUY') {
-    // upsert_stock RPC でアトミックに在庫を加算（重複防止）
-    const { error: rpcError } = await db.rpc('upsert_stock', {
-        p_department_id: deptId,
-        p_item_id:       itemId,
-        p_expiry_date:   expiryDate || null,
-        p_delta:         quantity
+    // 在庫の加算と履歴の記録を DB 側の1トランザクションで行う
+    const ts = transactionDate ? new Date(transactionDate) : new Date();
+    const { error } = await db.rpc('record_stock_in', {
+        p_department_id: deptId, p_item_id: itemId, p_expiry_date: expiryDate || null,
+        p_quantity: quantity, p_remarks: remarks || '', p_timestamp: ts.toISOString(), p_type: txType
     });
-    if (rpcError) throw rpcError;
-    return fsAddTransaction(deptId, itemId, txType, quantity, expiryDate, remarks, transactionDate);
+    if (error) throw error;
 }
 
 async function fsStockOut(deptId, itemId, expiryDate, quantity, remarks, transactionDate, txType = 'OUT_USE') {
-    let query = db.from('stocks')
-        .select('*')
-        .eq('department_id', deptId)
-        .eq('item_id', itemId);
-
-    if (expiryDate) {
-        query = query.eq('expiry_date', expiryDate);
-    } else {
-        query = query.is('expiry_date', null);
-    }
-
-    const { data: records, error } = await query.order('id', { ascending: true });
-
-    if (error || !records || records.length === 0) {
-        throw new Error('在庫不足');
-    }
-
-    const totalStock = records.reduce((sum, r) => sum + r.quantity, 0);
-    if (totalStock < quantity) {
-        console.error('在庫不足エラー詳細:', { deptId, itemId, expiryDate, quantity, records, error });
-        // デバッグ用アラートは削除し、本来のエラーのみスロー
-        throw new Error('在庫不足');
-    }
-
-    let remain = quantity;
-    for (const rec of records) {
-        if (remain <= 0) break;
-        if (rec.quantity <= remain) {
-            await db.from('stocks').delete().eq('id', rec.id);
-            remain -= rec.quantity;
-        } else {
-            await db.from('stocks').update({ quantity: rec.quantity - remain }).eq('id', rec.id);
-            remain = 0;
-        }
-    }
-    return fsAddTransaction(deptId, itemId, txType, quantity, expiryDate, remarks, transactionDate);
+    // 在庫不足の判定・減算・履歴の記録を DB 側の1トランザクションで行う。
+    // 従来は複数回の往復で減算しており、途中で失敗すると在庫がずれていた。
+    const ts = transactionDate ? new Date(transactionDate) : new Date();
+    const { error } = await db.rpc('record_stock_out', {
+        p_department_id: deptId, p_item_id: itemId, p_expiry_date: expiryDate || null,
+        p_quantity: quantity, p_remarks: remarks || '', p_timestamp: ts.toISOString(), p_type: txType
+    });
+    if (error) throw error;
 }
 
 // 署所間の移動。移動元の減算・移動先の加算・履歴2件の記録を
@@ -744,112 +656,19 @@ async function fsTransferStock(fromDeptId, toDeptId, itemId, expiryDate, quantit
     if (error) throw error;
 }
 
-async function fsAddTransaction(deptId, itemId, type, quantity, expiryDate, remarks, transactionDate, transferPairId = null) {
-    const ts = transactionDate ? new Date(transactionDate) : new Date();
-    const insertData = { department_id: deptId, item_id: itemId, type, quantity, expiry_date: expiryDate || null, remarks: remarks || '', timestamp: ts.toISOString() };
-    if (transferPairId) insertData.transfer_pair_id = transferPairId;
-    const { data, error } = await db.from('transactions')
-        .insert(insertData)
-        .select().single();
-    if (error) throw error;
-    return { id: data.id, departmentId: +data.department_id, itemId: +data.item_id, type: data.type, quantity: +data.quantity, expiryDate: data.expiry_date, remarks: data.remarks, timestamp: data.timestamp, transferPairId: data.transfer_pair_id || null };
-}
-
-// 単一トランザクションの在庫ロールバック処理（内部ヘルパー）
-async function _rollbackStock(tx) {
-    const deptId = tx.department_id;
-    const itemId = tx.item_id;
-    const expiryDate = tx.expiry_date;
-    const qty = tx.quantity;
-    const isOut = tx.type === 'OUT' || tx.type.startsWith('OUT_');
-
-    let stockQuery = db.from('stocks')
-        .select('*')
-        .eq('department_id', deptId)
-        .eq('item_id', itemId);
-    if (expiryDate) {
-        stockQuery = stockQuery.eq('expiry_date', expiryDate);
-    } else {
-        stockQuery = stockQuery.is('expiry_date', null);
-    }
-    const { data: stockRecords } = await stockQuery;
-
-    if (isOut) {
-        // 出庫の取り消し → 在庫を加算（アトミック）
-        const { error: rpcError } = await db.rpc('upsert_stock', {
-            p_department_id: deptId, p_item_id: itemId,
-            p_expiry_date: expiryDate || null, p_delta: qty
-        });
-        if (rpcError) throw rpcError;
-    } else {
-        // 入庫の取り消し → 在庫を減算
-        if (stockRecords && stockRecords.length > 0) {
-            const newQty = stockRecords[0].quantity - qty;
-            if (newQty <= 0) {
-                await db.from('stocks').delete().eq('id', stockRecords[0].id);
-            } else {
-                await db.from('stocks').update({ quantity: newQty }).eq('id', stockRecords[0].id);
-            }
-        }
-    }
-}
-
-// トランザクション削除（在庫ロールバック付き・授受ペア連動削除対応）
+// 取引履歴の取り消し。在庫のロールバックと授受ペアの連動削除を
+// DB 側の1トランザクションで行う（従来はアプリ側で複数回に分けていた）。
 async function fsDeleteTransaction(txId) {
-    // 1. トランザクション取得
-    const { data: tx, error: fetchError } = await db.from('transactions')
-        .select('*').eq('id', txId).single();
-    if (fetchError) throw fetchError;
-
-    // 2. 授受ペアの確認
-    if (tx.transfer_pair_id) {
-        // ペア相手（自分以外で同じtransfer_pair_idを持つレコード）を取得
-        const { data: pairTxs } = await db.from('transactions')
-            .select('*')
-            .eq('transfer_pair_id', tx.transfer_pair_id)
-            .neq('id', txId);
-
-        // 自分自身の在庫ロールバック
-        await _rollbackStock(tx);
-        // ペア相手の在庫ロールバック
-        if (pairTxs && pairTxs.length > 0) {
-            for (const pairTx of pairTxs) {
-                await _rollbackStock(pairTx);
-            }
-        }
-        // ペア全体をまとめて削除
-        const { error: deleteError } = await db.from('transactions')
-            .delete().eq('transfer_pair_id', tx.transfer_pair_id);
-        if (deleteError) throw deleteError;
-    } else {
-        // 通常の単独削除
-        await _rollbackStock(tx);
-        const { error: deleteError } = await db.from('transactions').delete().eq('id', txId);
-        if (deleteError) throw deleteError;
-    }
-
-    return tx;
+    const { error } = await db.rpc('delete_transaction', { p_id: txId });
+    if (error) throw error;
 }
 
 async function fsUpdateStockExpiry(deptId, itemId, oldExpiry, newExpiry) {
-    let query = db.from('stocks')
-        .select('*')
-        .eq('department_id', deptId)
-        .eq('item_id', itemId);
-
-    if (oldExpiry) {
-        query = query.eq('expiry_date', oldExpiry);
-    } else {
-        query = query.is('expiry_date', null);
-    }
-
-    const { data: existing, error } = await query.limit(1).maybeSingle();
-
-    if (error || !existing) {
-        throw new Error('該当する在庫ロットが見つかりません');
-    }
-
-    await db.from('stocks').update({ expiry_date: newExpiry || null }).eq('id', existing.id);
+    const { error } = await db.rpc('update_stock_expiry', {
+        p_department_id: deptId, p_item_id: itemId,
+        p_old_expiry: oldExpiry || null, p_new_expiry: newExpiry || null
+    });
+    if (error) throw error;
     return { success: true };
 }
 
@@ -1822,7 +1641,7 @@ async function fsGetSettings() {
 }
 
 async function fsUpdateSettings(config) {
-    const { error } = await db.from('system_settings').upsert({ key: 'reminder_config', value: config });
+    const { error } = await db.rpc('update_settings', { p_key: 'reminder_config', p_value: config });
     if (error) throw error;
 }
 
@@ -2392,8 +2211,11 @@ async function moveItemSort(catId, itemId, direction) {
 }
 
 async function fsSwapSortOrder(catId, itemId1, sortOrder1, itemId2, sortOrder2) {
-    await db.from('item_categories').update({ sort_order: sortOrder1 }).eq('category_id', catId).eq('item_id', itemId1);
-    await db.from('item_categories').update({ sort_order: sortOrder2 }).eq('category_id', catId).eq('item_id', itemId2);
+    const { error } = await db.rpc('swap_item_sort_order', {
+        p_category_id: catId, p_item_id1: itemId1, p_sort_order1: sortOrder1,
+        p_item_id2: itemId2, p_sort_order2: sortOrder2
+    });
+    if (error) throw error;
 }
 
 function openAddCategoryModal() {
