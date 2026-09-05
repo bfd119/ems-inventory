@@ -126,10 +126,15 @@ async function main() {
         process.exit(1);
     }
 
+    // SMTP の接続先は環境変数で差し替えられるようにしてある。
+    // 既定は Gmail。将来 Google の仕様変更などで使えなくなった場合は、
+    // SMTP_HOST / SMTP_PORT を別のサービスに変えるだけで移行できる。
     const transporter = DRY_RUN
         ? null
         : nodemailer.createTransport({
-              service: 'gmail',
+              host: process.env.SMTP_HOST || 'smtp.gmail.com',
+              port: Number(process.env.SMTP_PORT) || 465,
+              secure: (Number(process.env.SMTP_PORT) || 465) === 465,
               auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
           });
 
