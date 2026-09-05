@@ -28,6 +28,7 @@ BEGIN;
 -- -------------------------------------------------------
 -- STEP 1: RLS を有効化する
 -- -------------------------------------------------------
+ALTER TABLE public.departments      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.items            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.item_categories  ENABLE ROW LEVEL SECURITY;
@@ -46,7 +47,7 @@ ALTER TABLE public.system_settings  ENABLE ROW LEVEL SECURITY;
 DO $$
 DECLARE t TEXT;
 BEGIN
-    FOREACH t IN ARRAY ARRAY['categories','items','item_categories',
+    FOREACH t IN ARRAY ARRAY['departments','categories','items','item_categories',
                              'stocks','transactions','system_settings']
     LOOP
         EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_read', t);
@@ -70,7 +71,7 @@ DROP POLICY IF EXISTS "Enable insert access for authenticated users" ON public.s
 DO $$
 DECLARE t TEXT;
 BEGIN
-    FOREACH t IN ARRAY ARRAY['categories','items','item_categories',
+    FOREACH t IN ARRAY ARRAY['departments','categories','items','item_categories',
                              'stocks','transactions','system_settings']
     LOOP
         EXECUTE format('REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.%I FROM anon, authenticated', t);
