@@ -855,6 +855,24 @@ async function fsUpdateStockExpiry(deptId, itemId, oldExpiry, newExpiry) {
 
 const CACHE_KEY = 'ems_inventory_cache';
 
+// 起動時の初期表示用キャッシュを保存する。
+// 取引履歴(transactions)は保存しない。数千件あって localStorage の
+// 容量上限(約5MB)を圧迫するうえ、統計画面を開く際に必ず取り直すため。
+// 保存に失敗しても画面表示は続行させる（従来は setItem の例外が
+// 呼び出し元の catch に飛び、以降の描画処理ごと中断していた）。
+function saveCache() {
+    try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            categories: CATEGORIES,
+            items: ITEMS,
+            stocks: state.stocks,
+            timestamp: Date.now()
+        }));
+    } catch (e) {
+        console.warn('キャッシュ保存に失敗（表示には影響しません）', e);
+    }
+}
+
 async function loadData() {
     showLoading(true);
 
@@ -866,9 +884,8 @@ async function loadData() {
             CATEGORIES = c.categories || [];
             ITEMS = c.items || [];
             state.stocks = c.stocks || [];
-            state.transactions = c.transactions || [];
             renderDeptGrid();
-            initBudget();
+            initCombined();
         } catch (e) {
             console.warn('キャッシュ読込失敗', e);
         }
@@ -888,12 +905,7 @@ async function loadData() {
 
         [CATEGORIES, ITEMS, state.stocks, state.transactions] = await Promise.race([dataPromise, timeoutPromise]);
 
-        // キャッシュ更新
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-            categories: CATEGORIES, items: ITEMS,
-            stocks: state.stocks, transactions: state.transactions,
-            timestamp: Date.now()
-        }));
+        saveCache();
 
         renderDeptGrid();
         initCombined();
@@ -923,8 +935,6 @@ function showDashboard() {
     el.deptName.textContent = d.name + ' 在庫管理';
     renderCatGrid();
     showScreen('dashboard');
-    renderCatGrid();
-    showScreen('dashboard');
     // 検索バーは常時表示のため非表示リセットしない
     // $('search-bar').style.display = 'none';
     $('item-search').value = '';
@@ -938,7 +948,7 @@ function showDashboard() {
 
     if (state.deptId) {
         // 在庫不足数割れ
-        const shortageItems = ITEMS.filter(item => {
+        const shortageItems = uniqueItems().filter(item => {
             const lots = getLots(state.deptId, item.id);
             const total = lots.reduce((a, l) => a + l.quantity, 0);
             return item.minStock > 0 && total < item.minStock;
@@ -949,7 +959,7 @@ function showDashboard() {
         const threshold = new Date();
         threshold.setDate(threshold.getDate() + 60);
 
-        const nearExpiryItems = ITEMS.filter(item => {
+        const nearExpiryItems = uniqueItems().filter(item => {
             if (!item.hasExpiry) return false;
             const lots = getLots(state.deptId, item.id);
             if (lots.length === 0) return false;
@@ -1146,67 +1156,6 @@ function renderCatGrid() {
 
     // イベントリスナー設定
     el.catGrid.querySelectorAll('.category-tile:not(.add-tile)').forEach(t => t.onclick = () => { state.catId = +t.dataset.id; showItemsModal(); });
-}
-
-function openAddItemModal(categoryId) {
-    // Check if this is a "user" category (Favorite Set)
-    const cat = CATEGORIES.find(c => c.id === categoryId);
-    const isFavSet = cat && cat.type === 'user';
-
-    // Reset UI
-    $('new-item-category').innerHTML = CATEGORIES.map(c =>
-        `<option value="${c.id}" ${c.id === categoryId ? 'selected' : ''}>${c.name}</option>`
-    ).join('');
-
-    // If it's a fav set, lock the category selection to current
-    if (isFavSet) {
-        $('new-item-category').innerHTML = `<option value="${cat.id}" selected>${cat.name}</option>`;
-        $('new-item-category').disabled = true;
-    } else {
-        $('new-item-category').disabled = false;
-    }
-
-    $('new-item-name').value = '';
-    $('new-item-unit').value = '個';
-    $('new-item-has-expiry').checked = false;
-    $('new-item-min-stock').value = 0;
-    $('new-item-existing-id').value = '';
-
-    // Layout based on Type
-    const detailsDiv = $('new-item-details');
-    const restrictionMsg = $('fav-set-restriction-msg');
-    // const helperText = $('new-item-helper-text'); // Removed
-
-    if (isFavSet) {
-        // Restrictions for Favorite Set
-        detailsDiv.style.display = 'none'; // Hide new item creation fields
-        restrictionMsg.style.display = 'block';
-        // helperText.textContent = '追加したい既存の用品名を検索して選択してください'; // Removed
-    } else {
-        // Normal behavior
-        detailsDiv.style.display = 'block';
-        restrictionMsg.style.display = 'none';
-        // helperText.textContent = '新しい用品名を入力するか、既存の用品を選択してください'; // Removed
-    }
-
-    $('existing-item-info').style.display = 'none';
-    $('new-item-suggestions').style.display = 'none';
-
-    openModal('addItem');
-}
-
-function toggleCategoryTypeHelp() {
-    const isSet = document.querySelector('input[name="cat-type"][value="user"]').checked;
-    const help = $('set-help-text');
-    const nameInput = $('new-category-name');
-
-    if (isSet) {
-        help.style.display = 'block';
-        nameInput.placeholder = '例: 救急セットA';
-    } else {
-        help.style.display = 'none';
-        nameInput.placeholder = '例: 輸液';
-    }
 }
 
 function openAddSetModal() {
@@ -1915,11 +1864,7 @@ async function deleteTransaction(txId) {
         state.stocks = await fsGetStocks();
 
         // キャッシュ更新
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-            categories: CATEGORIES, items: ITEMS,
-            stocks: state.stocks, transactions: state.transactions,
-            timestamp: Date.now()
-        }));
+        saveCache();
 
         // 画面再描画
         renderCombined();
@@ -2149,7 +2094,7 @@ function renderCombined() {
     if (state.deptId) {
         // 部署別表示: シンプルなリスト形式
         const mx = {}; const uniqueItems = ITEMS.filter((item, idx, arr) => arr.findIndex(i => i.id === item.id) === idx).sort((a, b) => { const ca = CATEGORIES.findIndex(c => c.id === a.categoryId); const cb = CATEGORIES.findIndex(c => c.id === b.categoryId); if (ca !== cb) return ca - cb; return a.name.localeCompare(b.name, 'ja'); }); uniqueItems.forEach(i => { mx[i.id] = 0; });
-        flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + (t.type.startsWith('OUT') ? t.quantity : t.quantity); }); // ここはOUT/INに関わらず絶対値を集計（項目ごとに確認したい場合用）
+        flt.forEach(t => { mx[t.itemId] = (mx[t.itemId] || 0) + t.quantity; }); // OUT/IN に関わらず数量を積み上げる（種別はフィルタ側で絞り込む）
         const used = uniqueItems.filter(i => mx[i.id] > 0);
         if (used.length === 0) {
             el.budgetTable.innerHTML = '<tr><td colspan="2" style="padding:2rem;text-align:center">データなし</td></tr>';
@@ -2859,6 +2804,14 @@ async function deleteItemSetting(id) {
     showLoading(true);
     try { await fsDeleteItem(id); ITEMS = ITEMS.filter(i => i.id !== id); renderSettings(); } catch (e) { handleError(e); }
     showLoading(false);
+}
+
+// ITEMS は「用品×カテゴリ」のリンク単位で作られているため、
+// 複数カテゴリに属する用品は同じ id で複数回現れる。
+// 用品単位で扱いたい箇所ではこれで重複を除く。
+function uniqueItems(list = ITEMS) {
+    const seen = new Set();
+    return list.filter(i => (seen.has(i.id) ? false : seen.add(i.id)));
 }
 
 function getLots(deptId, itemId) { return state.stocks.filter(s => (deptId === null || s.departmentId === deptId) && s.itemId === itemId && s.quantity > 0); }
