@@ -131,8 +131,10 @@ async function main() {
     // 4文字ずつ区切って表示するため、そのまま貼ると空白が混ざり
     // 535-5.7.8 Username and Password not accepted で失敗する。
     // 実際の値は英数字16文字なので、空白と改行は取り除いてから使う。
-    const smtpUser = (process.env.SMTP_USER || '').trim();
-    const smtpPass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+    // 前後の引用符も取り除く（"abcd efgh ..." のように貼られる場合がある）
+    const unquote = (v) => v.replace(/^["'\s]+|["'\s]+$/g, '');
+    const smtpUser = unquote(process.env.SMTP_USER || '');
+    const smtpPass = unquote(process.env.SMTP_PASS || '').replace(/\s+/g, '');
 
     if (!DRY_RUN && (!smtpUser || !smtpPass)) {
         console.error('SMTP_USER / SMTP_PASS が設定されていません。');
@@ -163,10 +165,18 @@ async function main() {
                 console.error('  1. SMTP_PASS は Google の「アプリパスワード」16文字か');
                 console.error('     （通常のログインパスワードでは通りません）');
                 console.error('  2. SMTP_USER のアカウントでそのアプリパスワードを発行したか');
-                console.error(`     現在の SMTP_USER: ${smtpUser}`);
                 console.error('  3. そのアカウントで2段階認証が有効か');
                 console.error('  4. アプリパスワードを取り消していないか');
                 console.error('     https://myaccount.google.com/apppasswords');
+                console.error('');
+                // 値そのものは GitHub にマスクされるうえ機密なので、
+                // 形だけを出して原因を切り分けられるようにする
+                const rawPass = process.env.SMTP_PASS || '';
+                console.error('設定値の形（値そのものは表示しません）:');
+                console.error(`  SMTP_USER: ローカル部 ${smtpUser.split('@')[0].length} 文字 / ドメイン @${smtpUser.split('@')[1] || '(なし)'}`);
+                console.error(`  SMTP_PASS: ${smtpPass.length} 文字（アプリパスワードなら 16）`);
+                console.error(`             元の値には空白が ${(rawPass.match(/\s/g) || []).length} 個`);
+                console.error(`             英小文字のみで構成: ${/^[a-z]+$/.test(smtpPass) ? 'はい（アプリパスワードの典型）' : 'いいえ'}`);
             }
             process.exit(1);
         }
