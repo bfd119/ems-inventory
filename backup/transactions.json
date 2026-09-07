@@ -51566,5 +51566,170 @@
     "timestamp": "2026-09-06T23:56:49.608+00:00",
     "transfer_pair_id": null,
     "type": "OUT_USE"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": null,
+    "id": 5128,
+    "item_id": 334,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T01:07:29.416+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 1,
+    "expiry_date": null,
+    "id": 5129,
+    "item_id": 388,
+    "quantity": 9,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T06:22:09.381+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 1,
+    "expiry_date": null,
+    "id": 5130,
+    "item_id": 388,
+    "quantity": 80,
+    "remarks": "購入した",
+    "timestamp": "2026-09-07T06:25:48.493+00:00",
+    "transfer_pair_id": null,
+    "type": "IN_BUY"
+  },
+  {
+    "department_id": 1,
+    "expiry_date": null,
+    "id": 5131,
+    "item_id": 388,
+    "quantity": 60,
+    "remarks": "三次にあげた",
+    "timestamp": "2026-09-07T06:26:15.652+00:00",
+    "transfer_pair_id": "b43c9b37-63e6-46d6-ab26-732dee9fee2d",
+    "type": "OUT_GIVE"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": null,
+    "id": 5132,
+    "item_id": 388,
+    "quantity": 60,
+    "remarks": "警防課からもらった",
+    "timestamp": "2026-09-07T06:26:15.652+00:00",
+    "transfer_pair_id": "b43c9b37-63e6-46d6-ab26-732dee9fee2d",
+    "type": "IN_GET"
+  },
+  {
+    "department_id": 1,
+    "expiry_date": null,
+    "id": 5135,
+    "item_id": 388,
+    "quantity": 20,
+    "remarks": "庄原にあげた",
+    "timestamp": "2026-09-07T06:27:09.004+00:00",
+    "transfer_pair_id": "1cbc53af-10e2-48bd-b8e3-d4c36d05f821",
+    "type": "OUT_GIVE"
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 5136,
+    "item_id": 388,
+    "quantity": 20,
+    "remarks": "警防課からもらった",
+    "timestamp": "2026-09-07T06:27:09.004+00:00",
+    "transfer_pair_id": "1cbc53af-10e2-48bd-b8e3-d4c36d05f821",
+    "type": "IN_GET"
+  },
+  {
+    "department_id": 10,
+    "expiry_date": "2026-09-01",
+    "id": 5137,
+    "item_id": 291,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T08:04:49.47+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 10,
+    "expiry_date": "2026-09-01",
+    "id": 5138,
+    "item_id": 291,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T08:04:58.642+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 10,
+    "expiry_date": "2026-09-01",
+    "id": 5139,
+    "item_id": 291,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T08:05:02.42+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 10,
+    "expiry_date": "2026-09-01",
+    "id": 5140,
+    "item_id": 292,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T08:05:05.677+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 7,
+    "expiry_date": "2026-08-31",
+    "id": 5141,
+    "item_id": 289,
+    "quantity": 5,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T08:18:04.699+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 7,
+    "expiry_date": "2026-08-31",
+    "id": 5142,
+    "item_id": 267,
+    "quantity": 6,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T08:18:32.756+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": null,
+    "id": 5143,
+    "item_id": 388,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-07T19:54:14.211+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 4,
+    "expiry_date": null,
+    "id": 5144,
+    "item_id": 359,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-08T00:00:00+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
   }
 ]
