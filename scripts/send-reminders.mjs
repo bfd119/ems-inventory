@@ -126,14 +126,51 @@ async function main() {
     // SMTP の接続先は環境変数で差し替えられるようにしてある。
     // 既定は Gmail。将来 Google の仕様変更などで使えなくなった場合は、
     // SMTP_HOST / SMTP_PORT を別のサービスに変えるだけで移行できる。
+    //
+    // Google はアプリパスワードを "abcd efgh ijkl mnop" のように
+    // 4文字ずつ区切って表示するため、そのまま貼ると空白が混ざり
+    // 535-5.7.8 Username and Password not accepted で失敗する。
+    // 実際の値は英数字16文字なので、空白と改行は取り除いてから使う。
+    const smtpUser = (process.env.SMTP_USER || '').trim();
+    const smtpPass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+
+    if (!DRY_RUN && (!smtpUser || !smtpPass)) {
+        console.error('SMTP_USER / SMTP_PASS が設定されていません。');
+        console.error('GitHub の Settings > Secrets and variables > Actions を確認してください。');
+        process.exit(1);
+    }
+
     const transporter = DRY_RUN
         ? null
         : nodemailer.createTransport({
               host: process.env.SMTP_HOST || 'smtp.gmail.com',
               port: Number(process.env.SMTP_PORT) || 465,
               secure: (Number(process.env.SMTP_PORT) || 465) === 465,
-              auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+              auth: { user: smtpUser, pass: smtpPass },
           });
+
+    // 送信前に接続と認証だけ先に確認する。
+    // 失敗時に何を直せばよいかを具体的に出す（メール本文の生成後に
+    // 認証エラーで落ちると、原因が分かりにくいため）。
+    if (transporter) {
+        try {
+            await transporter.verify();
+        } catch (e) {
+            console.error('SMTP の認証に失敗しました:', e.message);
+            if (e.code === 'EAUTH') {
+                console.error('');
+                console.error('確認してください:');
+                console.error('  1. SMTP_PASS は Google の「アプリパスワード」16文字か');
+                console.error('     （通常のログインパスワードでは通りません）');
+                console.error('  2. SMTP_USER のアカウントでそのアプリパスワードを発行したか');
+                console.error(`     現在の SMTP_USER: ${smtpUser}`);
+                console.error('  3. そのアカウントで2段階認証が有効か');
+                console.error('  4. アプリパスワードを取り消していないか');
+                console.error('     https://myaccount.google.com/apppasswords');
+            }
+            process.exit(1);
+        }
+    }
 
     let sent = 0;
     for (const deptId of deptIds) {
@@ -170,7 +207,7 @@ async function main() {
             continue;
         }
 
-        await transporter.sendMail({ from: process.env.SMTP_USER, to, subject, text: body });
+        await transporter.sendMail({ from: smtpUser, to, subject, text: body });
         console.log(`${deptName} (${to}) へ送信しました: ${rows.length}件`);
         sent++;
     }
