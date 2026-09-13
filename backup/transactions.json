@@ -52853,5 +52853,27 @@
     "timestamp": "2026-09-12T10:32:37.617+00:00",
     "transfer_pair_id": null,
     "type": "OUT_USE"
+  },
+  {
+    "department_id": 4,
+    "expiry_date": null,
+    "id": 5249,
+    "item_id": 375,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-11T00:00:00+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 5250,
+    "item_id": 388,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-13T05:55:46.432+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
   }
 ]
