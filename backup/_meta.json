@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-09-17T23:46:04.600Z",
+  "generated_at": "2026-09-18T23:40:23.189Z",
   "counts": {
     "categories": 12,
     "items": 125,
     "item_categories": 132,
-    "stocks": 1107,
-    "transactions": 4936,
+    "stocks": 1106,
+    "transactions": 4945,
     "system_settings": 1
   },
   "failures": [],
