@@ -55933,5 +55933,16 @@
     "timestamp": "2026-09-24T09:52:17.508+00:00",
     "transfer_pair_id": null,
     "type": "OUT_USE"
+  },
+  {
+    "department_id": 9,
+    "expiry_date": null,
+    "id": 5533,
+    "item_id": 331,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-25T00:47:45.484+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
   }
 ]
