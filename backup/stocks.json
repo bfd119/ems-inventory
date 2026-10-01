@@ -617,13 +617,6 @@
   },
   {
     "department_id": 9,
-    "expiry_date": "2026-09-30",
-    "id": 177,
-    "item_id": 405,
-    "quantity": 1
-  },
-  {
-    "department_id": 9,
     "expiry_date": "2027-11-30",
     "id": 178,
     "item_id": 405,
@@ -676,7 +669,7 @@
     "expiry_date": null,
     "id": 202,
     "item_id": 329,
-    "quantity": 40
+    "quantity": 36
   },
   {
     "department_id": 2,
@@ -732,7 +725,7 @@
     "expiry_date": null,
     "id": 213,
     "item_id": 349,
-    "quantity": 148
+    "quantity": 147
   },
   {
     "department_id": 7,
@@ -753,7 +746,7 @@
     "expiry_date": null,
     "id": 216,
     "item_id": 345,
-    "quantity": 148
+    "quantity": 147
   },
   {
     "department_id": 2,
@@ -788,7 +781,7 @@
     "expiry_date": null,
     "id": 223,
     "item_id": 388,
-    "quantity": 60
+    "quantity": 57
   },
   {
     "department_id": 2,
@@ -802,7 +795,7 @@
     "expiry_date": null,
     "id": 225,
     "item_id": 375,
-    "quantity": 39
+    "quantity": 37
   },
   {
     "department_id": 2,
@@ -1348,7 +1341,7 @@
     "expiry_date": "2027-01-31",
     "id": 315,
     "item_id": 405,
-    "quantity": 13
+    "quantity": 12
   },
   {
     "department_id": 11,
@@ -5646,7 +5639,7 @@
     "expiry_date": null,
     "id": 1544,
     "item_id": 329,
-    "quantity": 2
+    "quantity": 5
   },
   {
     "department_id": 5,
@@ -6136,7 +6129,7 @@
     "expiry_date": null,
     "id": 1743,
     "item_id": 349,
-    "quantity": 1
+    "quantity": 2
   },
   {
     "department_id": 5,
@@ -6150,7 +6143,7 @@
     "expiry_date": null,
     "id": 1745,
     "item_id": 345,
-    "quantity": 2
+    "quantity": 3
   },
   {
     "department_id": 5,
@@ -6927,7 +6920,7 @@
     "expiry_date": null,
     "id": 1920,
     "item_id": 375,
-    "quantity": 4
+    "quantity": 3
   },
   {
     "department_id": 7,
@@ -7768,5 +7761,12 @@
     "id": 2117,
     "item_id": 282,
     "quantity": 1
+  },
+  {
+    "department_id": 5,
+    "expiry_date": null,
+    "id": 2118,
+    "item_id": 388,
+    "quantity": 3
   }
 ]
