@@ -57836,5 +57836,126 @@
     "timestamp": "2026-10-03T00:28:49.848+00:00",
     "transfer_pair_id": "dfc18b0f-c52e-472a-ab78-f1ba0133b4dd",
     "type": "IN_GET"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": null,
+    "id": 5710,
+    "item_id": 354,
+    "quantity": 2,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-10-03T02:08:24.799+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": "2027-03-31",
+    "id": 5711,
+    "item_id": 289,
+    "quantity": 1,
+    "remarks": "吉舎にあげた",
+    "timestamp": "2026-10-03T04:44:37.372+00:00",
+    "transfer_pair_id": "7a64c397-a39e-43d2-bed0-50c1f836884c",
+    "type": "OUT_GIVE"
+  },
+  {
+    "department_id": 4,
+    "expiry_date": "2027-03-31",
+    "id": 5712,
+    "item_id": 289,
+    "quantity": 1,
+    "remarks": "三次からもらった",
+    "timestamp": "2026-10-03T04:44:37.372+00:00",
+    "transfer_pair_id": "7a64c397-a39e-43d2-bed0-50c1f836884c",
+    "type": "IN_GET"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": null,
+    "id": 5713,
+    "item_id": 290,
+    "quantity": 5,
+    "remarks": "吉舎にあげた",
+    "timestamp": "2026-10-03T04:45:01.994+00:00",
+    "transfer_pair_id": "8fad962a-65e4-4860-9244-77b4a44e8ce2",
+    "type": "OUT_GIVE"
+  },
+  {
+    "department_id": 4,
+    "expiry_date": null,
+    "id": 5714,
+    "item_id": 290,
+    "quantity": 5,
+    "remarks": "三次からもらった",
+    "timestamp": "2026-10-03T04:45:01.994+00:00",
+    "transfer_pair_id": "8fad962a-65e4-4860-9244-77b4a44e8ce2",
+    "type": "IN_GET"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": null,
+    "id": 5715,
+    "item_id": 334,
+    "quantity": 1,
+    "remarks": "救急活動で使用",
+    "timestamp": "2026-10-03T06:14:06.676+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": "2027-03-27",
+    "id": 5716,
+    "item_id": 405,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-09-09T00:00:00+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": null,
+    "id": 5717,
+    "item_id": 329,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-10-03T08:31:03.256+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 2,
+    "expiry_date": null,
+    "id": 5718,
+    "item_id": 298,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-10-03T08:31:54.022+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 5719,
+    "item_id": 361,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-10-03T09:48:00.196+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 5720,
+    "item_id": 363,
+    "quantity": 1,
+    "remarks": "使った（廃棄した）",
+    "timestamp": "2026-10-03T09:48:04.726+00:00",
+    "transfer_pair_id": null,
+    "type": "OUT_USE"
   }
 ]
