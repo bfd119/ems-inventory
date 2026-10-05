@@ -669,7 +669,7 @@
     "expiry_date": null,
     "id": 202,
     "item_id": 329,
-    "quantity": 35
+    "quantity": 34
   },
   {
     "department_id": 2,
@@ -697,7 +697,7 @@
     "expiry_date": null,
     "id": 207,
     "item_id": 333,
-    "quantity": 464
+    "quantity": 463
   },
   {
     "department_id": 2,
@@ -767,14 +767,14 @@
     "expiry_date": null,
     "id": 221,
     "item_id": 355,
-    "quantity": 5784
+    "quantity": 5783
   },
   {
     "department_id": 2,
     "expiry_date": null,
     "id": 222,
     "item_id": 354,
-    "quantity": 142
+    "quantity": 140
   },
   {
     "department_id": 2,
