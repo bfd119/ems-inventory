@@ -718,7 +718,7 @@
     "expiry_date": null,
     "id": 212,
     "item_id": 348,
-    "quantity": 129
+    "quantity": 127
   },
   {
     "department_id": 2,
@@ -746,7 +746,7 @@
     "expiry_date": null,
     "id": 216,
     "item_id": 345,
-    "quantity": 145
+    "quantity": 143
   },
   {
     "department_id": 2,
@@ -893,7 +893,7 @@
     "expiry_date": "2027-11-30",
     "id": 241,
     "item_id": 268,
-    "quantity": 119
+    "quantity": 118
   },
   {
     "department_id": 7,
@@ -949,7 +949,7 @@
     "expiry_date": null,
     "id": 249,
     "item_id": 270,
-    "quantity": 47
+    "quantity": 46
   },
   {
     "department_id": 7,
@@ -970,14 +970,14 @@
     "expiry_date": null,
     "id": 252,
     "item_id": 274,
-    "quantity": 225
+    "quantity": 224
   },
   {
     "department_id": 2,
     "expiry_date": null,
     "id": 253,
     "item_id": 407,
-    "quantity": 53
+    "quantity": 52
   },
   {
     "department_id": 7,
@@ -1152,7 +1152,7 @@
     "expiry_date": null,
     "id": 282,
     "item_id": 290,
-    "quantity": 139
+    "quantity": 138
   },
   {
     "department_id": 2,
@@ -3172,13 +3172,6 @@
   },
   {
     "department_id": 7,
-    "expiry_date": "2025-08-31",
-    "id": 643,
-    "item_id": 371,
-    "quantity": 2
-  },
-  {
-    "department_id": 7,
     "expiry_date": "2026-12-31",
     "id": 644,
     "item_id": 370,
@@ -4358,7 +4351,7 @@
     "expiry_date": null,
     "id": 1325,
     "item_id": 348,
-    "quantity": 3
+    "quantity": 4
   },
   {
     "department_id": 6,
@@ -6465,7 +6458,7 @@
     "expiry_date": "2027-02-28",
     "id": 1809,
     "item_id": 289,
-    "quantity": 4
+    "quantity": 2
   },
   {
     "department_id": 4,
@@ -6752,7 +6745,7 @@
     "expiry_date": "2028-12-31",
     "id": 1876,
     "item_id": 405,
-    "quantity": 49
+    "quantity": 48
   },
   {
     "department_id": 8,
@@ -6906,7 +6899,7 @@
     "expiry_date": "2027-03-05",
     "id": 1923,
     "item_id": 268,
-    "quantity": 3
+    "quantity": 2
   },
   {
     "department_id": 7,
@@ -7396,14 +7389,14 @@
     "expiry_date": "2027-11-30",
     "id": 2046,
     "item_id": 268,
-    "quantity": 4
+    "quantity": 5
   },
   {
     "department_id": 7,
     "expiry_date": "2027-03-31",
     "id": 2047,
     "item_id": 289,
-    "quantity": 6
+    "quantity": 8
   },
   {
     "department_id": 5,
@@ -7501,7 +7494,7 @@
     "expiry_date": "2027-03-31",
     "id": 2062,
     "item_id": 289,
-    "quantity": 8
+    "quantity": 6
   },
   {
     "department_id": 2,
