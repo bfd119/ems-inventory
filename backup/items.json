@@ -110,15 +110,6 @@
   {
     "category_id": 31,
     "has_expiry": true,
-    "id": 277,
-    "min_stock": 0,
-    "name": "チューブ6.0mm",
-    "unit": "個",
-    "unit_price": 0
-  },
-  {
-    "category_id": 31,
-    "has_expiry": true,
     "id": 278,
     "min_stock": 0,
     "name": "チューブ6.5mm",
@@ -1082,15 +1073,6 @@
   {
     "category_id": 39,
     "has_expiry": true,
-    "id": 386,
-    "min_stock": 0,
-    "name": "AEDパッド(FR3)",
-    "unit": "個",
-    "unit_price": 0
-  },
-  {
-    "category_id": 39,
-    "has_expiry": true,
     "id": 387,
     "min_stock": 0,
     "name": "AEDパッド(ZOLL）",
@@ -1121,6 +1103,15 @@
     "id": 407,
     "min_stock": 0,
     "name": "カテリープ",
+    "unit": "個",
+    "unit_price": 0
+  },
+  {
+    "category_id": 39,
+    "has_expiry": true,
+    "id": 424,
+    "min_stock": 0,
+    "name": "AEDパッド(ZOLLセンサーなし)",
     "unit": "個",
     "unit_price": 0
   }

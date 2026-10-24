@@ -19,12 +19,6 @@
   },
   {
     "category_id": 31,
-    "id": 6,
-    "item_id": 277,
-    "sort_order": 0
-  },
-  {
-    "category_id": 31,
     "id": 7,
     "item_id": 278,
     "sort_order": 1
@@ -660,12 +654,6 @@
     "sort_order": 4
   },
   {
-    "category_id": 39,
-    "id": 114,
-    "item_id": 386,
-    "sort_order": 0
-  },
-  {
     "category_id": 36,
     "id": 115,
     "item_id": 366,
@@ -790,5 +778,11 @@
     "id": 277,
     "item_id": 292,
     "sort_order": 6
+  },
+  {
+    "category_id": 39,
+    "id": 413,
+    "item_id": 424,
+    "sort_order": 0
   }
 ]
