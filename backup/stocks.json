@@ -662,14 +662,14 @@
     "expiry_date": null,
     "id": 201,
     "item_id": 330,
-    "quantity": 145
+    "quantity": 142
   },
   {
     "department_id": 2,
     "expiry_date": null,
     "id": 202,
     "item_id": 329,
-    "quantity": 23
+    "quantity": 20
   },
   {
     "department_id": 2,
@@ -690,14 +690,14 @@
     "expiry_date": null,
     "id": 206,
     "item_id": 334,
-    "quantity": 614
+    "quantity": 613
   },
   {
     "department_id": 2,
     "expiry_date": null,
     "id": 207,
     "item_id": 333,
-    "quantity": 461
+    "quantity": 459
   },
   {
     "department_id": 2,
@@ -746,7 +746,7 @@
     "expiry_date": null,
     "id": 216,
     "item_id": 345,
-    "quantity": 140
+    "quantity": 138
   },
   {
     "department_id": 2,
@@ -5503,7 +5503,7 @@
   },
   {
     "department_id": 5,
-    "expiry_date": "2027-03-10",
+    "expiry_date": "2027-02-28",
     "id": 1536,
     "item_id": 289,
     "quantity": 3
@@ -5513,7 +5513,7 @@
     "expiry_date": null,
     "id": 1537,
     "item_id": 290,
-    "quantity": 13
+    "quantity": 11
   },
   {
     "department_id": 5,
@@ -5548,7 +5548,7 @@
     "expiry_date": null,
     "id": 1542,
     "item_id": 274,
-    "quantity": 40
+    "quantity": 39
   },
   {
     "department_id": 5,
@@ -5912,7 +5912,7 @@
     "expiry_date": null,
     "id": 1617,
     "item_id": 330,
-    "quantity": 6
+    "quantity": 5
   },
   {
     "department_id": 9,
@@ -6465,13 +6465,6 @@
     "expiry_date": "2029-10-31",
     "id": 1831,
     "item_id": 280,
-    "quantity": 2
-  },
-  {
-    "department_id": 5,
-    "expiry_date": "2027-03-27",
-    "id": 1833,
-    "item_id": 289,
     "quantity": 2
   },
   {
@@ -7075,13 +7068,6 @@
     "id": 1988,
     "item_id": 405,
     "quantity": 3
-  },
-  {
-    "department_id": 10,
-    "expiry_date": "2026-10-31",
-    "id": 1992,
-    "item_id": 385,
-    "quantity": 1
   },
   {
     "department_id": 4,
@@ -7781,7 +7767,7 @@
     "expiry_date": null,
     "id": 2156,
     "item_id": 345,
-    "quantity": 1
+    "quantity": 2
   },
   {
     "department_id": 6,
