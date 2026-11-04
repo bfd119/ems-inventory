@@ -566,7 +566,9 @@ async function fsGetTransactions(limit = 10000) {
         id: r.id, departmentId: +r.department_id, itemId: +r.item_id,
         type: r.type, quantity: +r.quantity, expiryDate: r.expiry_date,
         remarks: r.remarks, timestamp: r.timestamp,
-        targetDepartmentId: r.target_department_id ? +r.target_department_id : null
+        targetDepartmentId: r.target_department_id ? +r.target_department_id : null,
+        // あげた／もらったの2件を結ぶID。取り消し時に相手側の履歴も画面から消すのに使う
+        transferPairId: r.transfer_pair_id || null
     }));
 }
 
@@ -1689,12 +1691,28 @@ async function deleteTransaction(txId) {
     const d = new Date(tx.timestamp);
     const dateStr = `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
 
+    // あげた／もらったは2件1組で記録されており、DB 側（delete_transaction）は
+    // 片方を指定するともう片方も在庫ごと取り消す。画面側も同じ組を対象にしないと、
+    // 相手署所の履歴（例: 三次の「譲渡 -2」）だけが残って見えてしまう。
+    const isSameEntry = t => tx.transferPairId
+        ? t.transferPairId === tx.transferPairId
+        : t.id === txId;
+    const partners = state.transactions.filter(t => t.id !== txId && isSameEntry(t));
+    const partnerLines = partners.map(p => {
+        const pDept = DEPARTMENTS.find(d => d.id === p.departmentId);
+        const pIsOut = p.type === 'OUT' || p.type.startsWith('OUT_');
+        return `・${pDept?.name || '不明'}: ${typeLabels[p.type] || p.type} ${pIsOut ? '-' : '+'}${p.quantity}`;
+    });
+
     const msg = `この入力を取り消しますか？\n\n` +
         `種別: ${typeLabel}\n` +
         `用品: ${item?.name || '不明'}\n` +
         `数量: ${isOut ? '-' : '+'}${tx.quantity}\n` +
         `署所: ${dept?.name || '不明'}\n` +
         `日付: ${dateStr}\n\n` +
+        (partnerLines.length
+            ? `相手署所の記録も同時に取り消されます:\n${partnerLines.join('\n')}\n\n`
+            : '') +
         `※在庫数も自動で修正されます`;
 
     if (!confirm(msg)) return;
@@ -1703,8 +1721,8 @@ async function deleteTransaction(txId) {
     try {
         await fsDeleteTransaction(txId);
 
-        // ローカルのstate更新
-        state.transactions = state.transactions.filter(t => t.id !== txId);
+        // ローカルのstate更新（相手署所の履歴も含めて取り除く）
+        state.transactions = state.transactions.filter(t => !isSameEntry(t));
         state.transactionsStale = true;
         state.stocks = await fsGetStocks();
 
@@ -1716,7 +1734,9 @@ async function deleteTransaction(txId) {
         renderSummary();
 
         // トーストの代わりにアラート
-        alert('入力を取り消しました。在庫数も修正済みです。');
+        alert(partners.length
+            ? '入力を取り消しました。相手署所の記録と在庫数も修正済みです。'
+            : '入力を取り消しました。在庫数も修正済みです。');
     } catch (e) {
         handleError(e);
     }
