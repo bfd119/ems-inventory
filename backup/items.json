@@ -940,16 +940,7 @@
     "has_expiry": true,
     "id": 370,
     "min_stock": 0,
-    "name": "消毒用エタノール（手指消毒用）",
-    "unit": "個",
-    "unit_price": 0
-  },
-  {
-    "category_id": 37,
-    "has_expiry": true,
-    "id": 371,
-    "min_stock": 0,
-    "name": "消毒用エタノール（資器材用）",
+    "name": "消毒用エタノール（手指・資機材用）",
     "unit": "個",
     "unit_price": 0
   },
