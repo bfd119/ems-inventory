@@ -3140,7 +3140,7 @@
     "expiry_date": null,
     "id": 646,
     "item_id": 375,
-    "quantity": 1
+    "quantity": 2
   },
   {
     "department_id": 7,
@@ -4582,7 +4582,7 @@
     "expiry_date": null,
     "id": 1374,
     "item_id": 388,
-    "quantity": 6
+    "quantity": 5
   },
   {
     "department_id": 10,
