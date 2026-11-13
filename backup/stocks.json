@@ -788,7 +788,7 @@
     "expiry_date": "2027-09-20",
     "id": 224,
     "item_id": 387,
-    "quantity": 14
+    "quantity": 13
   },
   {
     "department_id": 2,
@@ -949,7 +949,7 @@
     "expiry_date": null,
     "id": 249,
     "item_id": 270,
-    "quantity": 38
+    "quantity": 37
   },
   {
     "department_id": 7,
@@ -998,7 +998,7 @@
     "expiry_date": null,
     "id": 256,
     "item_id": 359,
-    "quantity": 8
+    "quantity": 7
   },
   {
     "department_id": 7,
@@ -1089,7 +1089,7 @@
     "expiry_date": "2027-09-05",
     "id": 271,
     "item_id": 279,
-    "quantity": 17
+    "quantity": 15
   },
   {
     "department_id": 2,
@@ -1278,7 +1278,7 @@
     "expiry_date": null,
     "id": 306,
     "item_id": 319,
-    "quantity": 53
+    "quantity": 52
   },
   {
     "department_id": 2,
@@ -1292,7 +1292,7 @@
     "expiry_date": null,
     "id": 308,
     "item_id": 321,
-    "quantity": 54
+    "quantity": 53
   },
   {
     "department_id": 2,
@@ -3854,7 +3854,7 @@
     "expiry_date": "2027-03-05",
     "id": 1186,
     "item_id": 387,
-    "quantity": 2
+    "quantity": 1
   },
   {
     "department_id": 4,
@@ -6399,13 +6399,6 @@
   },
   {
     "department_id": 4,
-    "expiry_date": "2028-05-31",
-    "id": 1835,
-    "item_id": 279,
-    "quantity": 1
-  },
-  {
-    "department_id": 4,
     "expiry_date": null,
     "id": 1840,
     "item_id": 361,
@@ -6570,7 +6563,7 @@
     "expiry_date": "2028-12-31",
     "id": 1876,
     "item_id": 405,
-    "quantity": 52
+    "quantity": 51
   },
   {
     "department_id": 8,
@@ -6983,7 +6976,7 @@
     "expiry_date": "2026-01-01",
     "id": 1995,
     "item_id": 282,
-    "quantity": 2
+    "quantity": 1
   },
   {
     "department_id": 7,
@@ -7354,7 +7347,7 @@
     "expiry_date": "2027-09-20",
     "id": 2095,
     "item_id": 387,
-    "quantity": 2
+    "quantity": 3
   },
   {
     "department_id": 1,
@@ -7473,7 +7466,7 @@
     "expiry_date": "2026-12-31",
     "id": 2117,
     "item_id": 282,
-    "quantity": 1
+    "quantity": 2
   },
   {
     "department_id": 5,
@@ -7487,7 +7480,7 @@
     "expiry_date": "2026-12-31",
     "id": 2119,
     "item_id": 282,
-    "quantity": 4
+    "quantity": 3
   },
   {
     "department_id": 4,
