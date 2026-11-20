@@ -91,7 +91,7 @@ cp .env.example .env    # 値を記入する（.env はコミットされない�
 npm install
 
 npm run check           # 在庫数の整合性チェック（読み取りのみ）
-npm run check:fix       # 不整合を修復する
+npm run check:fix       # 不整合を修復する（※在庫調整・使用期限修正は履歴に残らないため、調整した在庫は元に戻る）
 npm run backup          # バックアップを手動取得
 npm run reminder:dry    # メールを送らずに内容だけ確認
 ```
