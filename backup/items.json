@@ -1105,5 +1105,14 @@
     "name": "AEDパッド(ZOLLセンサーなし)",
     "unit": "個",
     "unit_price": 0
+  },
+  {
+    "category_id": 64,
+    "has_expiry": true,
+    "id": 425,
+    "min_stock": 0,
+    "name": "アクエリアス　500ml",
+    "unit": "本",
+    "unit_price": 0
   }
 ]

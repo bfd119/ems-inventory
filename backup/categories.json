@@ -82,5 +82,12 @@
     "id": 48,
     "name": "CPA",
     "type": "user"
+  },
+  {
+    "department_id": null,
+    "icon": "edit_note",
+    "id": 64,
+    "name": "災害用ドリンク",
+    "type": "system"
   }
 ]
