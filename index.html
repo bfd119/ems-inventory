@@ -233,6 +233,12 @@
                         </div>
                     </div>
                 </div>
+                <!-- 購入した・もらったの画面で、自署所の在庫の使用期限を直す入口。
+                     （使った・あげたでは、上のロット一覧の各行に同じボタンが出る） -->
+                <div class="form-group" id="own-lot-group" style="display:none;">
+                    <label id="own-lot-label">いまの在庫（使用期限を直せます）</label>
+                    <div class="lot-list" id="own-lot-list"></div>
+                </div>
                 <div class="form-group" id="unit-price-group" style="display:none;">
                     <label>単価 (任意)</label>
                     <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
@@ -469,20 +475,30 @@
         </div>
     </div>
 
-    <!-- 起動時のお知らせ。表示期間は app.js の ANNOUNCEMENT_UNTIL で決まる -->
+    <!-- 起動時のお知らせ。表示期間は app.js の ANNOUNCEMENT_UNTIL で決まる。
+         ×ボタンは固定し、本文(announce-body)だけがスクロールする。 -->
     <div class="announce-modal" id="announcement-modal" role="dialog" aria-modal="true"
         aria-labelledby="announcement-title">
         <div class="announce-backdrop"></div>
         <div class="announce-card">
             <button type="button" class="announce-close" id="close-announcement" aria-label="閉じる">×</button>
-            <p class="announce-badge">お知らせ</p>
-            <h2 class="announce-title" id="announcement-title">機能追加・<br><span class="nobr">バージョンアップ</span>できます！</h2>
-            <p class="announce-lead">要望は、<strong class="nobr">警防課の前岡</strong>に<br><strong class="nobr">メールで文面</strong>で送ってください。</p>
-            <ul class="announce-points">
-                <li>「めんどくさい」「なんか使いにくい」という意見は、貴重なバージョンアップにつながります。</li>
-                <li>みんなが楽になります。みんなの助けになります。</li>
-                <li>自分の中にため込まず、遠慮せず、<strong>必ずバージョンアップ要望をしてください。</strong><br>それがみんなのためになります。</li>
-            </ul>
+            <div class="announce-body">
+                <p class="announce-badge">お知らせ</p>
+                <h2 class="announce-title" id="announcement-title">機能追加・<br><span class="nobr">バージョンアップ</span>できます！</h2>
+
+                <div class="announce-new">
+                    <p class="announce-new-title"><span class="announce-new-tag">NEW</span>在庫調整機能が追加されました</p>
+                    <p>これまでは「購入した」や「使った」で数を調整していましたが、これからは<strong class="nobr">「🔧 在庫調整」</strong>で、<strong>帳簿と現状の個数を合わせる</strong>ことができます。</p>
+                    <p class="announce-new-note">用品を開くと、「いまの数」の下にあります。<span class="nobr">購入・使用の履歴には残りません。</span></p>
+                </div>
+
+                <p class="announce-lead">要望は、<strong class="nobr">警防課の前岡</strong>に<br><strong class="nobr">メールで文面</strong>で送ってください。</p>
+                <ul class="announce-points">
+                    <li>「めんどくさい」「なんか使いにくい」という意見は、貴重なバージョンアップにつながります。</li>
+                    <li>みんなが楽になります。みんなの助けになります。</li>
+                    <li>自分の中にため込まず、遠慮せず、<strong>必ずバージョンアップ要望をしてください。</strong><br>それがみんなのためになります。</li>
+                </ul>
+            </div>
         </div>
     </div>
 

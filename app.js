@@ -1239,6 +1239,32 @@ function setTxType(t) {
         el.expiryInputGroup.style.display = 'none';
         el.lotSelectGroup.style.display = 'none';
     }
+
+    // 使用期限修正は、購入した・もらったの画面にも出す（自署所の在庫の期限を直す）。
+    // 使った・あげたでは、上のロット一覧の各行に同じボタンが出ているので、ここは出さない。
+    const showOwnLots = isInbound && item.hasExpiry && lots.length > 0;
+    $('own-lot-group').style.display = showOwnLots ? 'block' : 'none';
+    if (showOwnLots) renderOwnLotList(lots);
+}
+
+// 購入した・もらったの画面用: 自署所の在庫を一覧し、各行から使用期限を直せるようにする。
+// 「もらった」のロット一覧は相手署所の在庫なので、期限の修正はこちらの一覧から行う。
+function renderOwnLotList(lots) {
+    const dept = DEPARTMENTS.find(d => d.id === state.deptId);
+    $('own-lot-label').textContent = `${dept ? dept.name : '自署所'}の在庫（使用期限を直せます）`;
+    const sorted = [...lots].sort((a, b) => (a.expiryDate || '9999-12-31').localeCompare(b.expiryDate || '9999-12-31'));
+    $('own-lot-list').innerHTML = sorted.map(l => `
+                <div class="lot-item static ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}">
+                    <span>${l.expiryDate || '期限なし'}</span>
+                    <span>残り ${l.quantity}個</span>
+                    ${lotEditExpiryBtnHtml(l)}
+                </div>`).join('');
+}
+
+// 「📅 使用期限修正」ボタンのHTML。ロット一覧と自署所の在庫一覧で共通。
+// 絵文字だけだと機能に気づかれないため、文字を添えている。
+function lotEditExpiryBtnHtml(l) {
+    return `<button class="edit-expiry-btn" onclick="event.stopPropagation();editLotExpiry('${l.expiryDate || ''}', ${l.quantity})">📅 使用期限修正</button>`;
 }
 
 // 「もらった」用: 選択中の相手署所が実際に持っている在庫ロットを一覧表示する
@@ -1275,7 +1301,7 @@ function renderLotList(lots, options = {}) {
                 <div class="lot-item ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}" data-idx="${i}" title="選択する">
                     <span>${l.expiryDate || '期限なし'}</span>
                     <span>残り ${l.quantity}個</span>
-                    ${allowExpiryEdit ? `<button class="edit-expiry-btn" onclick="event.stopPropagation();editLotExpiry('${l.expiryDate || ''}', ${l.quantity})">📅 使用期限修正</button>` : ''}
+                    ${allowExpiryEdit ? lotEditExpiryBtnHtml(l) : ''}
                 </div>`).join('');
 
     state.selectedLot = null;
@@ -1310,12 +1336,37 @@ async function saveLotExpiry() {
     try {
         await fsUpdateStockExpiry(state.deptId, state.itemId, oldExpiry || '', newExpiry || '');
         state.stocks = await fsGetStocks();
-        const lots = getLots(state.deptId, state.itemId);
-        renderLotList(lots);
+        refreshTxPanelAfterExpiryEdit();
         // alert('使用期限を更新しました'); // 邪魔なので削除またはトースト通知へ
         el.editExpiryModal.classList.remove('active');
     } catch (e) { handleError(e); }
     showLoading(false);
+}
+
+// 使用期限を直したあと、入出庫パネルの表示を最新にする。
+// 期限修正は4つの画面（使った・あげた・購入した・もらった）のどこからでも行えるため、
+// 画面ごとに必要な部分だけを作り直す。
+// （従来は常に #lot-list を自署所の在庫で作り直していた。「もらった」では
+//   #lot-list は相手署所の在庫なので、それをやると相手の一覧を上書きしてしまう）
+function refreshTxPanelAfterExpiryEdit() {
+    const t = state.txType;
+    const lots = getLots(state.deptId, state.itemId);
+    el.stockValue.textContent = lots.reduce((a, l) => a + l.quantity, 0);
+
+    if (t === 'OUT_USE' || t === 'OUT_GIVE') {
+        renderLotList(lots);
+    } else if (t === 'IN_GET') {
+        // 相手署所のロット選択や相手の選択はそのまま。自署所の一覧だけ更新する
+        renderOwnLotList(lots);
+    } else if (t === 'IN_BUY') {
+        // 期限のプルダウンも作り直す必要があるため setTxType を呼ぶ。
+        // 入力済みの「新規の期限」と「単価」が消えないよう、前後で保持する。
+        const price = $('transaction-unit-price').value;
+        const typedNewExpiry = $('transaction-expiry-select').value === '' ? el.txExpiry.value : '';
+        setTxType('IN_BUY');
+        $('transaction-unit-price').value = price;
+        if (typedNewExpiry && $('transaction-expiry-select').value === '') el.txExpiry.value = typedNewExpiry;
+    }
 }
 
 // ============================================
@@ -1379,7 +1430,10 @@ function addAdjustRow() {
 }
 
 function renderAdjustRows() {
-    $('adjust-lots').innerHTML = adjust.rows.map(r => `
+    // 日付が「使用期限」であることが分かるよう、列の見出しを付ける（期限のある行があるときだけ）
+    const head = adjust.rows.some(r => r.showExpiry)
+        ? '<div class="adjust-lots-head"><span>📅 使用期限</span><span>個数</span></div>' : '';
+    $('adjust-lots').innerHTML = head + adjust.rows.map(r => `
         <div class="adjust-lot${r.showExpiry ? '' : ' no-expiry'}" data-row="${r.id}">
             ${r.showExpiry ? `
             <div class="custom-date-input" id="adjust-exp-${r.id}-wrapper">
