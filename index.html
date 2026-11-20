@@ -190,8 +190,15 @@
                     id="close-transaction-modal">×</button>
             </div>
             <div class="modal-body">
-                <div class="current-stock"><span class="stock-label">いまの数:</span><span class="stock-value"
-                        id="current-stock-value">0</span><span id="current-stock-unit">個</span></div>
+                <div class="current-stock">
+                    <div><span class="stock-label">いまの数:</span><span class="stock-value"
+                            id="current-stock-value">0</span><span id="current-stock-unit">個</span></div>
+                    <!-- 在庫調整: 入出庫の4ボタンとは別枠の控えめな導線。履歴には残らない補正用 -->
+                    <div class="adjust-entry">
+                        <button type="button" class="adjust-open-btn" id="open-adjust-stock">🔧 在庫調整</button>
+                        <p class="adjust-caption">在庫が合わなくなったときに、期限や個数を調整できます。<span>（履歴には残りません）</span></p>
+                    </div>
+                </div>
                 <div class="transaction-type-toggle" id="tx-type-toggle-container">
                     <div class="tx-group-wrapper" id="tx-group-out">
                         <button class="type-btn active" data-type="OUT_USE" id="btn-type-out-use"
@@ -256,6 +263,28 @@
                         <option value="他署へ譲渡">
                     </datalist></div>
                 <button class="save-btn" id="save-transaction">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 在庫調整: 実際の在庫に合わせて期限・個数を直す。履歴(transactions)には記録しない -->
+    <div class="modal" id="adjust-stock-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔧 在庫調整</h3><button class="modal-close" id="close-adjust-stock-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="adjust-target" id="adjust-target"></p>
+                <p class="adjust-intro" id="adjust-intro"></p>
+                <div class="adjust-lots" id="adjust-lots"></div>
+                <button type="button" class="adjust-add-btn" id="adjust-add-lot">＋ 期限のちがう在庫を追加</button>
+                <p class="adjust-hint" id="adjust-hint">0個にすると、その期限の在庫はなくなります。</p>
+                <div class="adjust-total" id="adjust-total"></div>
+                <div class="adjust-actions">
+                    <button type="button" class="save-btn adjust-cancel-btn" id="cancel-adjust-stock">キャンセル</button>
+                    <button type="button" class="save-btn" id="save-adjust-stock">この内容に合わせる</button>
+                </div>
             </div>
         </div>
     </div>
@@ -437,6 +466,23 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 起動時のお知らせ。表示期間は app.js の ANNOUNCEMENT_UNTIL で決まる -->
+    <div class="announce-modal" id="announcement-modal" role="dialog" aria-modal="true"
+        aria-labelledby="announcement-title">
+        <div class="announce-backdrop"></div>
+        <div class="announce-card">
+            <button type="button" class="announce-close" id="close-announcement" aria-label="閉じる">×</button>
+            <p class="announce-badge">お知らせ</p>
+            <h2 class="announce-title" id="announcement-title">機能追加・<br><span class="nobr">バージョンアップ</span>できます！</h2>
+            <p class="announce-lead">要望は、<strong class="nobr">警防課の前岡</strong>に<br><strong class="nobr">メールで文面</strong>で送ってください。</p>
+            <ul class="announce-points">
+                <li>「めんどくさい」「なんか使いにくい」という意見は、貴重なバージョンアップにつながります。</li>
+                <li>みんなが楽になります。みんなの助けになります。</li>
+                <li>自分の中にため込まず、遠慮せず、<strong>必ずバージョンアップ要望をしてください。</strong><br>それがみんなのためになります。</li>
+            </ul>
         </div>
     </div>
 

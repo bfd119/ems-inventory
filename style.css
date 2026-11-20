@@ -2021,3 +2021,362 @@
             box-shadow: 0 -8px 12px -6px var(--color-bg-card),
                         0 0 0 var(--spacing-md) var(--color-bg-card);
         }
+
+        /* =====================================================
+           在庫調整・使用期限修正・起動時のお知らせ
+           ===================================================== */
+
+        /* 「いまの数」の枠の中に置く、在庫調整への入口。
+           入出庫の4ボタンより目立たせず、かつ見落とされない控えめな帯にする。 */
+        .adjust-entry {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+            padding-top: var(--spacing-sm);
+            border-top: 1px dashed var(--color-bg-tertiary);
+            text-align: left;
+        }
+
+        .adjust-open-btn {
+            flex-shrink: 0;
+            min-height: 36px;
+            padding: 6px 12px;
+            border: 1.5px solid var(--color-accent-primary);
+            border-radius: 999px;
+            background: var(--color-bg-card);
+            color: var(--color-accent-primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .adjust-caption {
+            font-size: 0.72rem;
+            line-height: 1.45;
+            color: var(--color-text-secondary);
+        }
+
+        .adjust-caption span {
+            color: var(--color-text-muted);
+            white-space: nowrap;
+        }
+
+        /* 在庫調整モーダル */
+        .adjust-target {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            overflow-wrap: anywhere;
+        }
+
+        .adjust-intro {
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--color-text-secondary);
+            background: rgba(217, 119, 6, 0.08);
+            border-left: 3px solid var(--color-accent-primary);
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .adjust-intro strong {
+            color: var(--color-text-primary);
+        }
+
+        .adjust-lots {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .adjust-lot {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: var(--spacing-sm);
+            align-items: center;
+            padding: var(--spacing-sm);
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-sm);
+        }
+
+        /* 期限のない用品は個数だけ */
+        .adjust-lot.no-expiry {
+            grid-template-columns: 1fr;
+        }
+
+        .adjust-lot.zeroed {
+            opacity: 0.55;
+        }
+
+        .adjust-lot .custom-date-input {
+            background: var(--color-bg-card);
+        }
+
+        .adjust-lot .custom-date-input input {
+            height: 44px;
+            font-size: 0.95rem;
+            padding-right: 40px;
+        }
+
+        .adjust-lot.expired .custom-date-input input {
+            color: var(--color-danger);
+        }
+
+        .adjust-qty {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .adjust-lot.no-expiry .adjust-qty {
+            justify-content: center;
+        }
+
+        .adjust-qty button {
+            width: 40px;
+            height: 44px;
+            background: var(--color-bg-tertiary);
+            border-radius: var(--border-radius-sm);
+            font-size: 1.2rem;
+        }
+
+        .adjust-qty input {
+            width: 64px;
+            height: 44px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            color: var(--color-text-primary);
+        }
+
+        .adjust-qty input:focus {
+            outline: none;
+            border-color: var(--color-accent-primary);
+        }
+
+        .adjust-add-btn {
+            width: 100%;
+            margin-top: var(--spacing-sm);
+            padding: 10px;
+            border: 1.5px dashed var(--color-accent-primary);
+            border-radius: var(--border-radius-sm);
+            color: var(--color-accent-primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .adjust-hint {
+            margin-top: 6px;
+            font-size: 0.72rem;
+            color: var(--color-text-muted);
+        }
+
+        .adjust-total {
+            margin-top: var(--spacing-md);
+            padding: 10px var(--spacing-md);
+            text-align: center;
+            font-weight: 600;
+            background: var(--color-bg-secondary);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .adjust-total .changed {
+            color: var(--color-accent-primary);
+        }
+
+        /* 保存ボタンはモーダル下端に固定する（スマホでスクロールせず押せるように） */
+        #adjust-stock-modal .modal-body {
+            padding-bottom: 0;
+        }
+
+        .adjust-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+            padding-bottom: var(--spacing-md);
+            margin-top: var(--spacing-md);
+            background: var(--color-bg-card);
+            box-shadow: 0 -8px 12px -6px var(--color-bg-card);
+        }
+
+        .adjust-actions .save-btn {
+            flex: 1;
+            width: auto;
+            margin-top: 0;
+        }
+
+        .adjust-actions .adjust-cancel-btn {
+            flex: 0 0 34%;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+        }
+
+        /* 使用期限修正ボタン（ロット一覧の📅）。
+           絵文字だけだと機能に気づかれないため、文字を添えて小さな枠にする。 */
+        .edit-expiry-btn {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            min-height: 32px;
+            padding: 4px 8px;
+            border: 1px solid var(--color-accent-primary);
+            border-radius: 999px;
+            background: var(--color-bg-card);
+            color: var(--color-accent-primary);
+            font-size: 0.7rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .lot-item .edit-expiry-btn {
+            margin-left: var(--spacing-sm);
+        }
+
+        /* 起動時のお知らせ（大きめのダイアログ。×ボタンで閉じる） */
+        .announce-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            /* 読み込み中の表示(1000)より上、日付ピッカー(2000)より下 */
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-md);
+        }
+
+        .announce-modal.active {
+            display: flex;
+        }
+
+        .announce-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+        }
+
+        .announce-card {
+            position: relative;
+            width: 100%;
+            max-width: 560px;
+            max-height: 92dvh;
+            overflow-y: auto;
+            padding: 36px 24px 28px;
+            background: var(--color-bg-card);
+            border-radius: var(--border-radius-xl);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35);
+            animation: announcePop 0.25s ease;
+        }
+
+        /* 上端のアクセント帯（カードの角丸でそのまま切り取られる） */
+        .announce-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: var(--color-accent-gradient);
+        }
+
+        .nobr {
+            white-space: nowrap;
+        }
+
+        @keyframes announcePop {
+            from {
+                opacity: 0;
+                transform: scale(0.94);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .announce-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--color-bg-tertiary);
+            color: var(--color-text-primary);
+            font-size: 1.75rem;
+            line-height: 1;
+        }
+
+        .announce-close:focus-visible {
+            outline: 3px solid var(--color-accent-primary);
+            outline-offset: 2px;
+        }
+
+        .announce-badge {
+            display: inline-block;
+            padding: 2px 14px;
+            margin-bottom: var(--spacing-sm);
+            border-radius: 999px;
+            background: var(--color-accent-gradient);
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* ×ボタンは「お知らせ」の行の右にあり、タイトルとは重ならない */
+        .announce-title {
+            margin-bottom: var(--spacing-md);
+            font-size: clamp(1.25rem, 5.6vw, 1.5rem);
+            line-height: 1.45;
+            color: var(--color-accent-primary);
+            text-wrap: balance;
+        }
+
+        .announce-lead {
+            padding: 12px var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            font-size: clamp(0.95rem, 4.2vw, 1.15rem);
+            font-weight: 500;
+            line-height: 1.8;
+            text-wrap: balance;
+            background: rgba(217, 119, 6, 0.1);
+            border-radius: var(--border-radius-md);
+        }
+
+        .announce-lead strong {
+            color: var(--color-accent-secondary);
+        }
+
+        .announce-points {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            list-style: none;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            text-wrap: pretty;
+        }
+
+        .announce-points li {
+            position: relative;
+            padding-left: 1.5em;
+        }
+
+        .announce-points li::before {
+            content: '✔';
+            position: absolute;
+            left: 0;
+            color: var(--color-success);
+            font-weight: 700;
+        }

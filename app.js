@@ -246,6 +246,11 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_f_PvEWu2AQb2hYIa7Ue1lw_War9UOU5
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+// 起動時のお知らせ（バージョンアップ要望の呼びかけ）を表示する期限。
+// この日（含む）まで、アプリを開くたびに大きなダイアログを出す。2026-11-20 から1か月。
+// 延長したいときは日付を書き換える。止めたいときは空文字にする。
+const ANNOUNCEMENT_UNTIL = '2026-12-20';
+
 const ICONS = [
     'medication', 'vaccines', 'medical_services', 'bloodtype',
     'sick', 'checkroom', 'clean_hands', 'healing',
@@ -340,7 +345,8 @@ function cacheElements() {
         transaction: el.txModal,
         addCategory: $('add-category-modal'),
         addItem: $('add-item-modal'),
-        editExpiry: el.editExpiryModal
+        editExpiry: el.editExpiryModal,
+        adjust: $('adjust-stock-modal')
     };
 
     // エイリアス（showTxModal互換性のため）
@@ -418,6 +424,19 @@ function bindEvents() {
             }
         }
     });
+
+    // 在庫調整（実際の在庫に合わせる。履歴には残さない）
+    $('open-adjust-stock').onclick = openAdjustStock;
+    $('close-adjust-stock-modal').onclick = () => closeModal('adjust');
+    $('cancel-adjust-stock').onclick = () => closeModal('adjust');
+    $('adjust-add-lot').onclick = addAdjustRow;
+    $('save-adjust-stock').onclick = saveAdjustStock;
+    // 入力途中の内容が消えないよう、背景タップでは閉じない（×・キャンセルで閉じる）。
+    // 上の「全モーダル共通の背景タップ処理」を、この画面だけ打ち消す。
+    $('adjust-stock-modal').querySelector('.modal-overlay').onclick = null;
+
+    // 起動時のお知らせ
+    $('close-announcement').onclick = () => $('announcement-modal').classList.remove('active');
 
     $('btn-type-out-use').onclick = () => setTxType('OUT_USE');
     $('btn-type-out-give').onclick = () => setTxType('OUT_GIVE');
@@ -680,6 +699,18 @@ async function fsUpdateStockExpiry(deptId, itemId, oldExpiry, newExpiry) {
     return { success: true };
 }
 
+// 在庫調整。(署所, 用品) の在庫を、渡したロット（期限×個数）に入れ替える。
+// 購入・使用などの履歴(transactions)には一切記録しない。
+// expectedLots は画面を開いた時点の在庫。DB の現在値と違えば、別端末の更新を
+// 上書きしないよう DB 側で拒否される（migration_v13_adjust_stock.sql）。
+async function fsAdjustStock(deptId, itemId, lots, expectedLots) {
+    const { error } = await db.rpc('adjust_stock', {
+        p_department_id: deptId, p_item_id: itemId,
+        p_lots: lots, p_expected_lots: expectedLots
+    });
+    if (error) throw error;
+}
+
 const CACHE_KEY = 'ems_inventory_cache';
 
 // 起動時の初期表示用キャッシュを保存する。
@@ -749,7 +780,20 @@ async function loadData() {
         }
     } finally {
         showLoading(false);
+        showAnnouncementIfActive();
     }
+}
+
+// 起動時のお知らせを、期間内なら表示する。×ボタンで閉じる。
+// 読み込み中の表示が消えたあとに呼ぶこと（重なって見えなくなるため）。
+function showAnnouncementIfActive() {
+    const modal = $('announcement-modal');
+    if (!modal || !ANNOUNCEMENT_UNTIL) return;
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (today > ANNOUNCEMENT_UNTIL) return;
+    modal.classList.add('active');
+    $('close-announcement').focus();
 }
 
 function showScreen(n) { Object.values(el.screens).forEach(s => s.classList.remove('active')); el.screens[n].classList.add('active'); }
@@ -1231,7 +1275,7 @@ function renderLotList(lots, options = {}) {
                 <div class="lot-item ${getExpStatus(l.expiryDate) === 'expired' ? 'expired' : ''}" data-idx="${i}" title="選択する">
                     <span>${l.expiryDate || '期限なし'}</span>
                     <span>残り ${l.quantity}個</span>
-                    ${allowExpiryEdit ? `<button class="edit-expiry-btn" onclick="event.stopPropagation();editLotExpiry('${l.expiryDate || ''}', ${l.quantity})">📅</button>` : ''}
+                    ${allowExpiryEdit ? `<button class="edit-expiry-btn" onclick="event.stopPropagation();editLotExpiry('${l.expiryDate || ''}', ${l.quantity})">📅 使用期限修正</button>` : ''}
                 </div>`).join('');
 
     state.selectedLot = null;
@@ -1272,6 +1316,184 @@ async function saveLotExpiry() {
         el.editExpiryModal.classList.remove('active');
     } catch (e) { handleError(e); }
     showLoading(false);
+}
+
+// ============================================
+// 在庫調整
+// 実際の在庫とシステムの数が合わなくなったときに、システムを実際に合わせる。
+// 購入・使用などの履歴には記録しない（実績の集計に影響させないため）。
+// ============================================
+
+// 調整画面の編集状態。rows は画面に出ている行（＝期限ごとの在庫）。
+// expected は画面を開いた時点の在庫で、保存時に「他端末で変わっていないか」の確認に使う。
+const adjust = { deptId: null, itemId: null, rows: [], expected: [], seq: 0 };
+
+function newAdjustRow(expiry, qty, isNew, showExpiry) {
+    return { id: ++adjust.seq, expiry: expiry || '', qty, origExpiry: expiry || '', isNew, showExpiry };
+}
+
+async function openAdjustStock() {
+    const item = ITEMS.find(i => i.id === state.itemId);
+    if (!item) return;
+
+    showLoading(true);
+    try {
+        // 同じ署所の別端末で入出庫されている可能性があるため、最新の在庫を取り直してから開く
+        state.stocks = await fsGetStocks();
+    } catch (e) { handleError(e); return; }
+    showLoading(false);
+
+    adjust.deptId = state.deptId;
+    adjust.itemId = state.itemId;
+    const raw = state.stocks.filter(s => s.departmentId === adjust.deptId && s.itemId === adjust.itemId);
+    adjust.expected = raw.map(s => ({ expiry_date: s.expiryDate || null, quantity: s.quantity }));
+
+    const hasExpiry = !!item.hasExpiry;
+    adjust.rows = raw.filter(s => s.quantity > 0)
+        .sort((a, b) => (a.expiryDate || '9999-12-31').localeCompare(b.expiryDate || '9999-12-31'))
+        .map(s => newAdjustRow(s.expiryDate, s.quantity, false, hasExpiry || !!s.expiryDate));
+    // 在庫がゼロの用品は、空の1行から入力できるようにする
+    if (adjust.rows.length === 0) adjust.rows.push(newAdjustRow('', 0, true, hasExpiry));
+
+    const dept = DEPARTMENTS.find(d => d.id === adjust.deptId);
+    $('adjust-target').textContent = `${dept ? dept.name : ''}　${item.name}`;
+    // 説明文は、期限のある用品とない用品で言い分ける（固定の文言のみ。利用者の入力は含めない）
+    $('adjust-intro').innerHTML = hasExpiry
+        ? '在庫が合わなくなったときに、<strong>実際の使用期限と個数</strong>に合わせます。<br>購入・使用などの<strong>履歴には残りません</strong>。'
+        : '在庫が合わなくなったときに、<strong>実際の個数</strong>に合わせます。<br>購入・使用などの<strong>履歴には残りません</strong>。';
+    // 期限のない用品には、期限に関する案内と「期限のちがう在庫を追加」は不要
+    $('adjust-add-lot').style.display = hasExpiry ? '' : 'none';
+    $('adjust-hint').style.display = hasExpiry ? '' : 'none';
+    $('adjust-stock-modal').querySelector('.modal-body').scrollTop = 0;
+
+    renderAdjustRows();
+    openModal('adjust');
+}
+
+function addAdjustRow() {
+    adjust.rows.push(newAdjustRow('', 1, true, true));
+    renderAdjustRows();
+    // 追加した行が見えるようにスクロールする
+    const rows = $('adjust-lots').querySelectorAll('.adjust-lot');
+    if (rows.length) rows[rows.length - 1].scrollIntoView({ block: 'nearest' });
+}
+
+function renderAdjustRows() {
+    $('adjust-lots').innerHTML = adjust.rows.map(r => `
+        <div class="adjust-lot${r.showExpiry ? '' : ' no-expiry'}" data-row="${r.id}">
+            ${r.showExpiry ? `
+            <div class="custom-date-input" id="adjust-exp-${r.id}-wrapper">
+                <input type="text" id="adjust-exp-${r.id}" readonly placeholder="期限をえらぶ" value="${esc(r.expiry)}" aria-label="使用期限">
+                <span class="material-symbols-outlined icon">calendar_month</span>
+            </div>` : ''}
+            <div class="adjust-qty">
+                <button type="button" data-act="minus" aria-label="1つ減らす">−</button>
+                <input type="number" inputmode="numeric" min="0" step="1" value="${r.qty}" aria-label="個数">
+                <button type="button" data-act="plus" aria-label="1つ増やす">＋</button>
+            </div>
+        </div>`).join('');
+
+    adjust.rows.forEach(r => {
+        const rowEl = $('adjust-lots').querySelector(`[data-row="${r.id}"]`);
+        const qtyInput = rowEl.querySelector('.adjust-qty input');
+
+        // 見た目（0個は薄く／期限切れは赤く）と合計を、入力のたびに更新する。
+        // ここで再描画すると入力中にキーボードが閉じてしまうため、クラスだけ切り替える。
+        const refreshRow = () => {
+            rowEl.classList.toggle('zeroed', r.qty === 0);
+            rowEl.classList.toggle('expired', !!r.expiry && getExpStatus(r.expiry) === 'expired');
+            updateAdjustTotal();
+        };
+        refreshRow();
+
+        qtyInput.oninput = () => {
+            const n = qtyInput.value === '' ? NaN : Number(qtyInput.value);
+            r.qty = Number.isInteger(n) ? n : '';
+            refreshRow();
+        };
+        rowEl.querySelectorAll('.adjust-qty button').forEach(b => b.onclick = () => {
+            const cur = Number.isInteger(r.qty) ? r.qty : 0;
+            r.qty = Math.max(0, cur + (b.dataset.act === 'plus' ? 1 : -1));
+            qtyInput.value = r.qty;
+            refreshRow();
+        });
+
+        if (r.showExpiry) {
+            const dateInput = rowEl.querySelector('.custom-date-input input');
+            // 日付ピッカーは、選んだ日付を input に書き込んで input イベントを発火する
+            dateInput.addEventListener('input', () => { r.expiry = dateInput.value; refreshRow(); });
+            $(`adjust-exp-${r.id}-wrapper`).onclick = () => DatePicker.open(`adjust-exp-${r.id}`, true);
+        }
+    });
+    updateAdjustTotal();
+}
+
+function updateAdjustTotal() {
+    const item = ITEMS.find(i => i.id === adjust.itemId);
+    const unit = item ? item.unit : '';
+    const before = adjust.expected.reduce((a, l) => a + l.quantity, 0);
+    const after = adjust.rows.reduce((a, r) => a + (Number.isInteger(r.qty) ? r.qty : 0), 0);
+    $('adjust-total').innerHTML = after === before
+        ? `合計 ${before}${esc(unit)}（変更なし）`
+        : `合計 ${before}${esc(unit)} → <span class="changed">${after}${esc(unit)}</span>`;
+}
+
+async function saveAdjustStock() {
+    const item = ITEMS.find(i => i.id === adjust.itemId);
+    if (!item) return;
+
+    // ── 入力チェック ──
+    for (const r of adjust.rows) {
+        if (!Number.isInteger(r.qty) || r.qty < 0) { alert('個数は 0 以上の整数で入力してください'); return; }
+        if (r.qty > 1000000) { alert('個数が大きすぎます'); return; }
+        // 新しく足した行や、もともと期限のあった行は、期限を空にしたまま保存させない
+        if (r.showExpiry && r.qty > 0 && !r.expiry && (r.isNew || r.origExpiry)) {
+            alert('使用期限を選んでください'); return;
+        }
+    }
+
+    // 画面の内容を「期限 → 個数」にまとめる（0個は除く。同じ期限は合算）
+    const toMap = pairs => {
+        const m = new Map();
+        pairs.forEach(([exp, q]) => { if (q > 0) m.set(exp || '', (m.get(exp || '') || 0) + q); });
+        return m;
+    };
+    const after = toMap(adjust.rows.map(r => [r.showExpiry ? r.expiry : '', r.qty]));
+    const before = toMap(adjust.expected.map(l => [l.expiry_date, l.quantity]));
+    const unchanged = before.size === after.size && [...after].every(([k, v]) => before.get(k) === v);
+    if (unchanged) { closeModal('adjust'); return; }
+
+    const sum = m => [...m.values()].reduce((a, b) => a + b, 0);
+    if (!confirm(`「${item.name}」の在庫を調整します。\n\n合計 ${sum(before)}${item.unit} → ${sum(after)}${item.unit}\n\n購入・使用などの履歴には残りません。よろしいですか？`)) return;
+
+    const lots = [...after].map(([exp, q]) => ({ expiry_date: exp || null, quantity: q }));
+    const saveBtn = $('save-adjust-stock');
+    saveBtn.disabled = true;
+    showLoading(true);
+    try {
+        await fsAdjustStock(adjust.deptId, adjust.itemId, lots, adjust.expected);
+        state.stocks = await fsGetStocks();
+        renderStockAlerts();
+        refreshTxModalStock();
+        closeModal('adjust');
+    } catch (e) {
+        handleError(e);
+        // 別端末で在庫が更新されていた場合は、最新の在庫で画面を作り直す
+        if (String(e && e.message).includes('他の端末')) {
+            saveBtn.disabled = false;
+            await openAdjustStock();
+            return;
+        }
+    }
+    saveBtn.disabled = false;
+    showLoading(false);
+}
+
+// 在庫調整のあと、後ろにある入出庫パネルの「いまの数」とロット一覧を最新にする
+function refreshTxModalStock() {
+    const lots = getLots(state.deptId, state.itemId);
+    el.stockValue.textContent = lots.reduce((a, l) => a + l.quantity, 0);
+    setTxType(state.txType);
 }
 
 async function saveTx() {

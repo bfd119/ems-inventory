@@ -1,6 +1,10 @@
 // データ整合性チェック・修復スクリプト
 // 実行方法: node check_data_integrity.mjs [--fix]
 // --fix オプションを付けると、stocksテーブルをtransactionsから再計算して修復する
+//
+// ※ 注意: 「在庫調整」(adjust_stock) と「使用期限修正」は履歴(transactions)に残らない。
+//    そのため、これらを行った在庫はここでは「不整合」と表示され、--fix を実行すると
+//    調整前の数に戻ってしまう。--fix は、調整内容を確認してから使うこと。
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://aacntdoacjjssspoctul.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY;
