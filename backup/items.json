@@ -1107,7 +1107,7 @@
     "unit_price": 0
   },
   {
-    "category_id": 64,
+    "category_id": null,
     "has_expiry": true,
     "id": 425,
     "min_stock": 0,
