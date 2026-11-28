@@ -4,7 +4,7 @@
     "expiry_date": null,
     "id": 15,
     "item_id": 270,
-    "quantity": 29
+    "quantity": 27
   },
   {
     "department_id": 8,
@@ -30,13 +30,6 @@
   {
     "department_id": 8,
     "expiry_date": null,
-    "id": 20,
-    "item_id": 276,
-    "quantity": 55
-  },
-  {
-    "department_id": 8,
-    "expiry_date": null,
     "id": 24,
     "item_id": 286,
     "quantity": 2
@@ -54,27 +47,6 @@
     "id": 26,
     "item_id": 290,
     "quantity": 44
-  },
-  {
-    "department_id": 8,
-    "expiry_date": null,
-    "id": 28,
-    "item_id": 299,
-    "quantity": 6
-  },
-  {
-    "department_id": 8,
-    "expiry_date": null,
-    "id": 29,
-    "item_id": 298,
-    "quantity": 26
-  },
-  {
-    "department_id": 8,
-    "expiry_date": null,
-    "id": 30,
-    "item_id": 300,
-    "quantity": 41
   },
   {
     "department_id": 8,
@@ -131,13 +103,6 @@
     "id": 45,
     "item_id": 320,
     "quantity": 183
-  },
-  {
-    "department_id": 8,
-    "expiry_date": null,
-    "id": 46,
-    "item_id": 321,
-    "quantity": 17
   },
   {
     "department_id": 8,
@@ -295,13 +260,6 @@
   },
   {
     "department_id": 8,
-    "expiry_date": null,
-    "id": 104,
-    "item_id": 302,
-    "quantity": 1
-  },
-  {
-    "department_id": 8,
     "expiry_date": "2027-03-31",
     "id": 108,
     "item_id": 281,
@@ -373,13 +331,6 @@
   {
     "department_id": 8,
     "expiry_date": null,
-    "id": 127,
-    "item_id": 363,
-    "quantity": 67
-  },
-  {
-    "department_id": 8,
-    "expiry_date": null,
     "id": 128,
     "item_id": 366,
     "quantity": 148
@@ -417,7 +368,7 @@
     "expiry_date": null,
     "id": 138,
     "item_id": 345,
-    "quantity": 51
+    "quantity": 50
   },
   {
     "department_id": 8,
@@ -526,13 +477,6 @@
   },
   {
     "department_id": 8,
-    "expiry_date": "2028-06-30",
-    "id": 163,
-    "item_id": 267,
-    "quantity": 28
-  },
-  {
-    "department_id": 8,
     "expiry_date": "2027-05-31",
     "id": 167,
     "item_id": 370,
@@ -606,7 +550,7 @@
     "expiry_date": null,
     "id": 202,
     "item_id": 329,
-    "quantity": 12
+    "quantity": 11
   },
   {
     "department_id": 2,
@@ -634,7 +578,7 @@
     "expiry_date": null,
     "id": 207,
     "item_id": 333,
-    "quantity": 406
+    "quantity": 405
   },
   {
     "department_id": 2,
@@ -690,7 +634,7 @@
     "expiry_date": null,
     "id": 221,
     "item_id": 355,
-    "quantity": 3500
+    "quantity": 3499
   },
   {
     "department_id": 2,
@@ -704,7 +648,7 @@
     "expiry_date": null,
     "id": 223,
     "item_id": 388,
-    "quantity": 192
+    "quantity": 191
   },
   {
     "department_id": 2,
@@ -935,7 +879,7 @@
     "expiry_date": null,
     "id": 265,
     "item_id": 355,
-    "quantity": 150
+    "quantity": 151
   },
   {
     "department_id": 7,
@@ -1404,7 +1348,7 @@
     "expiry_date": null,
     "id": 370,
     "item_id": 364,
-    "quantity": 7
+    "quantity": 8
   },
   {
     "department_id": 11,
@@ -4687,7 +4631,7 @@
     "expiry_date": null,
     "id": 1530,
     "item_id": 364,
-    "quantity": 3
+    "quantity": 2
   },
   {
     "department_id": 5,
@@ -4855,21 +4799,21 @@
     "expiry_date": "2028-03-17",
     "id": 1560,
     "item_id": 327,
-    "quantity": 5
+    "quantity": 3
   },
   {
     "department_id": 8,
     "expiry_date": "2028-01-22",
     "id": 1561,
     "item_id": 326,
-    "quantity": 4
+    "quantity": 3
   },
   {
     "department_id": 8,
     "expiry_date": "2028-05-12",
     "id": 1562,
     "item_id": 324,
-    "quantity": 4
+    "quantity": 3
   },
   {
     "department_id": 8,
@@ -4898,20 +4842,6 @@
     "id": 1567,
     "item_id": 380,
     "quantity": 398
-  },
-  {
-    "department_id": 8,
-    "expiry_date": "2028-05-31",
-    "id": 1569,
-    "item_id": 268,
-    "quantity": 47
-  },
-  {
-    "department_id": 8,
-    "expiry_date": "2028-04-30",
-    "id": 1570,
-    "item_id": 269,
-    "quantity": 33
   },
   {
     "department_id": 9,
@@ -5807,7 +5737,7 @@
     "expiry_date": null,
     "id": 1891,
     "item_id": 384,
-    "quantity": 168
+    "quantity": 166
   },
   {
     "department_id": 9,
@@ -6025,13 +5955,6 @@
     "id": 1983,
     "item_id": 282,
     "quantity": 1
-  },
-  {
-    "department_id": 8,
-    "expiry_date": null,
-    "id": 1984,
-    "item_id": 407,
-    "quantity": 11
   },
   {
     "department_id": 3,
@@ -6510,13 +6433,6 @@
     "quantity": 7
   },
   {
-    "department_id": 8,
-    "expiry_date": null,
-    "id": 2123,
-    "item_id": 274,
-    "quantity": 124
-  },
-  {
     "department_id": 3,
     "expiry_date": null,
     "id": 2126,
@@ -6550,20 +6466,6 @@
     "id": 2137,
     "item_id": 387,
     "quantity": 15
-  },
-  {
-    "department_id": 8,
-    "expiry_date": "2027-07-31",
-    "id": 2139,
-    "item_id": 267,
-    "quantity": 1
-  },
-  {
-    "department_id": 8,
-    "expiry_date": "2027-07-31",
-    "id": 2140,
-    "item_id": 268,
-    "quantity": 2
   },
   {
     "department_id": 2,
@@ -6605,7 +6507,7 @@
     "expiry_date": "2028-05-09",
     "id": 2151,
     "item_id": 424,
-    "quantity": 11
+    "quantity": 10
   },
   {
     "department_id": 2,
@@ -6900,13 +6802,6 @@
     "id": 2203,
     "item_id": 383,
     "quantity": 1
-  },
-  {
-    "department_id": 8,
-    "expiry_date": null,
-    "id": 2204,
-    "item_id": 360,
-    "quantity": 11
   },
   {
     "department_id": 8,
@@ -7228,7 +7123,7 @@
     "expiry_date": null,
     "id": 2259,
     "item_id": 348,
-    "quantity": 128
+    "quantity": 127
   },
   {
     "department_id": 2,
@@ -7432,13 +7327,6 @@
     "id": 2289,
     "item_id": 283,
     "quantity": 3
-  },
-  {
-    "department_id": 6,
-    "expiry_date": null,
-    "id": 2290,
-    "item_id": 285,
-    "quantity": 1
   },
   {
     "department_id": 6,
@@ -7670,5 +7558,110 @@
     "id": 2326,
     "item_id": 345,
     "quantity": 2
+  },
+  {
+    "department_id": 2,
+    "expiry_date": "2031-06-09",
+    "id": 2328,
+    "item_id": 279,
+    "quantity": 30
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2330,
+    "item_id": 299,
+    "quantity": 7
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2331,
+    "item_id": 302,
+    "quantity": 2
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2333,
+    "item_id": 407,
+    "quantity": 15
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2335,
+    "item_id": 363,
+    "quantity": 74
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2336,
+    "item_id": 360,
+    "quantity": 12
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2337,
+    "item_id": 276,
+    "quantity": 57
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2338,
+    "item_id": 321,
+    "quantity": 18
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2339,
+    "item_id": 274,
+    "quantity": 134
+  },
+  {
+    "department_id": 8,
+    "expiry_date": "2027-07-31",
+    "id": 2344,
+    "item_id": 268,
+    "quantity": 2
+  },
+  {
+    "department_id": 8,
+    "expiry_date": "2028-05-31",
+    "id": 2345,
+    "item_id": 268,
+    "quantity": 47
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2346,
+    "item_id": 298,
+    "quantity": 28
+  },
+  {
+    "department_id": 8,
+    "expiry_date": null,
+    "id": 2347,
+    "item_id": 300,
+    "quantity": 42
+  },
+  {
+    "department_id": 8,
+    "expiry_date": "2028-04-30",
+    "id": 2348,
+    "item_id": 269,
+    "quantity": 35
+  },
+  {
+    "department_id": 8,
+    "expiry_date": "2028-06-30",
+    "id": 2350,
+    "item_id": 267,
+    "quantity": 31
   }
 ]
